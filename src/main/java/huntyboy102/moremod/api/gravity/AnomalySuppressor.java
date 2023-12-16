@@ -1,15 +1,15 @@
 
 package huntyboy102.moremod.api.gravity;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
 
 public class AnomalySuppressor {
 	private BlockPos pos;
 	private int time;
 	private float amount;
 
-	public AnomalySuppressor(NBTTagCompound tagCompound) {
+	public AnomalySuppressor(CompoundTag tagCompound) {
 		readFromNBT(tagCompound);
 	}
 
@@ -30,14 +30,14 @@ public class AnomalySuppressor {
 		return false;
 	}
 
-	public void writeToNBT(NBTTagCompound tagCompound) {
-		tagCompound.setLong("block", pos.toLong());
-		tagCompound.setByte("time", (byte) time);
-		tagCompound.setFloat("amount", amount);
+	public void writeToNBT(CompoundTag tagCompound) {
+		tagCompound.putLong("block", pos.asLong());
+		tagCompound.putByte("time", (byte) time);
+		tagCompound.putFloat("amount", amount);
 	}
 
-	public void readFromNBT(NBTTagCompound tagCompound) {
-		pos = BlockPos.fromLong(tagCompound.getLong("block"));
+	public void readFromNBT(CompoundTag tagCompound) {
+		pos = BlockPos.of(tagCompound.getLong("block"));
 		time = tagCompound.getByte("time");
 		amount = tagCompound.getFloat("amount");
 	}

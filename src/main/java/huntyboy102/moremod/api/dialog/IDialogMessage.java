@@ -2,7 +2,7 @@
 package huntyboy102.moremod.api.dialog;
 
 import huntyboy102.moremod.api.renderer.IDialogShot;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public interface IDialogMessage extends IDialogOption {
 	 * @param player The Player.
 	 * @return The Parent message.
 	 */
-	IDialogMessage getParent(IDialogNpc npc, EntityPlayer player);
+	IDialogMessage getParent(IDialogNpc npc, Player player);
 
 	/**
 	 * A list of Dialog Message Children. This is used as Conversation Options. Once
@@ -27,7 +27,7 @@ public interface IDialogMessage extends IDialogOption {
 	 * @param player The Player
 	 * @return A list of children (options) messages.
 	 */
-	List<IDialogOption> getOptions(IDialogNpc npc, EntityPlayer player);
+	List<IDialogOption> getOptions(IDialogNpc npc, Player player);
 
 	/**
 	 * Used to get the Text of the Message. Called when this message is active.
@@ -38,23 +38,23 @@ public interface IDialogMessage extends IDialogOption {
 	 * @param player The Player.
 	 * @return The message text.
 	 */
-	String getMessageText(IDialogNpc npc, EntityPlayer player);
+	String getMessageText(IDialogNpc npc, Player player);
 
 	/**
 	 * Called when an option is chosen from the message's children. Not to be
 	 * confused with
-	 * {@link IDialogOption#onInteract(IDialogNpc, EntityPlayer)}
+	 * {@link IDialogOption#onInteract(IDialogNpc, Player)}
 	 * which is called when the message is becoming active. This is called on the
 	 * parent, before
-	 * {@link IDialogOption#onInteract(IDialogNpc, EntityPlayer)}.
+	 * {@link IDialogOption#onInteract(IDialogNpc, Player)}.
 	 *
 	 * @param npc    The NPC Entity.
 	 * @param player The Player
 	 * @param option The Option that was chosen. Not the option (message ID), but
 	 *               the ordering index of the child from
-	 *               {@link IDialogMessage#getOptions(IDialogNpc, EntityPlayer)}.
+	 *               {@link IDialogMessage#getOptions(IDialogNpc, Player)}.
 	 */
-	void onOptionsInteract(IDialogNpc npc, EntityPlayer player, int option);
+	void onOptionsInteract(IDialogNpc npc, Player player, int option);
 
 	/**
 	 * Returns the list of available Camera shots the conversation can have once
@@ -64,5 +64,5 @@ public interface IDialogMessage extends IDialogOption {
 	 * @param player The Player.
 	 * @return Available Camera Shots.
 	 */
-	IDialogShot[] getShots(IDialogNpc npc, EntityPlayer player);
+	IDialogShot[] getShots(IDialogNpc npc, Player player);
 }

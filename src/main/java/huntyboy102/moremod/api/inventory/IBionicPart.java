@@ -3,12 +3,12 @@ package huntyboy102.moremod.api.inventory;
 
 import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.model.BipedModel;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Created by Simeon on 5/26/2015. This class represents parts that can be worn
@@ -54,9 +54,9 @@ public interface IBionicPart {
 	 * @param itemStack     the item stack.
 	 * @return the resource location of the texture.
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	ResourceLocation getTexture(AndroidPlayer androidPlayer, ItemStack itemStack);
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	ModelBiped getModel(AndroidPlayer androidPlayer, ItemStack itemStack);
 }

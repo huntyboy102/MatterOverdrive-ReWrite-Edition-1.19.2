@@ -2,9 +2,9 @@
 package huntyboy102.moremod.api.events.anomaly;
 
 import huntyboy102.moremod.tile.TileEntityGravitationalAnomaly;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.eventbus.api.Event;
 
 /**
  * Created by Simeon on 9/26/2015. Triggered when a

@@ -46,6 +46,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
@@ -943,8 +944,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		triggerEventOnStats(eventEnergyWeapon);
 	}
 
-	@Override
-	public EntityPlayer getPlayer() {
+	public Player getPlayer() {
 		return player;
 	}
 

@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.api.dialog;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Created by Simeon on 8/13/2015. Used to globally store all message. And get

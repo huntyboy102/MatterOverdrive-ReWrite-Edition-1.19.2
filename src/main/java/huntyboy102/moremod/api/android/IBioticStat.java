@@ -7,7 +7,7 @@ import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.network.packet.server.PacketBioticActionKey;
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.client.render.HoloIcons;
-import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -202,7 +202,7 @@ public interface IBioticStat {
 	 *
 	 * @param holoIcons The TextureMap for the Holo Icons
 	 */
-	void registerIcons(TextureMap textureMap, HoloIcons holoIcons);
+	void registerIcons(TextureManager textureMap, HoloIcons holoIcons);
 
 	/**
 	 * Gets the Bionic Stat Icon. Called only on the Client.

@@ -3,7 +3,7 @@ package huntyboy102.moremod.api.events;
 
 import huntyboy102.moremod.api.renderer.ISpaceBodyHoloRenderer;
 import huntyboy102.moremod.starmap.data.SpaceBody;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 /**
  * Created by Simeon on 7/25/2015. Triggered when a Starmap zoom renderer is

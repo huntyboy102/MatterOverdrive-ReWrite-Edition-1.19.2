@@ -2,7 +2,7 @@
 package huntyboy102.moremod.api.events;
 
 import huntyboy102.moremod.api.matter.IMatterEntry;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 /**
  * Created by Simeon on 7/21/2015. Triggered when registering matter entries in

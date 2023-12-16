@@ -3,7 +3,7 @@ package huntyboy102.moremod.api.events;
 
 import huntyboy102.moremod.api.android.IBioticStat;
 import huntyboy102.moremod.api.renderer.IBioticStatRenderer;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 /**
  * Created by Simeon on 7/24/2015. Triggered by special Bionic Stats that have

@@ -2,8 +2,8 @@
 package huntyboy102.moremod.api.events.weapon;
 
 import huntyboy102.moremod.items.weapon.EnergyWeapon;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public class MOEventEnergyWeapon extends LivingEvent {
@@ -14,7 +14,7 @@ public class MOEventEnergyWeapon extends LivingEvent {
 		this(weaponStack, null);
 	}
 
-	public MOEventEnergyWeapon(ItemStack weaponStack, EntityLivingBase shooter) {
+	public MOEventEnergyWeapon(ItemStack weaponStack, LivingEntity shooter) {
 		super(shooter);
 		this.weaponStack = weaponStack;
 		if (weaponStack.getItem() instanceof EnergyWeapon) {
@@ -30,7 +30,7 @@ public class MOEventEnergyWeapon extends LivingEvent {
 			super(weaponStack);
 		}
 
-		public Overheat(ItemStack weaponStack, EntityLivingBase shooter) {
+		public Overheat(ItemStack weaponStack, LivingEntity shooter) {
 			super(weaponStack, shooter);
 		}
 

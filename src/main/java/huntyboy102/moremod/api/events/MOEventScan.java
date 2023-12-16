@@ -1,29 +1,29 @@
 
 package huntyboy102.moremod.api.events;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 
 public class MOEventScan extends PlayerEvent {
 	public final ItemStack scannerStack;
-	public final RayTraceResult position;
-	private final Side side;
+	public final HitResult position;
+	private final Dist side;
 
-	public MOEventScan(EntityPlayer player, ItemStack scannedStack, RayTraceResult position) {
+	public MOEventScan(Player player, ItemStack scannedStack, HitResult position) {
 		super(player);
-		if (player.world.isRemote) {
-			side = Side.CLIENT;
+		if (player.level.isClientSide()) {
+			side = Dist.CLIENT;
 		} else {
-			side = Side.SERVER;
+			side = Dist.DEDICATED_SERVER;
 		}
 		this.scannerStack = scannedStack;
 		this.position = position;
 	}
 
-	public Side getSide() {
+	public Dist getSide() {
 		return side;
 	}
 

@@ -1,12 +1,12 @@
 
 package huntyboy102.moremod.api.inventory;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.HitResult;
 
 public interface IBlockScanner {
-	RayTraceResult getScanningPos(ItemStack itemStack, EntityLivingBase player);
+	HitResult getScanningPos(ItemStack itemStack, LivingEntity player);
 
 	boolean destroysBlocks(ItemStack itemStack);
 

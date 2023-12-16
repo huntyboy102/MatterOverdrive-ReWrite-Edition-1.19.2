@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.api.gravity;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public interface IGravitationalAnomaly {
 	BlockPos getPosition();

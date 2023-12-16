@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.api.inventory;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Map;
 

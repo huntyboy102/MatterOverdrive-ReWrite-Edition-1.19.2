@@ -2,8 +2,8 @@
 package huntyboy102.moremod.api.dialog;
 
 import huntyboy102.moremod.data.dialog.DialogMessage;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
 /**
  * Created by Simeon on 8/9/2015. Used by Entities that provide Dialog Messages
@@ -16,21 +16,21 @@ public interface IDialogNpc {
 	 * @param player The player that starts the conversation.
 	 * @return The Root message.
 	 */
-	IDialogMessage getStartDialogMessage(EntityPlayer player);
+	IDialogMessage getStartDialogMessage(Player player);
 
 	/**
 	 * Gets the current active Dialog Player
 	 *
 	 * @return The Dialog Player
 	 */
-	EntityPlayer getDialogPlayer();
+	Player getDialogPlayer();
 
 	/**
 	 * Sets the current Dialog Player the NPC is interacting with.
 	 *
 	 * @param player The Player
 	 */
-	void setDialogPlayer(EntityPlayer player);
+	void setDialogPlayer(Player player);
 
 	/**
 	 * Can the NPC talk to the player.
@@ -38,7 +38,7 @@ public interface IDialogNpc {
 	 * @param player The Player.
 	 * @return Can talk to player.
 	 */
-	boolean canTalkTo(EntityPlayer player);
+	boolean canTalkTo(Player player);
 
 	/**
 	 * Get The Entity that the NPC represents. Used to enable separation of NPC from
@@ -46,7 +46,7 @@ public interface IDialogNpc {
 	 *
 	 * @return
 	 */
-	EntityLiving getEntity();
+	Player getEntity();
 
 	/**
 	 * Called when the player interacts with the NPC
@@ -54,5 +54,5 @@ public interface IDialogNpc {
 	 * @param player        The Player
 	 * @param dialogMessage The dialog message the player interacted with.
 	 */
-	void onPlayerInteract(EntityPlayer player, DialogMessage dialogMessage);
+	void onPlayerInteract(Player player, DialogMessage dialogMessage);
 }

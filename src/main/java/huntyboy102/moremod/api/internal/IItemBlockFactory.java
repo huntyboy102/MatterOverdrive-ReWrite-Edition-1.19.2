@@ -1,8 +1,8 @@
 
 package huntyboy102.moremod.api.internal;
 
-import net.minecraft.item.ItemBlock;
+import net.minecraft.world.item.BlockItem;
 
 public interface IItemBlockFactory {
-	ItemBlock createItemBlock();
+	BlockItem createItemBlock();
 }

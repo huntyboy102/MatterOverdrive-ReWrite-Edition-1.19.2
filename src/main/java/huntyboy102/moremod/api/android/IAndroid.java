@@ -4,10 +4,10 @@ package huntyboy102.moremod.api.android;
 import java.util.EnumSet;
 
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.IInventory;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraft.nbt.CompoundTag;
 
-public interface IAndroid extends IInventory {
+public interface IAndroid extends IItemHandler {
 	String EXT_PROP_NAME = "AndroidPlayer";
 
 	/**

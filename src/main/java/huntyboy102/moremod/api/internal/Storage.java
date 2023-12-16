@@ -1,20 +1,20 @@
-
 package huntyboy102.moremod.api.internal;
 
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 
-public class Storage<CAP extends INBTSerializable<NBT>, NBT extends NBTBase> implements Capability.IStorage<CAP> {
+public class Storage<CAP extends INBTSerializable<CompoundTag>> implements INBTSerializable<CompoundTag> {
+	private CAP instance;
+
 	@Override
-	public NBT writeNBT(Capability<CAP> capability, CAP instance, EnumFacing side) {
+	public CompoundTag serializeNBT() {
 		return instance.serializeNBT();
 	}
 
 	@Override
-	public void readNBT(Capability<CAP> capability, CAP instance, EnumFacing side, NBTBase tag) {
-		instance.deserializeNBT((NBT) tag);
+	public void deserializeNBT(CompoundTag nbt) {
+		instance.deserializeNBT(nbt);
 	}
-
 }

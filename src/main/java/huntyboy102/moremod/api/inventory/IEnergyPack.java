@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.api.inventory;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Created by Simeon on 8/2/2015. Used by energy weapons as one use charging

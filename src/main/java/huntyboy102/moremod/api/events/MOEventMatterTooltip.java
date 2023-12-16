@@ -1,8 +1,8 @@
 
 package huntyboy102.moremod.api.events;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 
 /**
@@ -14,7 +14,7 @@ public class MOEventMatterTooltip extends PlayerEvent {
 	public final ItemStack itemStack;
 	public final int matter;
 
-	public MOEventMatterTooltip(ItemStack itemStack, int matter, EntityPlayer player) {
+	public MOEventMatterTooltip(ItemStack itemStack, int matter, Player player) {
 		super(player);
 		this.itemStack = itemStack;
 		this.matter = matter;
