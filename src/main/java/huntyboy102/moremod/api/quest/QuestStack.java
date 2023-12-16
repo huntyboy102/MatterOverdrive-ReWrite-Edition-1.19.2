@@ -4,16 +4,16 @@ package huntyboy102.moremod.api.quest;
 import java.util.List;
 import java.util.UUID;
 
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.Constants;
 
 public class QuestStack {
 	boolean completed;
-	private NBTTagCompound tagCompound;
+	private CompoundTag tagCompound;
 	private UUID giverUniqueID;
 	private Entity giver;
 	private IQuest quest;
@@ -33,7 +33,7 @@ public class QuestStack {
 		this.quest = quest;
 	}
 
-	public static QuestStack loadFromNBT(NBTTagCompound tagCompound) {
+	public static QuestStack loadFromNBT(CompoundTag tagCompound) {
 		if (tagCompound != null) {
 			QuestStack questStack = new QuestStack();
 			questStack.readFromNBT(tagCompound);
@@ -42,7 +42,7 @@ public class QuestStack {
 		return null;
 	}
 
-	public static boolean canComplete(EntityPlayer entityPlayer, QuestStack questStack) {
+	public static boolean canComplete(Player entityPlayer, QuestStack questStack) {
 		for (int i = 0; i < questStack.getObjectivesCount(entityPlayer); i++) {
 			if (!questStack.isObjectiveCompleted(entityPlayer, i)) {
 				return false;
@@ -51,7 +51,7 @@ public class QuestStack {
 		return true;
 	}
 
-	public void writeToNBT(NBTTagCompound tagCompound) {
+	public void writeToNBT(CompoundTag tagCompound) {
 		if (this.tagCompound != null) {
 			tagCompound.setTag("Data", this.tagCompound);
 		}
@@ -59,11 +59,11 @@ public class QuestStack {
 			tagCompound.setLong("giveIdLow", giverUniqueID.getLeastSignificantBits());
 			tagCompound.setLong("giveIdHigh", giverUniqueID.getMostSignificantBits());
 		}
-		tagCompound.setShort("Quest", (short) MatterOverdrive.QUESTS.getQuestID(quest));
+		tagCompound.setShort("Quest", (short) MatterOverdriveRewriteEdition.QUESTS.getQuestID(quest));
 		tagCompound.setBoolean("Completed", completed);
 	}
 
-	public void readFromNBT(NBTTagCompound tagCompound) {
+	public void readFromNBT(CompoundTag tagCompound) {
 		if (tagCompound.hasKey("Data", Constants.NBT.TAG_COMPOUND)) {
 			this.tagCompound = tagCompound.getCompoundTag("Data");
 		}
@@ -72,7 +72,7 @@ public class QuestStack {
 			giverUniqueID = new UUID(tagCompound.getLong("giveIdLow"), tagCompound.getLong("giveIdHigh"));
 		}
 		if (tagCompound.hasKey("Quest", Constants.NBT.TAG_SHORT)) {
-			quest = MatterOverdrive.QUESTS.getQuestWithID(tagCompound.getShort("Quest"));
+			quest = MatterOverdriveRewriteEdition.QUESTS.getQuestWithID(tagCompound.getShort("Quest"));
 		}
 		completed = tagCompound.getBoolean("Completed");
 	}
@@ -81,27 +81,27 @@ public class QuestStack {
 		return quest.getTitle(this);
 	}
 
-	public int getXP(EntityPlayer entityPlayer) {
+	public int getXP(Player entityPlayer) {
 		return quest.getXpReward(this, entityPlayer);
 	}
 
-	public String getTitle(EntityPlayer entityPlayer) {
+	public String getTitle(Player entityPlayer) {
 		return quest.getTitle(this, entityPlayer);
 	}
 
-	public String getInfo(EntityPlayer entityPlayer) {
+	public String getInfo(Player entityPlayer) {
 		return quest.getInfo(this, entityPlayer);
 	}
 
-	public String getObjective(EntityPlayer entityPlayer, int objectiveIndex) {
+	public String getObjective(Player entityPlayer, int objectiveIndex) {
 		return quest.getObjective(this, entityPlayer, objectiveIndex);
 	}
 
-	public int getObjectivesCount(EntityPlayer entityPlayer) {
+	public int getObjectivesCount(Player entityPlayer) {
 		return quest.getObjectivesCount(this, entityPlayer);
 	}
 
-	public boolean isObjectiveCompleted(EntityPlayer entityPlayer, int objectiveID) {
+	public boolean isObjectiveCompleted(Player entityPlayer, int objectiveID) {
 		return quest.isObjectiveCompleted(this, entityPlayer, objectiveID);
 	}
 
@@ -128,7 +128,7 @@ public class QuestStack {
 		return giverUniqueID != null;
 	}
 
-	public void addRewards(List<IQuestReward> rewards, EntityPlayer entityPlayer) {
+	public void addRewards(List<IQuestReward> rewards, Player entityPlayer) {
 		quest.addToRewards(this, entityPlayer, rewards);
 	}
 
@@ -136,11 +136,11 @@ public class QuestStack {
 		return quest;
 	}
 
-	public NBTTagCompound getTagCompound() {
+	public CompoundTag getTagCompound() {
 		return tagCompound;
 	}
 
-	public void setTagCompound(NBTTagCompound tagCompound) {
+	public void setTagCompound(CompoundTag tagCompound) {
 		this.tagCompound = tagCompound;
 	}
 
@@ -148,7 +148,7 @@ public class QuestStack {
 		return completed;
 	}
 
-	public void markComplited(EntityPlayer entityPlayer, boolean force) {
+	public void markComplited(Player entityPlayer, boolean force) {
 		if (force) {
 			this.completed = true;
 		} else {
@@ -161,20 +161,20 @@ public class QuestStack {
 		questStack.giverUniqueID = giverUniqueID;
 		questStack.giver = giver;
 		if (getTagCompound() != null) {
-			questStack.setTagCompound((NBTTagCompound) getTagCompound().copy());
+			questStack.setTagCompound((CompoundTag) getTagCompound().copy());
 		}
 		return questStack;
 	}
 
 	public ItemStack getContract() {
-		ItemStack contract = new ItemStack(MatterOverdrive.ITEMS.contract);
-		NBTTagCompound questTag = new NBTTagCompound();
+		ItemStack contract = new ItemStack(MatterOverdriveRewriteEdition.ITEMS.contract);
+		CompoundTag questTag = new CompoundTag();
 		writeToNBT(questTag);
 		contract.setTagCompound(questTag);
 		return contract;
 	}
 
-	public boolean canAccept(EntityPlayer entityPlayer, QuestStack questStack) {
+	public boolean canAccept(Player entityPlayer, QuestStack questStack) {
 		return quest.canBeAccepted(questStack, entityPlayer);
 	}
 }

@@ -2,7 +2,7 @@
 package huntyboy102.moremod.api.network;
 
 import huntyboy102.moremod.matter_network.MatterNetworkTaskQueue;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 /**
  * Created by Simeon on 4/20/2015. This is used by Machines that can issue tasks

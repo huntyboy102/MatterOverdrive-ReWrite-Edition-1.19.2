@@ -3,9 +3,9 @@ package huntyboy102.moremod.api.matter_network;
 
 import huntyboy102.moremod.api.transport.IPipe;
 import huntyboy102.moremod.data.transport.MatterNetwork;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 
 /**
  * Created by Simeon on 3/11/2015. Used by all Machines that can Connect to a
@@ -22,7 +22,7 @@ public interface IMatterNetworkConnection extends IPipe<MatterNetwork> {
 	@Override
 	BlockPos getNodePos();
 
-	boolean establishConnectionFromSide(IBlockState blockState, EnumFacing side);
+	boolean establishConnectionFromSide(BlockState blockState, Direction side);
 
-	void breakConnection(IBlockState blockState, EnumFacing side);
+	void breakConnection(BlockState blockState, Direction side);
 }

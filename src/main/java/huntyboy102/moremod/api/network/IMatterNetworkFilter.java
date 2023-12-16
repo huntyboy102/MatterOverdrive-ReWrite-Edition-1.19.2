@@ -2,8 +2,8 @@
 package huntyboy102.moremod.api.network;
 
 import huntyboy102.moremod.items.NetworkFlashDrive;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * Created by Simeon on 7/22/2015. This is used by machines that have a Matter
@@ -25,5 +25,5 @@ public interface IMatterNetworkFilter {
 	 * @return the NBT of the filter.
 	 * @see NetworkFlashDrive
 	 */
-	NBTTagCompound getFilter(ItemStack stack);
+	CompoundTag getFilter(ItemStack stack);
 }

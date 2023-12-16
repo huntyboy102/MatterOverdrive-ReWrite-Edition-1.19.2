@@ -2,13 +2,13 @@
 package huntyboy102.moremod.api.weapon;
 
 import huntyboy102.moremod.client.sound.WeaponSound;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.util.vector.Vector2f;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Vector2f;
 
 /**
  * Created by Simeon on 4/13/2015. Used by all Energy Weapons.
@@ -31,7 +31,7 @@ public interface IWeapon {
 	 * @param weapon the weapon stack.
 	 * @return the 2d GUI inate of the slot.
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	Vector2f getSlotPosition(int slot, ItemStack weapon);
 
 	/**
@@ -45,7 +45,7 @@ public interface IWeapon {
 	 * @return the 2d GUI position of the module.
 	 * @see #getSlotPosition(int, ItemStack)
 	 */
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	Vector2f getModuleScreenPosition(int slot, ItemStack weapon);
 
 	/**
@@ -77,8 +77,8 @@ public interface IWeapon {
 	 * @param entityPlayer
 	 * @return
 	 */
-	@SideOnly(Side.CLIENT)
-	boolean onLeftClick(ItemStack weapon, EntityPlayer entityPlayer);
+	@OnlyIn(Dist.CLIENT)
+	boolean onLeftClick(ItemStack weapon, Player entityPlayer);
 
 	/**
 	 * Called when the weapon is fired by the player. This is called after the
@@ -93,7 +93,7 @@ public interface IWeapon {
 	 * @param dir      the direction of the weapon/bullet.
 	 * @return was the fire successful.
 	 */
-	boolean onServerFire(ItemStack weapon, EntityLivingBase shooter, WeaponShot shot, Vec3d position, Vec3d dir,
+	boolean onServerFire(ItemStack weapon, LivingEntity shooter, WeaponShot shot, Vec3 position, Vec3 dir,
 			int delay);
 
 	/**
@@ -164,7 +164,7 @@ public interface IWeapon {
 	 * @param zoomed  is the weapon zoomed.
 	 * @return the accuracy of the weapon. Ranges from 0 - infinity
 	 */
-	float getAccuracy(ItemStack weapon, EntityLivingBase shooter, boolean zoomed);
+	float getAccuracy(ItemStack weapon, LivingEntity shooter, boolean zoomed);
 
 	/**
 	 * Returns if the weapon is currently zoomed. This method works only in the
@@ -173,16 +173,16 @@ public interface IWeapon {
 	 * @param weapon the weapon stack.
 	 * @return is the weapon zoomed.
 	 */
-	@SideOnly(Side.CLIENT)
-	boolean isWeaponZoomed(EntityLivingBase entityPlayer, ItemStack weapon);
+	@OnlyIn(Dist.CLIENT)
+	boolean isWeaponZoomed(LivingEntity entityPlayer, ItemStack weapon);
 
-	@SideOnly(Side.CLIENT)
-	float getZoomMultiply(EntityPlayer entityPlayer, ItemStack weapon);
+	@OnlyIn(Dist.CLIENT)
+	float getZoomMultiply(Player entityPlayer, ItemStack weapon);
 
 	/**
 	 * @param weapon the weapon stack.
 	 * @return the weapon firing sound.
 	 */
-	@SideOnly(Side.CLIENT)
-	WeaponSound getFireSound(ItemStack weapon, EntityLivingBase entity);
+	@OnlyIn(Dist.CLIENT)
+	WeaponSound getFireSound(ItemStack weapon, LivingEntity entity);
 }

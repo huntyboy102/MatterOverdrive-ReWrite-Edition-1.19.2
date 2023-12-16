@@ -3,8 +3,8 @@ package huntyboy102.moremod.api.matter;
 
 import huntyboy102.moremod.data.matter.IMatterEntryHandler;
 import huntyboy102.moremod.handler.MatterRegistry;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Created by Simeon on 7/20/2015. This is the Matter Registry, where all matter

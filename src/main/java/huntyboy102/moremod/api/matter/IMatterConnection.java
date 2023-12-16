@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.api.matter;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.core.BlockPos;
 
 /**
  * Created by Simeon on 3/7/2015.
@@ -10,5 +10,5 @@ import net.minecraft.util.EnumFacing;
  *             store matter are Fluid Tanks.
  */
 public interface IMatterConnection {
-	boolean canConnectFrom(EnumFacing dir);
+	boolean canConnectFrom(BlockPos dir);
 }

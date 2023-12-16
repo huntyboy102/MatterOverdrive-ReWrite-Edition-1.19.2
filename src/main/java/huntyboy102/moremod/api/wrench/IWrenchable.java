@@ -1,13 +1,13 @@
 
 package huntyboy102.moremod.api.wrench;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
 
 public interface IWrenchable {
-	boolean onWrenchHit(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX,
+	boolean onWrenchHit(ItemStack stack, Player player, LevelAccessor world, BlockPos pos, Direction side, float hitX,
 			float hitY, float hitZ);
 }

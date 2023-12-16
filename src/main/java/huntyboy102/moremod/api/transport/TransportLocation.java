@@ -1,10 +1,13 @@
 
 package huntyboy102.moremod.api.transport;
 
-import io.netty.buffer.ByteBuf;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 /**
  * Created by Simeon on 5/5/2015. Stores inates and the name of transport
@@ -25,26 +28,26 @@ public class TransportLocation {
 		this.name = name;
 	}
 
-	public TransportLocation(ByteBuf buf) {
-		this.pos = BlockPos.fromLong(buf.readLong());
-		this.name = ByteBufUtils.readUTF8String(buf);
+	public TransportLocation(FriendlyByteBuf buf) {
+		this.pos = BlockPos.of(buf.readLong());
+		this.name = buf.readUtf();
 	}
 
-	public TransportLocation(NBTTagCompound nbt) {
+	public TransportLocation(CompoundTag nbt) {
 		if (nbt != null) {
-			pos = BlockPos.fromLong(nbt.getLong("tl"));
+			pos = BlockPos.of(nbt.getLong("tl"));
 			name = nbt.getString("tl_name");
 		}
 	}
 
-	public void writeToBuffer(ByteBuf buf) {
-		buf.writeLong(pos.toLong());
-		ByteBufUtils.writeUTF8String(buf, name);
+	public void writeToBuffer(FriendlyByteBuf buf) {
+		buf.writeLong(pos.asLong());
+		buf.writeUtf(name);
 	}
 
-	public void writeToNBT(NBTTagCompound nbtTagCompound) {
-		nbtTagCompound.setLong("tl", pos.toLong());
-		nbtTagCompound.setString("tl_name", name);
+	public void writeToNBT(CompoundTag nbtTagCompound) {
+		nbtTagCompound.putLong("tl", pos.asLong());
+		nbtTagCompound.putString("tl_name", name);
 	}
 
 	/**
@@ -71,6 +74,24 @@ public class TransportLocation {
 	 * @return the distance between this transport location and the provided inates.
 	 */
 	public int getDistance(BlockPos pos) {
-		return (int) Math.sqrt(pos.distanceSq(this.pos));
+		Vec3 thisVec = new Vec3(this.pos.getX(), this.pos.getY(), this.pos.getZ());
+		Vec3 otherVec = new Vec3(pos.getX(), pos.getY(), pos.getZ());
+		return (int) Math.sqrt(thisVec.distanceToSqr(otherVec));
+	}
+
+	public static TransportLocation fromBytes(FriendlyByteBuf buf) {
+		return new TransportLocation(buf);
+	}
+
+	public static void toBytes(TransportLocation location, FriendlyByteBuf buf) {
+		location.writeToBuffer(buf);
+	}
+
+	public static void handle(TransportLocation message, Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context context = contextSupplier.get();
+		context.enqueueWork(() -> {
+			// Your handling code here
+		});
+		context.setPacketHandled(true);
 	}
 }

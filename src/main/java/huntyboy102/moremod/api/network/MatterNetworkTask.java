@@ -7,9 +7,9 @@ import java.util.UUID;
 
 import huntyboy102.moremod.matter_network.tasks.MatterNetworkTaskReplicatePattern;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.level.LevelAccessor;
 
 /**
  * Created by Simeon on 4/19/2015. This class is used by all machines that send
@@ -66,7 +66,7 @@ public abstract class MatterNetworkTask {
 	 *              reside.
 	 * @return is the task valid.
 	 */
-	public boolean isValid(World world) {
+	public boolean isValid(LevelAccessor world) {
 		return true;
 	}
 
@@ -75,9 +75,9 @@ public abstract class MatterNetworkTask {
 	 *
 	 * @param compound the NBT data.
 	 */
-	public void readFromNBT(NBTTagCompound compound) {
+	public void readFromNBT(CompoundTag compound) {
 		if (compound != null) {
-			this.state = MatterNetworkTaskState.get(compound.getInteger("State"));
+			this.state = MatterNetworkTaskState.get(compound.getInt("State"));
 			this.id = compound.getLong("id");
 		}
 	}
@@ -91,10 +91,10 @@ public abstract class MatterNetworkTask {
 	 *
 	 * @param compound the NBT tag.
 	 */
-	public void writeToNBT(NBTTagCompound compound) {
+	public void writeToNBT(CompoundTag compound) {
 		if (compound != null) {
-			compound.setInteger("State", state.ordinal());
-			compound.setLong("id", id);
+			compound.putInt("State", state.ordinal());
+			compound.putLong("id", id);
 		}
 	}
 
@@ -123,18 +123,18 @@ public abstract class MatterNetworkTask {
 	 * @param state the state of the task.
 	 * @return the chat color based on the state.
 	 */
-	private TextFormatting getColorForState(MatterNetworkTaskState state) {
+	private ChatFormatting getColorForState(MatterNetworkTaskState state) {
 		switch (state) {
 		case WAITING:
-			return TextFormatting.AQUA;
+			return ChatFormatting.AQUA;
 		case QUEUED:
-			return TextFormatting.BLUE;
+			return ChatFormatting.BLUE;
 		case PROCESSING:
-			return TextFormatting.YELLOW;
+			return ChatFormatting.YELLOW;
 		case FINISHED:
-			return TextFormatting.GREEN;
+			return ChatFormatting.GREEN;
 		default:
-			return TextFormatting.GRAY;
+			return ChatFormatting.GRAY;
 		}
 	}
 

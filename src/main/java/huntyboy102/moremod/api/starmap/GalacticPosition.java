@@ -6,7 +6,7 @@ import huntyboy102.moremod.starmap.data.Planet;
 import huntyboy102.moremod.starmap.data.Quadrant;
 import huntyboy102.moremod.starmap.data.Star;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 public class GalacticPosition {
 	// region Private Vars
@@ -50,7 +50,7 @@ public class GalacticPosition {
 		this.quadrantID = quadrant.getId();
 	}
 
-	public GalacticPosition(NBTTagCompound tagCompound) {
+	public GalacticPosition(CompoundTag tagCompound) {
 		super();
 		readFromNBT(tagCompound);
 	}
@@ -62,21 +62,21 @@ public class GalacticPosition {
 	// endregion
 
 	// region Read - Write
-	public void writeToNBT(NBTTagCompound tagCompound) {
-		tagCompound.setInteger("GalacticPositionPlanet", planetID);
-		tagCompound.setInteger("GalacticPositionStar", starID);
-		tagCompound.setInteger("GalacticPositionQuadrant", quadrantID);
+	public void writeToNBT(CompoundTag tagCompound) {
+		tagCompound.putInt("GalacticPositionPlanet", planetID);
+		tagCompound.putInt("GalacticPositionStar", starID);
+		tagCompound.putInt("GalacticPositionQuadrant", quadrantID);
 	}
 
-	public void readFromNBT(NBTTagCompound tagCompound) {
+	public void readFromNBT(CompoundTag tagCompound) {
 		if (tagCompound.hasKey("GalacticPositionPlanet", 3)) {
-			planetID = tagCompound.getInteger("GalacticPositionPlanet");
+			planetID = tagCompound.getInt("GalacticPositionPlanet");
 		}
 		if (tagCompound.hasKey("GalacticPositionStar", 3)) {
-			starID = tagCompound.getInteger("GalacticPositionStar");
+			starID = tagCompound.getInt("GalacticPositionStar");
 		}
 		if (tagCompound.hasKey("GalacticPositionQuadrant", 3)) {
-			quadrantID = tagCompound.getInteger("GalacticPositionQuadrant");
+			quadrantID = tagCompound.getInt("GalacticPositionQuadrant");
 		}
 	}
 

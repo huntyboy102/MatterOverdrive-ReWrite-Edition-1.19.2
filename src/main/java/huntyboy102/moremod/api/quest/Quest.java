@@ -3,8 +3,8 @@ package huntyboy102.moremod.api.quest;
 
 import com.google.gson.JsonObject;
 import huntyboy102.moremod.util.MOJsonHelper;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.entity.player.EntityPlayer;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +28,7 @@ public abstract class Quest implements IQuest {
 	}
 
 	public static IQuest getQuestFromName(String name) {
-		return MatterOverdrive.QUESTS.getQuestByName(name);
+		return MatterOverdriveRewriteEdition.QUESTS.getQuestByName(name);
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public abstract class Quest implements IQuest {
 		return title;
 	}
 
-	public String getTitle(QuestStack questStack, EntityPlayer entityPlayer) {
+	public String getTitle(QuestStack questStack, Player entityPlayer) {
 		return getTitle(questStack);
 	}
 
@@ -55,7 +55,7 @@ public abstract class Quest implements IQuest {
 	}
 
 	@Override
-	public void setCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void setCompleted(QuestStack questStack, Player entityPlayer) {
 		questStack.completed = true;
 	}
 }

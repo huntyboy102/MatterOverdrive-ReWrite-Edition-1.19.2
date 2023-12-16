@@ -5,10 +5,10 @@ import huntyboy102.moremod.api.dialog.IDialogRegistry;
 import huntyboy102.moremod.api.matter.IMatterRegistry;
 import huntyboy102.moremod.api.renderer.IBionicPartRenderRegistry;
 import huntyboy102.moremod.api.starmap.IStarmapRenderRegistry;
-import matteroverdrive.api.android.IAndroidStatRegistry;
-import matteroverdrive.api.android.IAndroidStatRenderRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import huntyboy102.moremod.api.android.IAndroidStatRegistry;
+import huntyboy102.moremod.api.android.IAndroidStatRenderRegistry;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public interface MatterOverdriveAPI {
 	static MatterOverdriveAPI getInstance() {
@@ -21,12 +21,12 @@ public interface MatterOverdriveAPI {
 
 	IDialogRegistry getDialogRegistry();
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	IAndroidStatRenderRegistry getAndroidStatRenderRegistry();
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
     IBionicPartRenderRegistry getBionicStatRenderRegistry();
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
     IStarmapRenderRegistry getStarmapRenderRegistry();
 }

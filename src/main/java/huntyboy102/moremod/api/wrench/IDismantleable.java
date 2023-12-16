@@ -3,14 +3,14 @@ package huntyboy102.moremod.api.wrench;
 
 import java.util.ArrayList;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
 
 public interface IDismantleable {
 
-	ArrayList<ItemStack> dismantleBlock(EntityPlayer player, World world, BlockPos pos, boolean returnDrops);
+	ArrayList<ItemStack> dismantleBlock(Player player, LevelAccessor world, BlockPos pos, boolean returnDrops);
 
-	boolean canDismantle(EntityPlayer player, World world, BlockPos pos);
+	boolean canDismantle(Player player, LevelAccessor world, BlockPos pos);
 }

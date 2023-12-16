@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.api.matter;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Created by Simeon on 5/16/2015. This is used by items that have specific

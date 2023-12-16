@@ -2,8 +2,8 @@
 package huntyboy102.moremod.api.matter;
 
 import huntyboy102.moremod.data.matter_network.ItemPattern;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
 
 import javax.annotation.Nullable;
 

@@ -1,13 +1,13 @@
 
 package huntyboy102.moremod.api.matter;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
 
 /**
  * Used as a interface for all matter storage entities or components.
  */
-public interface IMatterHandler extends INBTSerializable<NBTTagCompound> {
+public interface IMatterHandler extends INBTSerializable<CompoundTag> {
 	/**
 	 * @return the current matter stored.
 	 */
@@ -57,17 +57,17 @@ public interface IMatterHandler extends INBTSerializable<NBTTagCompound> {
 	int extractMatter(int amount, boolean simulate);
 
 	@Override
-	default NBTTagCompound serializeNBT() {
-		NBTTagCompound tag = new NBTTagCompound();
-		tag.setInteger("matter", getMatterStored());
-		tag.setInteger("capacity", getCapacity());
+	default CompoundTag serializeNBT() {
+		CompoundTag tag = new CompoundTag();
+		tag.putInt("matter", getMatterStored());
+		tag.putInt("capacity", getCapacity());
 		return tag;
 	}
 
 	@Override
-	default void deserializeNBT(NBTTagCompound tag) {
-		setMatterStored(tag.getInteger("matter"));
-		setCapacity(tag.getInteger("capacity"));
+	default void deserializeNBT(CompoundTag tag) {
+		setMatterStored(tag.getInt("matter"));
+		setCapacity(tag.getInt("capacity"));
 	}
 
 }

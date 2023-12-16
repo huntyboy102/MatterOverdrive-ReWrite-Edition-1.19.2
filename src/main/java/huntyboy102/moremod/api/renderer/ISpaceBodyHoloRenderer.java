@@ -4,10 +4,10 @@ package huntyboy102.moremod.api.renderer;
 import huntyboy102.moremod.starmap.data.Galaxy;
 import huntyboy102.moremod.starmap.data.SpaceBody;
 import huntyboy102.moremod.tile.TileEntityMachineStarMap;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public interface ISpaceBodyHoloRenderer {
 	void renderBody(Galaxy galaxy, SpaceBody spaceBody, TileEntityMachineStarMap starMap, float partialTicks,
                     float viewerDistance);

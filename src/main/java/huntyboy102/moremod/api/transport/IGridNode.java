@@ -1,10 +1,10 @@
 
 package huntyboy102.moremod.api.transport;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
 
 public interface IGridNode<T extends IGridNetwork> {
 	T getNetwork();
@@ -13,9 +13,9 @@ public interface IGridNode<T extends IGridNetwork> {
 
 	BlockPos getNodePos();
 
-	World getNodeWorld();
+	LevelAccessor getNodeWorld();
 
-	boolean canConnectToNetworkNode(IBlockState blockState, IGridNode toNode, EnumFacing direction);
+	boolean canConnectToNetworkNode(BlockState blockState, IGridNode toNode, Direction direction);
 
 	/**
 	 * Can the Matter Connection connect form a given side.
@@ -24,5 +24,5 @@ public interface IGridNode<T extends IGridNetwork> {
 	 * @param side       the side of the tested connection.
 	 * @return can the connection be made trough the given side.
 	 */
-	boolean canConnectFromSide(IBlockState blockState, EnumFacing side);
+	boolean canConnectFromSide(BlockState blockState, Direction side);
 }

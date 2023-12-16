@@ -1,10 +1,10 @@
 
 package huntyboy102.moremod.api.multiblock;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.event.world.BlockEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.level.BlockEvent;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -13,7 +13,7 @@ public class MultiblockFormEvent extends BlockEvent {
 
 	private final Multiblock multiblock;
 
-	public MultiblockFormEvent(World world, BlockPos pos, IBlockState state, Multiblock multiblock) {
+	public MultiblockFormEvent(LevelAccessor world, BlockPos pos, BlockState state, Multiblock multiblock) {
 		super(world, pos, state);
 		this.multiblock = multiblock;
 	}

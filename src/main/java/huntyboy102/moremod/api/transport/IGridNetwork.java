@@ -4,10 +4,10 @@ package huntyboy102.moremod.api.transport;
 import java.util.Collection;
 import java.util.Iterator;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 public interface IGridNetwork<T extends IGridNode> {
-	void onNodeDestroy(final IBlockState blockState, T node);
+	void onNodeDestroy(final BlockState blockState, T node);
 
 	void addNode(T node);
 

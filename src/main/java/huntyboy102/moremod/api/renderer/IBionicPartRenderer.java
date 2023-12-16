@@ -2,8 +2,8 @@
 package huntyboy102.moremod.api.renderer;
 
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
-import net.minecraft.client.renderer.entity.RenderPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Created by Simeon on 9/10/2015. Used by Bionic parts to handle special
@@ -18,7 +18,7 @@ public interface IBionicPartRenderer {
 	 * @param renderPlayer
 	 * @param ticks
 	 */
-	void renderPart(ItemStack partStack, AndroidPlayer androidPlayer, RenderPlayer renderPlayer, float ticks);
+	void renderPart(ItemStack partStack, AndroidPlayer androidPlayer, PlayerRenderer renderPlayer, float ticks);
 
-	void affectPlayerRenderer(ItemStack partStack, AndroidPlayer androidPlayer, RenderPlayer renderPlayer, float ticks);
+	void affectPlayerRenderer(ItemStack partStack, AndroidPlayer androidPlayer, PlayerRenderer renderPlayer, float ticks);
 }

@@ -2,7 +2,7 @@
 package huntyboy102.moremod.api.network;
 
 import huntyboy102.moremod.api.matter_network.IMatterNetworkConnection;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * Created by Simeon on 7/17/2015. This is used by machines that can broadcast
@@ -15,5 +15,5 @@ public interface IMatterNetworkBroadcaster extends IMatterNetworkConnection {
 	 * @return the broadcast filter. This usually contains a list of Block inates
 	 *         the broadcaster can broadcast to.
 	 */
-	NBTTagCompound getFilter();
+	CompoundTag getFilter();
 }

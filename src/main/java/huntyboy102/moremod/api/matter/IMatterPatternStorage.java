@@ -3,7 +3,7 @@ package huntyboy102.moremod.api.matter;
 
 import huntyboy102.moremod.items.PatternDrive;
 import huntyboy102.moremod.data.matter_network.ItemPattern;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Created by Simeon on 3/27/2015. Used by items that store Item Patterns such

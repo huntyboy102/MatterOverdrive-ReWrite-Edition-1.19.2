@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.api.weapon;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public interface IWeaponScope extends IWeaponModule {
 	float getZoomAmount(ItemStack scopeStack, ItemStack weaponStack);

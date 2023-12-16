@@ -2,7 +2,7 @@
 package huntyboy102.moremod.api;
 
 import huntyboy102.moremod.items.includes.EnergyContainer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 public class EmptyEnergyStorage extends EnergyContainer {
 	public static EmptyEnergyStorage INSTANCE = new EmptyEnergyStorage();
@@ -52,12 +52,12 @@ public class EmptyEnergyStorage extends EnergyContainer {
 	}
 
 	@Override
-	public NBTTagCompound serializeNBT() {
-		return new NBTTagCompound();
+	public CompoundTag serializeNBT() {
+		return new CompoundTag();
 	}
 
 	@Override
-	public void deserializeNBT(NBTTagCompound tag) {
+	public void deserializeNBT(CompoundTag tag) {
 
 	}
 }

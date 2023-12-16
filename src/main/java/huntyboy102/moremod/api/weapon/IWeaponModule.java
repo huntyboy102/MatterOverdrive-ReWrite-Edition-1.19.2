@@ -1,8 +1,8 @@
 
 package huntyboy102.moremod.api.weapon;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Created by Simeon on 4/14/2015. Used by weapon modules.

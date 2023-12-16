@@ -2,8 +2,9 @@
 package huntyboy102.moremod.api.network;
 
 import huntyboy102.moremod.tile.IMOTickable;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraftforge.event.TickEvent;
+
 
 /**
  * Created by Simeon on 7/13/2015. This is used by all Matter Network Machines.
@@ -26,9 +27,9 @@ public interface IMatterNetworkHandler extends IMOTickable {
 	 * @return the number of interaction made this tick. Used to limit the
 	 *         interaction per World tick.
 	 */
-	int onNetworkTick(World world, TickEvent.Phase phase);
+	int onNetworkTick(LevelAccessor world, TickEvent.Phase phase);
 
-	default void onServerTick(TickEvent.Phase phase, World world) {
+	default void onServerTick(TickEvent.Phase phase, LevelAccessor world) {
 		onNetworkTick(world, phase);
 	}
 }

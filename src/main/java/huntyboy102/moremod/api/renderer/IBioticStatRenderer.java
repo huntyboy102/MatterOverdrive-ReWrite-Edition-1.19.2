@@ -3,9 +3,9 @@ package huntyboy102.moremod.api.renderer;
 
 import huntyboy102.moremod.data.biostats.BioticStatShield;
 import huntyboy102.moremod.api.android.IBioticStat;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Created by Simeon on 7/24/2015. Used by bionic stats (android abilities) to
@@ -14,7 +14,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * render it's shield. This is used in the
  * {@link matteroverdrive.api.android.IAndroidStatRenderRegistry}.
  */
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public interface IBioticStatRenderer<T extends IBioticStat> {
 	/**
 	 * This method is called to render the stat. It is called when rendering the
@@ -25,5 +25,5 @@ public interface IBioticStatRenderer<T extends IBioticStat> {
 	 * @param event the world render event. This event holds useful information such
 	 *              as the partial render ticks.
 	 */
-	void onWorldRender(T stat, int level, RenderWorldLastEvent event);
+	void onWorldRender(T stat, int level, RenderLevelStageEvent event);
 }

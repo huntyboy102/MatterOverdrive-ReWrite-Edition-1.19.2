@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.api.matter;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Created by Simeon on 5/15/2015. Used by items that can be recycled at a

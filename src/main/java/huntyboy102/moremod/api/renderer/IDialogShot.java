@@ -2,7 +2,7 @@
 package huntyboy102.moremod.api.renderer;
 
 import huntyboy102.moremod.client.render.conversation.EntityRendererConversation;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.world.entity.LivingEntity;
 
 /**
  * Created by Simeon on 8/9/2015. This is used by the conversation system to
@@ -23,6 +23,6 @@ public interface IDialogShot {
 	 *                             transformed to achieve the desired camera shot.
 	 * @return is the camera shot possible.
 	 */
-	boolean positionCamera(EntityLivingBase active, EntityLivingBase other, float ticks,
+	boolean positionCamera(LivingEntity active, LivingEntity other, float ticks,
 			EntityRendererConversation rendererConversation);
 }
