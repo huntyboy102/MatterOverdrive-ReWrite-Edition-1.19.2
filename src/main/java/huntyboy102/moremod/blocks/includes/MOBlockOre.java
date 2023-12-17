@@ -2,7 +2,7 @@
 package huntyboy102.moremod.blocks.includes;
 
 import huntyboy102.moremod.api.internal.OreDictItem;
-import net.minecraft.block.material.Material;
+import net.minecraft.world.level.material.Material;
 import net.minecraftforge.oredict.OreDictionary;
 
 /**

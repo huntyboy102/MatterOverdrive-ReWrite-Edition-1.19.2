@@ -2,15 +2,15 @@
 package huntyboy102.moremod.blocks.includes;
 
 import huntyboy102.moremod.init.MatterOverdriveCapabilities;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
 
-public abstract class MOMatterEnergyStorageBlock<TE extends TileEntity> extends MOBlockMachine<TE> {
+public abstract class MOMatterEnergyStorageBlock<TE extends BlockEntity> extends MOBlockMachine<TE> {
 	protected boolean dropsItself;
 	private boolean keepsMatter;
 	private boolean keepsEnergy;
@@ -22,16 +22,17 @@ public abstract class MOMatterEnergyStorageBlock<TE extends TileEntity> extends 
 	}
 
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer,
+	public void onBlockPlacedBy(LevelAccessor worldIn, BlockPos pos, BlockState state, LivingEntity placer,
 			ItemStack stack) {
 		super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
-		if (stack.hasTagCompound()) {
-			TileEntity entity = worldIn.getTileEntity(pos);
+		if (stack.hasTag()) {
+			BlockEntity entity = worldIn.getBlockEntity(pos);
 
-			if (entity.hasCapability(MatterOverdriveCapabilities.MATTER_HANDLER, null)) {
+			if (entity != null && entity.hasCapability(MatterOverdriveCapabilities.MATTER_HANDLER, null)) {
 				if (this.keepsMatter) {
+					int matterStored = stack.getTag("Matter");
 					entity.getCapability(MatterOverdriveCapabilities.MATTER_HANDLER, null)
-							.setMatterStored(stack.getTagCompound().getInteger("Matter"));
+							.setMatterStored(matterStored);
 				}
 			}
 		}

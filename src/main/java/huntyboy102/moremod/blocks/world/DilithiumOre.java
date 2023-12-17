@@ -2,13 +2,13 @@
 package huntyboy102.moremod.blocks.world;
 
 import huntyboy102.moremod.blocks.includes.MOBlockOre;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.Item;
-import net.minecraft.util.math.BlockPos;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.Item;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.level.BlockAccess;
 
 import javax.annotation.Nullable;
 import java.util.Random;
@@ -26,12 +26,12 @@ public class DilithiumOre extends MOBlockOre {
 
 	@Nullable
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
-		return MatterOverdrive.ITEMS.dilithium_crystal;
+	public Item getItemDropped(BlockState state, Random rand, int fortune) {
+		return MatterOverdriveRewriteEdition.ITEMS.dilithium_crystal;
 	}
 
 	@Override
-	public int quantityDropped(IBlockState state, int fortune, Random random) {
+	public int quantityDropped(BlockState state, int fortune, Random random) {
 		if (fortune > 0 && Item.getItemFromBlock(this) != this.getItemDropped(state, random, fortune)) {
 			int j = random.nextInt(fortune) - 1;
 
@@ -46,7 +46,7 @@ public class DilithiumOre extends MOBlockOre {
 	}
 
 	@Override
-	public int getExpDrop(IBlockState state, IBlockAccess world, BlockPos pos, int fortune) {
+	public int getExpDrop(BlockState state, IBlockAccess world, BlockPos pos, int fortune) {
 		if (this.getItemDropped(world.getBlockState(pos), rand, fortune) != Item.getItemFromBlock(this)) {
 			return MathHelper.getInt(rand, 2, 5);
 		}

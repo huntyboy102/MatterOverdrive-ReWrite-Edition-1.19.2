@@ -7,27 +7,26 @@ import huntyboy102.moremod.api.wrench.IDismantleable;
 import huntyboy102.moremod.data.Inventory;
 import huntyboy102.moremod.data.inventory.Slot;
 import huntyboy102.moremod.handler.ConfigurationHandler;
-import matteroverdrive.util.*;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
+import huntyboy102.moremod.util.*;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.level.LevelAccessor;
 import org.apache.logging.log4j.Level;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
-public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockContainer<TE>
+public abstract class MOBlockMachine<TE extends BlockEntity> extends MOBlockContainer<TE>
 		implements IDismantleable, IConfigSubscriber {
 	public float volume = 1;
 	public boolean hasGui;
@@ -38,20 +37,20 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 
 	@Nonnull
 	@Override
-	protected BlockStateContainer createBlockState() {
+	protected BlockBehaviour createBlockState() {
 		return super.createBlockState();
 	}
 
-	public boolean doNormalDrops(World world, int x, int y, int z) {
+	public boolean doNormalDrops(LevelAccessor world, int x, int y, int z) {
 		return false;
 	}
 
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer,
+	public void onBlockPlacedBy(LevelAccessor worldIn, BlockPos pos, BlockState state, Player placer,
 			ItemStack stack) {
 		super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
 
-		IMOTileEntity entity = (IMOTileEntity) worldIn.getTileEntity(pos);
+		IMOTileEntity entity = (IMOTileEntity) worldIn.getBlockEntity(pos);
 		if (entity != null) {
 			try {
 				entity.readFromPlaceItem(stack);
@@ -65,7 +64,7 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 	}
 
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+	public void breakBlock(LevelAccessor worldIn, BlockPos pos, BlockState state) {
 		// drops inventory
 		Inventory inventory = getInventory(worldIn, pos);
 		if (inventory != null) {
@@ -76,8 +75,8 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 	}
 
 	@Override
-	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
-			EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public boolean onBlockActivated(LevelAccessor worldIn, BlockPos pos, BlockState state, Player playerIn,
+									InteractionHand hand, Direction facing, float hitX, float hitY, float hitZ) {
 		return MachineHelper.canOpenMachine(worldIn, pos, playerIn, hasGui, getUnlocalizedMessage(0));
 	}
 
@@ -91,7 +90,7 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 	}
 
 	@Override
-	public boolean removedByPlayer(IBlockState state, World world, BlockPos pos, EntityPlayer player,
+	public boolean removedByPlayer(BlockState state, LevelAccessor world, BlockPos pos, Player player,
 			boolean willHarvest) {
 		if (MachineHelper.canRemoveMachine(world, player, pos, willHarvest)) {
 			return world.setBlockToAir(pos);
@@ -99,8 +98,8 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 		return false;
 	}
 
-	public ItemStack getNBTDrop(World world, BlockPos blockPos, IMOTileEntity te) {
-		IBlockState state = world.getBlockState(blockPos);
+	public ItemStack getNBTDrop(LevelAccessor world, BlockPos blockPos, IMOTileEntity te) {
+		BlockState state = world.getBlockState(blockPos);
 		ItemStack itemStack = new ItemStack(this, 1, damageDropped(state));
 		if (te != null) {
 			te.writeToDropItem(itemStack);
@@ -117,9 +116,9 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 	}
 
 	@Override
-	public ArrayList<ItemStack> dismantleBlock(EntityPlayer player, World world, BlockPos pos, boolean returnDrops) {
+	public ArrayList<ItemStack> dismantleBlock(Player player, LevelAccessor world, BlockPos pos, boolean returnDrops) {
 		ArrayList<ItemStack> items = new ArrayList<>();
-		ItemStack blockItem = getNBTDrop(world, pos, (IMOTileEntity) world.getTileEntity(pos));
+		ItemStack blockItem = getNBTDrop(world, pos, (IMOTileEntity) world.getBlockEntity(pos));
 		Inventory inventory = getInventory(world, pos);
 		items.add(blockItem);
 
@@ -138,7 +137,7 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 			}
 		}
 
-		IBlockState blockState = world.getBlockState(pos);
+		BlockState blockState = world.getBlockState(pos);
 		boolean flag = blockState.getBlock().removedByPlayer(blockState, world, pos, player, true);
 		super.breakBlock(world, pos, blockState);
 
@@ -149,13 +148,13 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 		if (!returnDrops) {
 			dropBlockAsItem(world, pos, blockState, 0);
 		} else {
-			MOInventoryHelper.insertItemStackIntoInventory(player.inventory, blockItem, EnumFacing.DOWN);
+			MOInventoryHelper.insertItemStackIntoInventory(player.inventory, blockItem, Direction.DOWN);
 		}
 
 		return items;
 	}
 
-	protected Inventory getInventory(World world, BlockPos pos) {
+	protected Inventory getInventory(LevelAccessor world, BlockPos pos) {
 		if (world.getTileEntity(pos) instanceof MOTileEntityMachine) {
 			MOTileEntityMachine machine = (MOTileEntityMachine) world.getTileEntity(pos);
 			return machine.getInventoryContainer();
@@ -164,7 +163,7 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 	}
 
 	@Override
-	public boolean canDismantle(EntityPlayer player, World world, BlockPos pos) {
+	public boolean canDismantle(Player player, LevelAccessor world, BlockPos pos) {
 		TileEntity tileEntity = world.getTileEntity(pos);
 		if (tileEntity instanceof MOTileEntityMachine) {
 			if (player.capabilities.isCreativeMode || !((MOTileEntityMachine) tileEntity).hasOwner()) {
@@ -174,11 +173,11 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 					return true;
 				} else {
 					if (world.isRemote) {
-						TextComponentString message = new TextComponentString(
-								TextFormatting.GOLD + "[Matter Overdrive] " + TextFormatting.RED
+						Component message = new Component(
+								ChatFormatting.GOLD + "[Matter Overdrive] " + ChatFormatting.RED
 										+ MOStringHelper.translateToLocal("alert.no_rights.dismantle").replace("$0",
 												getLocalizedName()));
-						message.setStyle(new Style().setColor(TextFormatting.RED));
+						message.setStyle(new Style().setColor(ChatFormatting.RED));
 						player.sendMessage(message);
 					}
 					return false;
