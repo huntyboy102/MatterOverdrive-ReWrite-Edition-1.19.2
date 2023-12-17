@@ -2,25 +2,26 @@ package huntyboy102.moremod.blocks;
 
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.api.internal.OreDictItem;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.block.material.MapColor;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.properties.PropertyEnum;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.EnumDyeColor;
-import net.minecraft.item.ItemDye;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.world.item.EnumDyeColor;
+import net.minecraft.world.item.ItemDye;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
@@ -45,11 +46,11 @@ public class BlockDecorativeColored extends BlockDecorative implements OreDictIt
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void addInformation(ItemStack itemstack, @Nullable World worldIn, List<String> infos, ITooltipFlag flagIn) {
+	public void addInformation(ItemStack itemstack, @Nullable LevelAccessor worldIn, List<String> infos, ITooltipFlag flagIn) {
 		if (itemstack != null) {
 			String name = infos.get(0);
 			name = MOStringHelper.translateToLocal(EnumDyeColor
-					.byDyeDamage(MathHelper.clamp(itemstack.getItemDamage(), 0, ItemDye.DYE_COLORS.length - 1))
+					.byDyeDamage(Mth.clamp(itemstack.getItemDamage(), 0, ItemDye.DYE_COLORS.length - 1))
 					.getTranslationKey() + " " + name);
 			infos.set(0, name);
 		}
@@ -59,9 +60,9 @@ public class BlockDecorativeColored extends BlockDecorative implements OreDictIt
 	public void registerOreDict() {
 		for (int i = 0; i < 16; i++) {
 			OreDictionary.registerOre("blockFloorTile",
-					new ItemStack(MatterOverdrive.BLOCKS.decorative_floor_tile, 1, i));
+					new ItemStack(MatterOverdriveRewriteEdition.BLOCKS.decorative_floor_tile, 1, i));
 			OreDictionary.registerOre("blockFloorTiles",
-					new ItemStack(MatterOverdrive.BLOCKS.decorative_floor_tiles, 1, i));
+					new ItemStack(MatterOverdriveRewriteEdition.BLOCKS.decorative_floor_tiles, 1, i));
 		}
 	}
 
@@ -73,27 +74,27 @@ public class BlockDecorativeColored extends BlockDecorative implements OreDictIt
 	}
 
 	@Override
-	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY,
-			float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
+	public BlockState getStateForPlacement(LevelAccessor world, BlockPos pos, Direction facing, float hitX, float hitY,
+										   float hitZ, int meta, LivingEntity placer, EnumHand hand) {
 		return getStateFromMeta(meta);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		return state.getValue(COLOR).getMetadata();
 	}
 
 	@Nonnull
 	@Override
 	@Deprecated
-	public IBlockState getStateFromMeta(int meta) {
+	public BlockState getStateFromMeta(int meta) {
 		return this.getDefaultState().withProperty(COLOR, EnumDyeColor.byMetadata(meta));
 	}
 
 	@Nonnull
 	@Override
-	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, COLOR);
+	protected BlockBehaviour createBlockState() {
+		return new BlockBehaviour(this, COLOR);
 	}
 
 	@Override

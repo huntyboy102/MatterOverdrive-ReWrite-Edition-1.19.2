@@ -3,18 +3,19 @@ package huntyboy102.moremod.blocks;
 
 import huntyboy102.moremod.blocks.includes.MOBlockMachine;
 import huntyboy102.moremod.tile.TileEntityAndroidStation;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.world.World;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nonnull;
 
 public class BlockAndroidStation extends MOBlockMachine<TileEntityAndroidStation> {
 	public BlockAndroidStation(Material material, String name) {
 		super(material, name);
-		setBoundingBox(new AxisAlignedBB(0, 0, 0, 1, 9 / 16d, 1));
+		setBoundingBox(new AABB(0, 0, 0, 1, 9 / 16d, 1));
 		setHardness(20.0F);
 		this.setResistance(9.0f);
 		this.setHarvestLevel("pickaxe", 2);
@@ -54,13 +55,13 @@ public class BlockAndroidStation extends MOBlockMachine<TileEntityAndroidStation
 
 	@Nonnull
 	@Override
-	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
+	public BlockEntity createTileEntity(@Nonnull LevelAccessor world, @Nonnull BlockState state) {
 		return new TileEntityAndroidStation();
 	}
 
 	@Override
 	@Deprecated
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 }

@@ -3,25 +3,25 @@ package huntyboy102.moremod.blocks;
 import huntyboy102.moremod.blocks.includes.MOBlockMachine;
 import huntyboy102.moremod.handler.ConfigurationHandler;
 import huntyboy102.moremod.tile.TileEntityMachineChargingStation;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraftforge.fml.ModList;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
 public class BlockChargingStation extends MOBlockMachine<TileEntityMachineChargingStation> {
-	public static final PropertyBool CTM = PropertyBool.create("ctm");
+	public static final BooleanProperty CTM = BooleanProperty.create("ctm");
 
 	public BlockChargingStation(Material material, String name) {
 		super(material, name);
@@ -30,27 +30,27 @@ public class BlockChargingStation extends MOBlockMachine<TileEntityMachineChargi
 		this.setResistance(9.0f);
 		this.setHarvestLevel("pickaxe", 2);
 		setHasGui(true);
-		setBoundingBox(new AxisAlignedBB(0 / 16d, 0, 0, 16 / 16d, 2.3, 1));
+		setBoundingBox(new AABB(0 / 16d, 0, 0, 16 / 16d, 2.3, 1));
 	}
 
 	@Nonnull
 	@Override
-	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, PROPERTY_DIRECTION, CTM);
+	protected BlockBehaviour createBlockState() {
+		return new BlockBehaviour(this, PROPERTY_DIRECTION, CTM);
 	}
 
 	@Override
-	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		return super.getActualState(state, worldIn, pos).withProperty(CTM, Loader.isModLoaded("ctm"));
+	public BlockState getActualState(BlockState state, LevelReader worldIn, BlockPos pos) {
+		return super.getActualState(state, worldIn, pos).setValue(CTM, ModList.get().isLoaded("ctm"));
 	}
 
 	@Override
-	public ArrayList<ItemStack> dismantleBlock(EntityPlayer player, World world, BlockPos pos, boolean returnDrops) {
+	public ArrayList<ItemStack> dismantleBlock(Player player, LevelAccessor world, BlockPos pos, boolean returnDrops) {
 		return super.dismantleBlock(player, world, pos, returnDrops);
 	}
 
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer,
+	public void onBlockPlacedBy(LevelAccessor worldIn, BlockPos pos, BlockState state, LivingEntity placer,
 			ItemStack stack) {
 		super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
 	}
@@ -62,13 +62,13 @@ public class BlockChargingStation extends MOBlockMachine<TileEntityMachineChargi
 
 	@Nonnull
 	@Override
-	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
+	public BlockEntity createTileEntity(@Nonnull LevelAccessor world, @Nonnull BlockState state) {
 		return new TileEntityMachineChargingStation();
 	}
 
 	@Override
 	@Deprecated
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(BlockState state) {
 		return false;
 	}
 

@@ -4,9 +4,9 @@ package huntyboy102.moremod.blocks;
 import huntyboy102.moremod.blocks.includes.IImageGenBlock;
 import huntyboy102.moremod.blocks.includes.MOBlock;
 import huntyboy102.moremod.util.MOBlockHelper;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.world.MOImageGen;
-import net.minecraft.block.material.Material;
+import net.minecraft.world.level.material.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ public class BlockDecorative extends MOBlock implements IImageGenBlock {
 		setHardness(hardness);
 		setHarvestLevel("pickaxe", harvestLevel);
 		setResistance(resistance);
-		setCreativeTab(MatterOverdrive.TAB_OVERDRIVE);
+		setCreativeTab(MatterOverdriveRewriteEdition.TAB_OVERDRIVE);
 		this.mapColor = mapColor;
 		decorativeBlocks.add(this);
 		MOImageGen.worldGenerationBlockColors.put(this, getBlockColor(0));

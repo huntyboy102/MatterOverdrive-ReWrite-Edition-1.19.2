@@ -2,11 +2,11 @@
 package huntyboy102.moremod.blocks;
 
 import huntyboy102.moremod.tile.TileEntityMachineContractMarket;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.world.World;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nonnull;
 
@@ -16,7 +16,7 @@ public class BlockContractMarket extends BlockMonitor<TileEntityMachineContractM
 		setHardness(20.0F);
 		this.setResistance(9.0f);
 		this.setHarvestLevel("pickaxe", 2);
-		setBoundingBox(new AxisAlignedBB(0, 1, 0, 1, 11 / 16d, 1));
+		setBoundingBox(new AABB(0, 1, 0, 1, 11 / 16d, 1));
 		setHasGui(true);
 	}
 
@@ -27,7 +27,7 @@ public class BlockContractMarket extends BlockMonitor<TileEntityMachineContractM
 
 	@Nonnull
 	@Override
-	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
+	public BlockEntity createTileEntity(@Nonnull LevelAccessor world, @Nonnull BlockState state) {
 		return new TileEntityMachineContractMarket();
 	}
 }

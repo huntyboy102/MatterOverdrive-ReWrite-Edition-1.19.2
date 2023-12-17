@@ -7,8 +7,8 @@ import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.Item;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.level.BlockAccess;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.LevelReader;
 
 import javax.annotation.Nullable;
 import java.util.Random;
@@ -46,9 +46,9 @@ public class DilithiumOre extends MOBlockOre {
 	}
 
 	@Override
-	public int getExpDrop(BlockState state, IBlockAccess world, BlockPos pos, int fortune) {
+	public int getExpDrop(BlockState state, LevelReader world, BlockPos pos, int fortune) {
 		if (this.getItemDropped(world.getBlockState(pos), rand, fortune) != Item.getItemFromBlock(this)) {
-			return MathHelper.getInt(rand, 2, 5);
+			return Mth.getInt(rand, 2, 5);
 		}
 		return 0;
 	}
