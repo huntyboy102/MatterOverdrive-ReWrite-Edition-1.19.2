@@ -1,24 +1,24 @@
 
 package huntyboy102.moremod.blocks;
 
-import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.Rotation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
 
 public class BlockDecorativeRotated extends BlockDecorative {
-	public static final PropertyEnum<EnumFacing.Axis> AXIS = PropertyEnum.<EnumFacing.Axis>create("axis",
-			EnumFacing.Axis.class);
+	public static final EnumProperty<Direction.Axis> AXIS = EnumProperty.<Direction.Axis>create("axis",
+			Direction.Axis.class);
 
 	public BlockDecorativeRotated(Material material, String name, float hardness, int harvestLevel, float resistance,
 			int mapColor) {
@@ -26,15 +26,15 @@ public class BlockDecorativeRotated extends BlockDecorative {
 	}
 
 	@Override
-	public void getSubBlocks(CreativeTabs itemIn, NonNullList<ItemStack> items) {
+	public void getSubBlocks(CreativeModeTab itemIn, NonNullList<ItemStack> items) {
 
 		items.add(new ItemStack(this, 1, 0));
 	}
 
 	@Override
-	public boolean rotateBlock(net.minecraft.world.World world, BlockPos pos, EnumFacing axis) {
-		IBlockState state = world.getBlockState(pos);
-		for (IProperty<?> prop : state.getProperties().keySet()) {
+	public boolean rotateBlock(net.minecraft.world.level.LevelAccessor world, BlockPos pos, Direction axis) {
+		BlockState state = world.getBlockState(pos);
+		for (Property<?> prop : state.getProperties().keySet()) {
 			if (prop.getName().equals("axis")) {
 				world.setBlockState(pos, state.cycleProperty(prop));
 				return true;
@@ -43,16 +43,16 @@ public class BlockDecorativeRotated extends BlockDecorative {
 		return false;
 	}
 
-	public IBlockState withRotation(IBlockState state, Rotation rot) {
+	public BlockState withRotation(BlockState state, Rotation rot) {
 		switch (rot) {
 		case COUNTERCLOCKWISE_90:
 		case CLOCKWISE_90:
 
-			switch ((EnumFacing.Axis) state.getValue(AXIS)) {
+			switch ((Direction.Axis) state.getValue(AXIS)) {
 			case X:
-				return state.withProperty(AXIS, EnumFacing.Axis.Z);
+				return state.withProperty(AXIS, Direction.Axis.Z);
 			case Z:
-				return state.withProperty(AXIS, EnumFacing.Axis.X);
+				return state.withProperty(AXIS, Direction.Axis.X);
 			default:
 				return state;
 			}
@@ -62,42 +62,42 @@ public class BlockDecorativeRotated extends BlockDecorative {
 		}
 	}
 
-	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing.Axis enumfacing$axis = EnumFacing.Axis.Y;
+	public BlockState getStateFromMeta(int meta) {
+		Direction.Axis enumfacing$axis = Direction.Axis.Y;
 		int i = meta & 12;
 
 		if (i == 4) {
-			enumfacing$axis = EnumFacing.Axis.X;
+			enumfacing$axis = Direction.Axis.X;
 		} else if (i == 8) {
-			enumfacing$axis = EnumFacing.Axis.Z;
+			enumfacing$axis = Direction.Axis.Z;
 		}
 
 		return this.getDefaultState().withProperty(AXIS, enumfacing$axis);
 	}
 
-	public int getMetaFromState(IBlockState state) {
+	public int getMetaFromState(BlockState state) {
 		int i = 0;
-		EnumFacing.Axis enumfacing$axis = (EnumFacing.Axis) state.getValue(AXIS);
+		Direction.Axis enumfacing$axis = (Direction.Axis) state.getValue(AXIS);
 
-		if (enumfacing$axis == EnumFacing.Axis.X) {
+		if (enumfacing$axis == Direction.Axis.X) {
 			i |= 4;
-		} else if (enumfacing$axis == EnumFacing.Axis.Z) {
+		} else if (enumfacing$axis == Direction.Axis.Z) {
 			i |= 8;
 		}
 
 		return i;
 	}
 
-	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, new IProperty[] { AXIS });
+	protected BlockBehaviour createBlockState() {
+		return new BlockBehaviour(this, new Property[] { AXIS });
 	}
 
-	protected ItemStack getSilkTouchDrop(IBlockState state) {
+	protected ItemStack getSilkTouchDrop(BlockState state) {
 		return new ItemStack(Item.getItemFromBlock(this));
 	}
 
-	public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY,
-			float hitZ, int meta, EntityLivingBase placer) {
+	public BlockState getStateForPlacement(LevelAccessor worldIn, BlockPos pos, Direction facing, float hitX, float hitY,
+			float hitZ, int meta, LivingEntity placer) {
 		return super.getStateForPlacement(worldIn, pos, facing, hitX, hitY, hitZ, meta, placer).withProperty(AXIS,
 				facing.getAxis());
 	}

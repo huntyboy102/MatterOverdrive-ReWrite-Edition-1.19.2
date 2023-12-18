@@ -2,17 +2,17 @@
 package huntyboy102.moremod.blocks;
 
 import huntyboy102.moremod.Reference;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import net.minecraftforge.fluids.BlockFluidClassic;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fluids.ForgeFlowingFluid;
+import net.minecraftforge.fluids.FluidType;
 
-public class BlockFluidMatterPlasma extends BlockFluidClassic {
-	public BlockFluidMatterPlasma(Fluid fluid, Material material) {
+public class BlockFluidMatterPlasma extends ForgeFlowingFluid {
+	public BlockFluidMatterPlasma(FluidType fluid, Material material) {
 		super(fluid, material);
 		setTranslationKey("matter_plasma");
 		setRegistryName(new ResourceLocation(Reference.MOD_ID, "matter_plasma"));
@@ -31,14 +31,14 @@ public class BlockFluidMatterPlasma extends BlockFluidClassic {
 	 */
 
 	@Override
-	public boolean canDisplace(IBlockAccess world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
+	public boolean canDisplace(LevelReader world, BlockPos pos) {
+		BlockState state = world.getBlockState(pos);
 		return !state.getMaterial().isLiquid() && super.canDisplace(world, pos);
 	}
 
 	@Override
-	public boolean displaceIfPossible(World world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
+	public boolean displaceIfPossible(LevelAccessor world, BlockPos pos) {
+		BlockState state = world.getBlockState(pos);
 		return !state.getMaterial().isLiquid() && super.displaceIfPossible(world, pos);
 	}
 }
