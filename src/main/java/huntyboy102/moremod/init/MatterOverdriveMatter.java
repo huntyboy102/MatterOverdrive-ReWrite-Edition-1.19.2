@@ -1,20 +1,19 @@
 
 package huntyboy102.moremod.init;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.data.matter.DamageAwareStackHandler;
 import huntyboy102.moremod.data.matter.MatterEntryItem;
 import huntyboy102.moremod.data.matter.OreHandler;
 import huntyboy102.moremod.handler.ConfigurationHandler;
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Map;
 
@@ -29,7 +28,7 @@ public class MatterOverdriveMatter {
 	}
 
 	public static void registerBlacklistFromConfig(ConfigurationHandler c) {
-		MatterOverdrive.MATTER_REGISTRY.loadModBlacklistFromConfig(c);
+		MatterOverdriveRewriteEdition.MATTER_REGISTRY.loadModBlacklistFromConfig(c);
 	}
 
 	public static void registerFromConfig(ConfigurationHandler c) {
@@ -90,14 +89,14 @@ public class MatterOverdriveMatter {
 		reg(c, Blocks.BEDROCK, 1024);
 		reg(c, Blocks.SPONGE, 8);
 		reg(c, Blocks.VINE, 1);
-		reg(c, Blocks.TALLGRASS, 1);
+		reg(c, Blocks.TALL_GRASS, 1);
 		reg(c, Blocks.MOSSY_COBBLESTONE, 2);
 		reg(c, Blocks.NETHERRACK, 1);
 		reg(c, Blocks.CLAY, 3, 16);
-		reg(c, Blocks.HARDENED_CLAY, 3);
-		reg(c, Blocks.STONEBRICK, 2, 4);
+		reg(c, Blocks.TERRACOTTA, 3);
+		reg(c, Blocks.STONE_BRICKS, 2, 4);
 		reg(c, Blocks.COBBLESTONE_WALL, 1);
-		reg(c, Blocks.WEB, 1);
+		reg(c, Blocks.COBWEB, 1);
 		reg(c, Blocks.WHITE_SHULKER_BOX, 40);
 		reg(c, Blocks.ORANGE_SHULKER_BOX, 40);
 		reg(c, Blocks.MAGENTA_SHULKER_BOX, 40);
@@ -106,7 +105,7 @@ public class MatterOverdriveMatter {
 		reg(c, Blocks.LIME_SHULKER_BOX, 40);
 		reg(c, Blocks.PINK_SHULKER_BOX, 40);
 		reg(c, Blocks.GRAY_SHULKER_BOX, 40);
-		reg(c, Blocks.SILVER_SHULKER_BOX, 40);
+		reg(c, Blocks.LIGHT_GRAY_SHULKER_BOX, 40);
 		reg(c, Blocks.CYAN_SHULKER_BOX, 40);
 		reg(c, Blocks.BLUE_SHULKER_BOX, 40);
 		reg(c, Blocks.BROWN_SHULKER_BOX, 40);
@@ -114,19 +113,20 @@ public class MatterOverdriveMatter {
 		reg(c, Blocks.RED_SHULKER_BOX, 40);
 		reg(c, Blocks.BLACK_SHULKER_BOX, 40);
 
-		reg(c, Blocks.RED_FLOWER, 1, 9);
-		reg(c, Blocks.YELLOW_FLOWER, 1);
+		reg(c, Blocks.POPPY, 1, 9);
+		reg(c, Blocks.DANDELION, 1);
 		reg(c, Blocks.BROWN_MUSHROOM, 1);
 		reg(c, Blocks.BROWN_MUSHROOM_BLOCK, 1);
 		reg(c, Blocks.RED_MUSHROOM, 1);
 		reg(c, Blocks.RED_MUSHROOM_BLOCK, 1);
-		reg(c, Blocks.DEADBUSH, 1);
+		reg(c, Blocks.DEAD_BUSH, 1);
 		reg(c, Blocks.DISPENSER, 11);
-		reg(c, Blocks.WATERLILY, 1);
+		reg(c, Blocks.LILY_PAD, 1);
 		reg(c, "treeSapling", 2);
-		reg(c, Blocks.DOUBLE_PLANT, 1, 6);
-		reg(c, Blocks.GRASS_PATH, 1, 3);
-		reg(c, Blocks.TALLGRASS, 1, 6);
+		reg(c, Blocks.SUNFLOWER, 1, 6);
+		reg(c, Blocks.ROSE_BUSH, 1, 6);
+		reg(c, Blocks.DIRT_PATH, 1, 3);
+		reg(c, Blocks.TALL_GRASS, 1, 6);
 	}
 
 	public static void registerBasicItems(ConfigurationHandler c) {
@@ -137,15 +137,15 @@ public class MatterOverdriveMatter {
 		reg(c, Items.BONE, 2);
 		reg(c, Items.CLAY_BALL, 1);
 		reg(c, Items.COAL, 8);
-		reg(c, new ItemStack(Items.COAL, 1, 1), 5);
+		reg(c, Items.CHARCOAL,8);
 		reg(c, Items.EGG, 1);
-		reg(c, new ItemStack(Items.DYE, 1, 3), 1);
-		reg(c, new ItemStack(Items.DYE, 1, 0), 1);
+		reg(c, Items.BROWN_DYE, 1);
+		reg(c, Items.BLACK_DYE, 1);
 		reg(c, Items.ENDER_PEARL, 8);
 		reg(c, Items.FEATHER, 1);
 		reg(c, Items.FERMENTED_SPIDER_EYE, 1);
 		reg(c, Items.FLINT, 1);
-		reg(c, Items.FISH, 1, 4);
+		reg(c, Items.TROPICAL_FISH, 4);
 		reg(c, Items.GHAST_TEAR, 8);
 		reg(c, Items.GUNPOWDER, 2);
 		reg(c, Items.MELON, 1);
@@ -154,7 +154,7 @@ public class MatterOverdriveMatter {
 		reg(c, Items.STRING, 1);
 		reg(c, Items.SPIDER_EYE, 1);
 		reg(c, Items.SADDLE, 18);
-		reg(c, Items.REEDS, 1);
+		reg(c, Items.SUGAR_CANE, 1);
 		reg(c, Items.LEATHER, 3);
 		reg(c, Items.PUMPKIN_SEEDS, 1);
 		reg(c, Items.PAPER, 1);
@@ -185,7 +185,7 @@ public class MatterOverdriveMatter {
 		reg(c, Items.PRISMARINE_SHARD, 2);
 		reg(c, Items.BEETROOT, 1);
 		reg(c, Items.BEETROOT_SEEDS, 1);
-		reg(c, Items.CHORUS_FRUIT_POPPED, 2);
+		reg(c, Items.POPPED_CHORUS_FRUIT, 2);
 		reg(c, Items.PRISMARINE_CRYSTALS, 3);
 		reg(c, Items.RABBIT_HIDE, 2);
 		reg(c, Items.RABBIT_FOOT, 2);
@@ -194,11 +194,10 @@ public class MatterOverdriveMatter {
 		reg(c, Items.REPEATER, 8);
 		reg(c, Items.COMPARATOR, 10);
 		reg(c, Items.GLASS_BOTTLE, 3);
-		reg(c, Items.REEDS, 1);
-		reg(c, new ItemStack(Items.SKULL, 1, 0), 16); // skeleton
-		reg(c, new ItemStack(Items.SKULL, 1, 1), 64); // wither
-		reg(c, new ItemStack(Items.SKULL, 1, 2), 12); // zombie
-		reg(c, new ItemStack(Items.SKULL, 1, 4), 19); // creeper
+		reg(c, Items.SKELETON_SKULL,16);
+		reg(c, Items.WITHER_SKELETON_SKULL, 64);
+		reg(c, Items.ZOMBIE_HEAD, 12);
+		reg(c, Items.CREEPER_HEAD,19);
 		reg(c, "cropCarrot", 1);
 		reg(c, "nuggetGold", 4);
 		reg(c, "cropWheat", 1);
@@ -239,22 +238,21 @@ public class MatterOverdriveMatter {
 		reg(c, "ingotSteel", 38);
 		reg(c, "ingotTritanium", 128);
 
-		reg(c, new ItemStack(Items.DYE, 1, 2), 1);
-		reg(c, new ItemStack(Items.DYE, 1, 3), 1);
-		reg(c, new ItemStack(Items.DYE, 1, 4), 1);
-		reg(c, new ItemStack(Items.DYE, 1, 5), 1);
-		reg(c, new ItemStack(Items.DYE, 1, 6), 1);
+		reg(c, Items.GREEN_DYE, 1);
+		reg(c, Items.BLUE_DYE, 1);
+		reg(c, Items.PURPLE_DYE, 1);
+		reg(c, Items.CYAN_DYE, 1);
 
-		reg(c, new ItemStack(MatterOverdrive.ITEMS.androidParts, 1, Reference.BIONIC_HEAD), 64 * 5);
-		reg(c, new ItemStack(MatterOverdrive.ITEMS.androidParts, 1, Reference.BIONIC_ARMS), 64 * 6);
-		reg(c, new ItemStack(MatterOverdrive.ITEMS.androidParts, 1, Reference.BIONIC_LEGS), 64 * 6);
-		reg(c, new ItemStack(MatterOverdrive.ITEMS.androidParts, 1, Reference.BIONIC_CHEST), 64 * 9);
-		reg(c, MatterOverdrive.ITEMS.matter_dust, 2222);
-		reg(c, MatterOverdrive.ITEMS.emergency_ration, 3);
-		reg(c, MatterOverdrive.ITEMS.earl_gray_tea, 2);
-		reg(c, MatterOverdrive.ITEMS.romulan_ale, 2222);
-		reg(c, new ItemStack(MatterOverdrive.ITEMS.androidPill, 1, 1), 64);
-		reg(c, new ItemStack(MatterOverdrive.ITEMS.androidPill, 1, 2), 32);
+		reg(c, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.androidParts, 1, Reference.BIONIC_HEAD), 64 * 5);
+		reg(c, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.androidParts, 1, Reference.BIONIC_ARMS), 64 * 6);
+		reg(c, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.androidParts, 1, Reference.BIONIC_LEGS), 64 * 6);
+		reg(c, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.androidParts, 1, Reference.BIONIC_CHEST), 64 * 9);
+		reg(c, MatterOverdriveRewriteEdition.ITEMS.matter_dust, 2222);
+		reg(c, MatterOverdriveRewriteEdition.ITEMS.emergency_ration, 3);
+		reg(c, MatterOverdriveRewriteEdition.ITEMS.earl_gray_tea, 2);
+		reg(c, MatterOverdriveRewriteEdition.ITEMS.romulan_ale, 2222);
+		reg(c, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.androidPill, 1, 1), 64);
+		reg(c, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.androidPill, 1, 2), 32);
 
 	}
 
@@ -314,20 +312,20 @@ public class MatterOverdriveMatter {
 	}
 
 	private static void reg(ConfigurationHandler c, String name, int matter) {
-		MatterOverdrive.MATTER_REGISTRY.registerOre(name, new OreHandler(matter));
+		MatterOverdriveRewriteEdition.MATTER_REGISTRY.registerOre(name, new OreHandler(matter));
 	}
 
 	private static void regOre(ConfigurationHandler c, String name, int multiply, String ingot) {
-		int matter = MatterOverdrive.MATTER_REGISTRY.getMatterOre(ingot);
+		int matter = MatterOverdriveRewriteEdition.MATTER_REGISTRY.getMatterOre(ingot);
 		if (matter > 0) {
-			MatterOverdrive.MATTER_REGISTRY.registerOre(name, new OreHandler(matter * multiply));
+			MatterOverdriveRewriteEdition.MATTER_REGISTRY.registerOre(name, new OreHandler(matter * multiply));
 		}
 	}
 
 	private static void regOre(ConfigurationHandler c, String name, int multiply, Item ingot) {
-		int matter = MatterOverdrive.MATTER_REGISTRY.getMatter(new ItemStack(ingot));
+		int matter = MatterOverdriveRewriteEdition.MATTER_REGISTRY.getMatter(new ItemStack(ingot));
 		if (matter > 0) {
-			MatterOverdrive.MATTER_REGISTRY.registerOre(name, new OreHandler(matter * multiply));
+			MatterOverdriveRewriteEdition.MATTER_REGISTRY.registerOre(name, new OreHandler(matter * multiply));
 		}
 	}
 
@@ -336,13 +334,13 @@ public class MatterOverdriveMatter {
 			MatterEntryItem entry = null;
 
 			if (item instanceof String) {
-				matter += MatterOverdrive.MATTER_REGISTRY.getMatterOre((String) item);
+				matter += MatterOverdriveRewriteEdition.MATTER_REGISTRY.getMatterOre((String) item);
 			} else if (item instanceof Item) {
-				matter += MatterOverdrive.MATTER_REGISTRY.getMatter(new ItemStack((Item) item));
+				matter += MatterOverdriveRewriteEdition.MATTER_REGISTRY.getMatter(new ItemStack((Item) item));
 			} else if (item instanceof Block) {
-				matter += MatterOverdrive.MATTER_REGISTRY.getMatter(new ItemStack(Item.getItemFromBlock((Block) item)));
+				matter += MatterOverdriveRewriteEdition.MATTER_REGISTRY.getMatter(new ItemStack(Item.getItemFromBlock((Block) item)));
 			} else if (item instanceof ItemStack) {
-				matter += MatterOverdrive.MATTER_REGISTRY.getMatter((ItemStack) item);
+				matter += MatterOverdriveRewriteEdition.MATTER_REGISTRY.getMatter((ItemStack) item);
 			}
 		}
 
@@ -352,9 +350,9 @@ public class MatterOverdriveMatter {
 	}
 
 	private static void reg(ConfigurationHandler c, ItemStack itemStack, int matter) {
-		MatterOverdrive.MATTER_REGISTRY.register(itemStack.getItem(),
+		MatterOverdriveRewriteEdition.MATTER_REGISTRY.register(itemStack.getItem(),
 				new DamageAwareStackHandler(itemStack.getItemDamage(), matter));
-		MatterOverdrive.MATTER_REGISTRY.basicEntries++;
+		MatterOverdriveRewriteEdition.MATTER_REGISTRY.basicEntries++;
 	}
 
 	private static void reg(ConfigurationHandler c, Block block, int matter) {
@@ -363,9 +361,9 @@ public class MatterOverdriveMatter {
 
 	private static void reg(ConfigurationHandler c, Block block, int matter, int subItems) {
 		for (int i = 0; i < subItems; i++) {
-			MatterOverdrive.MATTER_REGISTRY.register(Item.getItemFromBlock(block),
+			MatterOverdriveRewriteEdition.MATTER_REGISTRY.register(Item.getItemFromBlock(block),
 					new DamageAwareStackHandler(i, matter));
-			MatterOverdrive.MATTER_REGISTRY.basicEntries++;
+			MatterOverdriveRewriteEdition.MATTER_REGISTRY.basicEntries++;
 		}
 	}
 
@@ -375,8 +373,8 @@ public class MatterOverdriveMatter {
 
 	private static void reg(ConfigurationHandler c, Item item, int matter, int subItems) {
 		for (int i = 0; i < subItems; i++) {
-			MatterOverdrive.MATTER_REGISTRY.register(item, new DamageAwareStackHandler(i, matter));
-			MatterOverdrive.MATTER_REGISTRY.basicEntries++;
+			MatterOverdriveRewriteEdition.MATTER_REGISTRY.register(item, new DamageAwareStackHandler(i, matter));
+			MatterOverdriveRewriteEdition.MATTER_REGISTRY.basicEntries++;
 		}
 	}
 }

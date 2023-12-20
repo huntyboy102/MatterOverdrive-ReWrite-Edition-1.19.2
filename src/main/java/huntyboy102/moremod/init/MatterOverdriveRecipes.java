@@ -7,25 +7,24 @@ import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.data.recipes.InscriberRecipeManager;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class MatterOverdriveRecipes {
 	public static final InscriberRecipeManager INSCRIBER = new InscriberRecipeManager();
 
-	public static void registerMachineRecipes(FMLInitializationEvent event) {
+	public static void registerMachineRecipes() {
 
 		// Furnace
-		GameRegistry.addSmelting(new ItemStack(MatterOverdrive.ITEMS.tritanium_dust),
-				new ItemStack(MatterOverdrive.ITEMS.tritanium_ingot), 5);
-		GameRegistry.addSmelting(new ItemStack(MatterOverdrive.BLOCKS.tritaniumOre),
-				new ItemStack(MatterOverdrive.ITEMS.tritanium_ingot), 10);
+		GameRegistry.addSmelting(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.tritanium_dust),
+				new ItemStack(MatterOverdriveRewriteEdition.ITEMS.tritanium_ingot), 5);
+		GameRegistry.addSmelting(new ItemStack(MatterOverdriveRewriteEdition.BLOCKS.tritaniumOre),
+				new ItemStack(MatterOverdriveRewriteEdition.ITEMS.tritanium_ingot), 10);
 
 		// Inscriber
-		File file = new File(MatterOverdrive.CONFIG_HANDLER.configDir, "MatterOverdrive/recipes/inscriber.xml");
+		File file = new File(MatterOverdriveRewriteEdition.CONFIG_HANDLER.configDir, "MatterOverdrive/recipes/inscriber.xml");
 		if (!file.exists()) {
 			try {
 				file.getParentFile().mkdirs();

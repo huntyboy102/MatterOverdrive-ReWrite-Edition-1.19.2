@@ -8,32 +8,38 @@ import huntyboy102.moremod.blocks.world.DilithiumOre;
 import huntyboy102.moremod.items.includes.MOMachineBlockItem;
 import huntyboy102.moremod.util.IConfigSubscriber;
 import huntyboy102.moremod.util.MOLog;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.internal.IItemBlockFactory;
-import matteroverdrive.blocks.*;
-import net.minecraft.block.Block;
-import net.minecraft.block.material.MapColor;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.EnumDyeColor;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemColored;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fluids.BlockFluidClassic;
+import huntyboy102.moremod.blocks.*;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemColored;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+import static net.minecraftforge.versions.forge.ForgeVersion.MOD_ID;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
-@Mod.EventBusSubscriber
+@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class MatterOverdriveBlocks {
-	public static final List<IRecipe> recipes = new ArrayList<>();
+	public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
+	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
+
+	public static final List<Recipe> recipes = new ArrayList<>();
 	public static List<Block> blocks = new ArrayList<>();
 	public static List<Item> items = new ArrayList<>();
 
-	public final MaterialTritanium TRITANIUM = new MaterialTritanium(MapColor.CLAY);
+	public final MaterialTritanium TRITANIUM = new MaterialTritanium(MaterialColor.CLAY);
 	// Materials
 	public DilithiumOre dilithium_ore;
 	public MOBlockOre tritaniumOre;
@@ -108,22 +114,20 @@ public class MatterOverdriveBlocks {
 	public BlockNewTritaniumCrate new_tritanium_crate_white;
 	public BlockNewTritaniumCrate new_tritanium_crate_purple;
 
-	@SubscribeEvent
-	public static void registerBlocks(RegistryEvent.Register<Block> event) {
-		blocks.forEach(b -> event.getRegistry().register(b));
+	private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> blockSupplier) {
+		return BLOCKS.register(name, blockSupplier);
 	}
 
-	@SubscribeEvent
-	public static void registerItems(RegistryEvent.Register<Item> event) {
-		items.forEach(i -> event.getRegistry().register(i));
+	private static <T extends Block> RegistryObject<Item> registerItemBlock(String name, RegistryObject<T> block) {
+		return ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties().tab(CreativeModeTab.BUILDING_BLOCKS)));
 	}
 
 	public void init() {
 		MOLog.info("Registering blocks");
 
 //		Materials
-		dilithium_ore = register(new DilithiumOre(Material.ROCK, "dilithium_ore", "oreDilithium"));
-		tritaniumOre = register(new MOBlockOre(Material.ROCK, "tritanium_ore", "oreTritanium"));
+		dilithium_ore = register(new DilithiumOre(Material.STONE, "dilithium_ore", "oreDilithium"));
+		tritaniumOre = register(new MOBlockOre(Material.STONE, "tritanium_ore", "oreTritanium"));
 		tritaniumOre.setHardness(8f).setResistance(5.0F).setHarvestLevel("pickaxe", 2);
 		tritanium_block = register(new MOBlockOre(TRITANIUM, "tritanium_block", "blockTritanium"));
 		tritanium_block.setHardness(15.0F).setResistance(10.0F).setHarvestLevel("pickaxe", 2);
@@ -161,9 +165,9 @@ public class MatterOverdriveBlocks {
 
 //		Storage
 		tritaniumCrate = register(new BlockTritaniumCrate(TRITANIUM, "tritanium_crate"));
-		EnumDyeColor[] colors = EnumDyeColor.values();
+		DyeColor[] colors = DyeColor.values();
 		tritaniumCrateColored = new BlockTritaniumCrate[colors.length];
-		for (EnumDyeColor color : colors)
+		for (DyeColor color : colors)
 			tritaniumCrateColored[color.getMetadata()] = register(
 					new BlockTritaniumCrate(TRITANIUM, "tritanium_crate_" + color.getName()));
 
@@ -227,7 +231,7 @@ public class MatterOverdriveBlocks {
 	}
 
 	protected <T extends Block> T register(T block) {
-		ItemBlock itemBlock;
+		BlockItem itemBlock;
 		if (block instanceof IItemBlockFactory) {
 			itemBlock = ((IItemBlockFactory) block).createItemBlock();
 		} else if (block instanceof MOBlockMachine) {
@@ -243,7 +247,7 @@ public class MatterOverdriveBlocks {
 	}
 
 	protected <T extends Block> T register(T block, boolean addToItems) {
-		ItemBlock itemBlock;
+		BlockItem itemBlock;
 		if (block instanceof IItemBlockFactory) {
 			itemBlock = ((IItemBlockFactory) block).createItemBlock();
 		} else if (block instanceof MOBlockMachine) {
@@ -258,9 +262,9 @@ public class MatterOverdriveBlocks {
 		return register(block, itemBlock, addToItems);
 	}
 
-	protected <T extends Block> T register(T block, ItemBlock itemBlock, boolean addToItems) {
+	protected <T extends Block> T register(T block, BlockItem itemBlock, boolean addToItems) {
 		if (block instanceof IConfigSubscriber) {
-			MatterOverdrive.CONFIG_HANDLER.subscribe((IConfigSubscriber) block);
+			MatterOverdriveRewriteEdition.CONFIG_HANDLER.subscribe((IConfigSubscriber) block);
 		}
 		registeredCount++;
 		blocks.add(block);

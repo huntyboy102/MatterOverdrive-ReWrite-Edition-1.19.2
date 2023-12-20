@@ -4,11 +4,11 @@ package huntyboy102.moremod.init;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.dialog.IDialogRegistry;
-import matteroverdrive.data.dialog.*;
+import huntyboy102.moremod.data.dialog.*;
 import huntyboy102.moremod.handler.ConfigurationHandler;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.api.distmarker.Dist;
 
 public class MatterOverdriveDialogs {
 	public static DialogMessage backMessage;
@@ -39,7 +39,7 @@ public class MatterOverdriveDialogs {
 		MatterOverdriveDialogs.tradeRouteQuest.addOption(tradeRouteQuest);
 		tradeRouteQuest.addOption(backHomeMessage);
 
-		if (FMLCommonHandler.instance().getSide() == Side.CLIENT) {
+		if (DistExecutor.unsafeRunForDist(() -> () -> true, () -> () -> false)) {
 			backMessage.setHoloIcon("mini_quit");
 			quitMessage.setHoloIcon("mini_quit");
 			backHomeMessage.setHoloIcon("mini_quit");

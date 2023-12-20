@@ -1,14 +1,14 @@
 
 package huntyboy102.moremod.init;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.quest.IQuestLogic;
-import matteroverdrive.data.quest.*;
-import matteroverdrive.data.quest.logic.*;
+import huntyboy102.moremod.data.quest.*;
+import huntyboy102.moremod.data.quest.logic.*;
 import huntyboy102.moremod.data.quest.rewards.ItemStackReward;
 import huntyboy102.moremod.handler.quest.Quests;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.WeightedRandom;
+import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,15 +38,15 @@ public class MatterOverdriveQuests {
 	private static void initMatterOverdriveQuests() {
 		cocktailOfAscension = (GenericQuest) new GenericQuest(new QuestLogicCocktailOfAscension(),
 				"cocktail_of_ascension", 512)
-				.addQuestRewards(new ItemStackReward(MatterOverdrive.ITEMS.androidPill, 1, 0),
-						new ItemStackReward(MatterOverdrive.ITEMS.androidPill, 1, 1),
-						new ItemStackReward(MatterOverdrive.ITEMS.androidPill, 1, 2));
+				.addQuestRewards(new ItemStackReward(MatterOverdriveRewriteEdition.ITEMS.androidPill, 1, 0),
+						new ItemStackReward(MatterOverdriveRewriteEdition.ITEMS.androidPill, 1, 1),
+						new ItemStackReward(MatterOverdriveRewriteEdition.ITEMS.androidPill, 1, 2));
 		punyHumans = (GenericQuest) new GenericQuest(new QuestLogicBecomeAndroid(), "puny_humans", 256).addQuestRewards(
-				new ItemStackReward(MatterOverdrive.ITEMS.battery),
-				new ItemStackReward(MatterOverdrive.ITEMS.androidPill, 1, 1),
-				new ItemStackReward(MatterOverdrive.ITEMS.androidPill, 5, 2));
+				new ItemStackReward(MatterOverdriveRewriteEdition.ITEMS.battery),
+				new ItemStackReward(MatterOverdriveRewriteEdition.ITEMS.androidPill, 1, 1),
+				new ItemStackReward(MatterOverdriveRewriteEdition.ITEMS.androidPill, 5, 2));
 		trade_route = new GenericMultiQuest(new IQuestLogic[] { new QuestLogicBlockInteract(null, true, false),
-				new QuestLogicItemInteract(new QuestItem(new ItemStack(MatterOverdrive.ITEMS.isolinear_circuit)
+				new QuestLogicItemInteract(new QuestItem(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.isolinear_circuit)
 						.setStackDisplayName("Trade Route Agreement")), true),
 				new QuestLogicConversation("mo.mad_scientist", MatterOverdriveDialogs.tradeRouteQuest,
 						MatterOverdriveDialogs.tradeRouteQuest) },

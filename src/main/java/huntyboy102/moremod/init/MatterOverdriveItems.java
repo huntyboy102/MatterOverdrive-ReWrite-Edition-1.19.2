@@ -12,19 +12,17 @@ import huntyboy102.moremod.items.food.RomulanAle;
 import huntyboy102.moremod.items.includes.MOBaseItem;
 import huntyboy102.moremod.items.includes.MOItemOre;
 import huntyboy102.moremod.util.MOLog;
-import matteroverdrive.items.*;
-import matteroverdrive.items.tools.*;
-import matteroverdrive.items.weapon.*;
-import matteroverdrive.items.weapon.module.*;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.util.EnumHelper;
-import net.minecraftforge.event.RegistryEvent;
+import huntyboy102.moremod.items.*;
+import huntyboy102.moremod.items.tools.*;
+import huntyboy102.moremod.items.weapon.*;
+import huntyboy102.moremod.items.weapon.module.*;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +31,7 @@ import java.util.List;
 public class MatterOverdriveItems {
 	public final static Item.ToolMaterial TOOL_MATERIAL_TRITANIUM = EnumHelper.addToolMaterial("TRITANIUM", 2, 3122, 6f,
 			2f, 14);
-	public final static ItemArmor.ArmorMaterial ARMOR_MATERIAL_TRITANIUM = EnumHelper.addArmorMaterial("TRITANIUM",
+	public final static ArmorItem.ArmorMaterial ARMOR_MATERIAL_TRITANIUM = EnumHelper.addArmorMaterial("TRITANIUM",
 			"tritanium", 66, new int[] { 4, 9, 7, 4 }, 20, SoundEvents.ITEM_ARMOR_EQUIP_IRON, 0.0f);
 	public static List<Item> items = new ArrayList<>();
 	// Materials
@@ -201,13 +199,13 @@ public class MatterOverdriveItems {
 		tritaniumHoe = register(new TritaniumHoe("tritanium_hoe"));
 		tritaniumShovel = register(new TritaniumShovel("tritanium_shovel"));
 		tritaniumHelmet = register(
-				new TritaniumArmor("tritanium_helmet", ARMOR_MATERIAL_TRITANIUM, 2, EntityEquipmentSlot.HEAD));
+				new TritaniumArmor("tritanium_helmet", ARMOR_MATERIAL_TRITANIUM, 2, EquipmentSlot.HEAD));
 		tritaniumChestplate = register(
-				new TritaniumArmor("tritanium_chestplate", ARMOR_MATERIAL_TRITANIUM, 2, EntityEquipmentSlot.CHEST));
+				new TritaniumArmor("tritanium_chestplate", ARMOR_MATERIAL_TRITANIUM, 2, EquipmentSlot.CHEST));
 		tritaniumLeggings = register(
-				new TritaniumArmor("tritanium_leggings", ARMOR_MATERIAL_TRITANIUM, 2, EntityEquipmentSlot.LEGS));
+				new TritaniumArmor("tritanium_leggings", ARMOR_MATERIAL_TRITANIUM, 2, EquipmentSlot.LEGS));
 		tritaniumBoots = register(
-				new TritaniumArmor("tritanium_boots", ARMOR_MATERIAL_TRITANIUM, 2, EntityEquipmentSlot.FEET));
+				new TritaniumArmor("tritanium_boots", ARMOR_MATERIAL_TRITANIUM, 2, EquipmentSlot.FEET));
 
 //		Android
 		androidParts = register(new RougeAndroidParts("rogue_android_part"));
