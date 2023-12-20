@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class BlockGravitationalStabilizer extends MOBlockMachine<TileEntityMachineGravitationalStabilizer> {
-	public BlockGravitationalStabilizer(Material material, String name) {
+	public BlockGravitationalStabilizer(MaterialTritanium material, String name) {
 		super(material, name);
 		setHasRotation();
 		setHardness(20.0F);

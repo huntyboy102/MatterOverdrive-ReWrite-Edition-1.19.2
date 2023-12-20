@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 public class BlockSpacetimeAccelerator extends MOBlockMachine<TileEntityMachineSpacetimeAccelerator> {
 	public boolean showWave = true;
 
-	public BlockSpacetimeAccelerator(Material material, String name) {
+	public BlockSpacetimeAccelerator(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(20.0F);
 		this.setResistance(9.0f);

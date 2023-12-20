@@ -28,7 +28,7 @@ public class BlockPylon extends MOBlockContainer<TileEntityMachineDimensionalPyl
 	public static final PropertyEnum<MultiblockType> TYPE = PropertyEnum.create("type", MultiblockType.class);
 	public static final PropertyBool CTM = PropertyBool.create("ctm");
 
-	public BlockPylon(Material material, String name) {
+	public BlockPylon(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(8f);
 		setLightOpacity(0);

@@ -3,7 +3,6 @@ package huntyboy102.moremod.blocks;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -20,8 +19,8 @@ public class BlockDecorativeRotated extends BlockDecorative {
 	public static final EnumProperty<Direction.Axis> AXIS = EnumProperty.<Direction.Axis>create("axis",
 			Direction.Axis.class);
 
-	public BlockDecorativeRotated(Material material, String name, float hardness, int harvestLevel, float resistance,
-			int mapColor) {
+	public BlockDecorativeRotated(MaterialTritanium material, String name, float hardness, int harvestLevel, float resistance,
+								  int mapColor) {
 		super(material, name, hardness, harvestLevel, resistance, mapColor);
 	}
 

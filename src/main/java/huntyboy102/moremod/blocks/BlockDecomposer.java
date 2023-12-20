@@ -5,7 +5,6 @@ import huntyboy102.moremod.machines.decomposer.TileEntityMachineDecomposer;
 import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.handler.ConfigurationHandler;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +20,7 @@ import javax.annotation.Nonnull;
 public class BlockDecomposer extends MOMatterEnergyStorageBlock<TileEntityMachineDecomposer> {
 	public static final BooleanProperty RUNNING = BooleanProperty.create("running");
 
-	public BlockDecomposer(Material material, String name) {
+	public BlockDecomposer(MaterialTritanium material, String name) {
 		super(material, name, true, true);
 		setHasRotation();
 		setHardness(20.0F);

@@ -6,7 +6,6 @@ import huntyboy102.moremod.blocks.includes.MOBlock;
 import huntyboy102.moremod.util.MOBlockHelper;
 import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.world.MOImageGen;
-import net.minecraft.world.level.material.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +15,8 @@ public class BlockDecorative extends MOBlock implements IImageGenBlock {
 	public static final List<BlockDecorative> decorativeBlocks = new ArrayList<>();
 	private int mapColor;
 
-	public BlockDecorative(Material material, String name, float hardness, int harvestLevel, float resistance,
-			int mapColor) {
+	public BlockDecorative(MaterialTritanium material, String name, float hardness, int harvestLevel, float resistance,
+                           int mapColor) {
 		super(material, name);
 		setHardness(hardness);
 		setHarvestLevel("pickaxe", harvestLevel);

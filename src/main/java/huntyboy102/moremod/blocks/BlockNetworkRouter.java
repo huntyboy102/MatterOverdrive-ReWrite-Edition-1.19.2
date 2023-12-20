@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 
 public class BlockNetworkRouter extends MOBlockMachine<TileEntityMachineNetworkRouter> {
 
-	public BlockNetworkRouter(Material material, String name) {
+	public BlockNetworkRouter(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(20.0F);
 		this.setResistance(9.0f);

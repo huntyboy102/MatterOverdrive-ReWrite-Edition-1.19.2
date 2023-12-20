@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class BlockFusionReactorCoil extends MOBlock implements IDismantleable {
 
-	public BlockFusionReactorCoil(Material material, String name) {
+	public BlockFusionReactorCoil(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(30.0F);
 		this.setResistance(10.0f);

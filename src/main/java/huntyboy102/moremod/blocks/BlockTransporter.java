@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 
 public class BlockTransporter extends MOMatterEnergyStorageBlock<TileEntityMachineTransporter> {
 
-	public BlockTransporter(Material material, String name) {
+	public BlockTransporter(MaterialTritanium material, String name) {
 		super(material, name, true, true);
 		setHardness(20.0F);
 		this.setResistance(9.0f);

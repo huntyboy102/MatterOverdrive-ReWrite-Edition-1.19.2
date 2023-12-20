@@ -16,7 +16,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nonnull;
 
 public class BlockStarMap extends MOBlockMachine<TileEntityMachineStarMap> {
-	public BlockStarMap(Material material, String name) {
+	public BlockStarMap(MaterialTritanium material, String name) {
 		super(material, name);
 		setBoundingBox(new AxisAlignedBB(0, 0, 0, 1, 9 / 16d, 1));
 		setHardness(20.0F);

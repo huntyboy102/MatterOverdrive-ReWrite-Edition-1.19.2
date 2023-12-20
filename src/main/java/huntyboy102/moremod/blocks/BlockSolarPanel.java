@@ -12,7 +12,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 
 public class BlockSolarPanel extends MOMatterEnergyStorageBlock<TileEntityMachineSolarPanel> {
-	public BlockSolarPanel(Material material, String name) {
+	public BlockSolarPanel(MaterialTritanium material, String name) {
 		super(material, name, true, false);
 
 		setBoundingBox(new AxisAlignedBB(0, 0, 0, 1, 8 / 16d, 1));

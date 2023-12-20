@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
 public class BlockInscriber extends MOBlockMachine<TileEntityInscriber> {
 	public static final PropertyBool CTM = PropertyBool.create("ctm");
 
-	public BlockInscriber(Material material, String name) {
+	public BlockInscriber(MaterialTritanium material, String name) {
 		super(material, name);
 		setHasRotation();
 		setBoundingBox(new AxisAlignedBB(0, 0, 0, 1, 12 / 16d, 1));

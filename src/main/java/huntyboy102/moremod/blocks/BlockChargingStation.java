@@ -5,7 +5,6 @@ import huntyboy102.moremod.handler.ConfigurationHandler;
 import huntyboy102.moremod.tile.TileEntityMachineChargingStation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,7 +22,7 @@ import java.util.ArrayList;
 public class BlockChargingStation extends MOBlockMachine<TileEntityMachineChargingStation> {
 	public static final BooleanProperty CTM = BooleanProperty.create("ctm");
 
-	public BlockChargingStation(Material material, String name) {
+	public BlockChargingStation(MaterialTritanium material, String name) {
 		super(material, name);
 		setHasRotation();
 		setHardness(20.0F);

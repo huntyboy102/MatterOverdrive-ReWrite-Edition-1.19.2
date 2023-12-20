@@ -11,7 +11,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nonnull;
 
 public class BlockPatternMonitor extends BlockMonitor<TileEntityMachinePatternMonitor> {
-	public BlockPatternMonitor(Material material, String name) {
+	public BlockPatternMonitor(MaterialTritanium material, String name) {
 		super(material, name);
 		setHasGui(true);
 		setBoundingBox(new AxisAlignedBB(0, 1, 0, 1, 11 / 16d, 1));

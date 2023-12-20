@@ -12,7 +12,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nonnull;
 
 public class BlockNetworkSwitch extends MOBlockMachine<TileEntityMachineNetworkSwitch> {
-	public BlockNetworkSwitch(Material material, String name) {
+	public BlockNetworkSwitch(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(20.0F);
 		this.setResistance(9.0f);

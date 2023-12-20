@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 public class BlockPatternStorage extends MOBlockMachine<TileEntityMachinePatternStorage> {
 	public boolean hasVentParticles;
 
-	public BlockPatternStorage(Material material, String name) {
+	public BlockPatternStorage(MaterialTritanium material, String name) {
 		super(material, name);
 		setHasRotation();
 		setHardness(20.0F);

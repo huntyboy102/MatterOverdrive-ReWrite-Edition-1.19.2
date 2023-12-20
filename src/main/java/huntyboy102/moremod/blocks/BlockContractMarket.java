@@ -4,14 +4,13 @@ package huntyboy102.moremod.blocks;
 import huntyboy102.moremod.tile.TileEntityMachineContractMarket;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nonnull;
 
 public class BlockContractMarket extends BlockMonitor<TileEntityMachineContractMarket> {
-	public BlockContractMarket(Material material, String name) {
+	public BlockContractMarket(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(20.0F);
 		this.setResistance(9.0f);

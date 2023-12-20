@@ -17,7 +17,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
 public class BlockMatterPipe extends BlockPipe<TileEntityMatterPipe> implements IDismantleable {
-	public BlockMatterPipe(Material material, String name) {
+	public BlockMatterPipe(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(10.0F);
 		this.setResistance(5.0f);

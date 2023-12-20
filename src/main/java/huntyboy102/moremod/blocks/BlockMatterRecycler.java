@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
 public class BlockMatterRecycler extends MOMatterEnergyStorageBlock<TileEntityMachineMatterRecycler> {
 	public static final PropertyBool RUNNING = PropertyBool.create("running");
 
-	public BlockMatterRecycler(Material material, String name) {
+	public BlockMatterRecycler(MaterialTritanium material, String name) {
 		super(material, name, true, true);
 		setHasRotation();
 		setHardness(20.0F);

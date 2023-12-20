@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
 
 public class BlockHeavyMatterPipe extends BlockMatterPipe {
 
-	public BlockHeavyMatterPipe(Material material, String name) {
+	public BlockHeavyMatterPipe(MaterialTritanium material, String name) {
 		super(material, name);
 	}
 

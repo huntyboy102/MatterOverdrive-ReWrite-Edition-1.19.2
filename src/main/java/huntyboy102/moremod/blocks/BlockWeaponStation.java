@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 
 public class BlockWeaponStation extends MOBlockMachine<TileEntityWeaponStation> {
 
-	public BlockWeaponStation(Material material, String name) {
+	public BlockWeaponStation(MaterialTritanium material, String name) {
 		super(material, name);
 		setBoundingBox(new AxisAlignedBB(0, 0, 0, 1, 9 / 16d, 1));
 		setHardness(20.0F);

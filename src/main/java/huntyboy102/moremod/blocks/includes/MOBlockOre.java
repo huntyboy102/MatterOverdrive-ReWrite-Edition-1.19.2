@@ -2,8 +2,8 @@
 package huntyboy102.moremod.blocks.includes;
 
 import huntyboy102.moremod.api.internal.OreDictItem;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.level.material.Material;
-import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * @author shadowfacts
@@ -19,6 +19,6 @@ public class MOBlockOre extends MOBlock implements OreDictItem {
 
 	@Override
 	public void registerOreDict() {
-		OreDictionary.registerOre(oreDict, this);
+		ItemTags.bind("forge:" + oreDict).add(this);
 	}
 }

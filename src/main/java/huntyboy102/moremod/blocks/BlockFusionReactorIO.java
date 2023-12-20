@@ -11,7 +11,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nonnull;
 
 public class BlockFusionReactorIO extends MOBlockMachine<TileEntityFusionReactorPart> {
-	public BlockFusionReactorIO(Material material, String name) {
+	public BlockFusionReactorIO(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(30.0F);
 		this.setResistance(10.0f);

@@ -33,7 +33,7 @@ public class BlockTritaniumCrate extends MOBlockMachine<TileEntityTritaniumCrate
 	private static final AxisAlignedBB BOX_NORTH_SOUTH = new AxisAlignedBB(0, 0, 2 / 16d, 1, 12 / 16d, 14 / 16d);
 	private static final AxisAlignedBB BOX_EAST_WEST = new AxisAlignedBB(2 / 16d, 0, 0, 14 / 16d, 12 / 16d, 1);
 
-	public BlockTritaniumCrate(Material material, String name) {
+	public BlockTritaniumCrate(MaterialTritanium material, String name) {
 		super(material, name);
 		setHasRotation();
 		setHardness(20.0F);

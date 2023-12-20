@@ -19,7 +19,7 @@ public class BlockReplicator extends MOMatterEnergyStorageBlock<TileEntityMachin
 	public float replication_volume;
 	public boolean hasVentParticles;
 
-	public BlockReplicator(Material material, String name) {
+	public BlockReplicator(MaterialTritanium material, String name) {
 		super(material, name, true, true);
 		setHasRotation();
 		setHardness(20.0F);

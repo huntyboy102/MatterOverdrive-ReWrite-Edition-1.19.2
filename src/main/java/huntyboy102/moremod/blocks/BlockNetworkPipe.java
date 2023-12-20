@@ -18,7 +18,7 @@ import java.util.ArrayList;
 
 public class BlockNetworkPipe extends BlockPipe<TileEntityNetworkPipe> implements IDismantleable {
 
-	public BlockNetworkPipe(Material material, String name) {
+	public BlockNetworkPipe(MaterialTritanium material, String name) {
 		super(material, name);
 		setHardness(10.0F);
 		this.setResistance(9.0f);

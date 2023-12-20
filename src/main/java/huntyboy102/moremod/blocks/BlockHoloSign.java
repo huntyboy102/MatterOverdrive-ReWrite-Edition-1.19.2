@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 public class BlockHoloSign extends BlockMonitor<TileEntityHoloSign> implements IDismantleable {
 
-	public BlockHoloSign(Material material, String name) {
+	public BlockHoloSign(MaterialTritanium material, String name) {
 		super(material, name);
 		setHasRotation();
 		setHardness(20.0F);

@@ -21,7 +21,7 @@ import net.minecraft.world.World;
 public class BlockMatterAnalyzer extends MOMatterEnergyStorageBlock<TileEntityMachineMatterAnalyzer> {
 	public static final PropertyBool RUNNING = PropertyBool.create("running");
 
-	public BlockMatterAnalyzer(Material material, String name) {
+	public BlockMatterAnalyzer(MaterialTritanium material, String name) {
 		super(material, name, true, true);
 		setHasRotation();
 		setHardness(20.0F);

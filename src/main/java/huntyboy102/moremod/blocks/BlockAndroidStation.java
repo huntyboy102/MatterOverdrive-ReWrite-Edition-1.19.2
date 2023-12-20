@@ -4,8 +4,6 @@ package huntyboy102.moremod.blocks;
 import huntyboy102.moremod.blocks.includes.MOBlockMachine;
 import huntyboy102.moremod.tile.TileEntityAndroidStation;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
@@ -13,7 +11,7 @@ import net.minecraft.world.phys.AABB;
 import javax.annotation.Nonnull;
 
 public class BlockAndroidStation extends MOBlockMachine<TileEntityAndroidStation> {
-	public BlockAndroidStation(Material material, String name) {
+	public BlockAndroidStation(MaterialTritanium material, String name) {
 		super(material, name);
 		setBoundingBox(new AABB(0, 0, 0, 1, 9 / 16d, 1));
 		setHardness(20.0F);

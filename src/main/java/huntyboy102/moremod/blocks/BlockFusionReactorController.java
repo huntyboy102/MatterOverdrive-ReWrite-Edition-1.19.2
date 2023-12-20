@@ -17,7 +17,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nonnull;
 
 public class BlockFusionReactorController extends MOBlockMachine<TileEntityMachineFusionReactorController> {
-	public BlockFusionReactorController(Material material, String name) {
+	public BlockFusionReactorController(MaterialTritanium material, String name) {
 		super(material, name);
 		setHasRotation();
 		setHardness(30.0F);
