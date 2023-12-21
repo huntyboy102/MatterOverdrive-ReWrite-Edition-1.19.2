@@ -4,8 +4,8 @@ package huntyboy102.moremod.init;
 import java.lang.reflect.Field;
 
 import huntyboy102.moremod.Reference;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.registries.GameData;
 
 public class MatterOverdriveSounds {

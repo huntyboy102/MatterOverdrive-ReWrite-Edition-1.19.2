@@ -1,15 +1,15 @@
 
 package huntyboy102.moremod.init;
 
-import matteroverdrive.MatterOverdrive;
-import matteroverdrive.api.android.BionicStatGuiInfo;
-import matteroverdrive.api.android.IAndroidStatRegistry;
-import matteroverdrive.data.biostats.*;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import huntyboy102.moremod.api.android.BionicStatGuiInfo;
+import huntyboy102.moremod.api.android.IAndroidStatRegistry;
+import huntyboy102.moremod.data.biostats.*;
 import huntyboy102.moremod.handler.ConfigurationHandler;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
 
 public class OverdriveBioticStats {
 	public static BioticStatTeleport teleport;
@@ -44,7 +44,7 @@ public class OverdriveBioticStats {
 		highJump = new BioticStatHighJump("high_jump", 36);
 		highJump.addReqiredItm(new ItemStack(Blocks.PISTON));
 		equalizer = new BioticStatEqualizer("equalizer", 24);
-		equalizer.addReqiredItm(new ItemStack(MatterOverdrive.ITEMS.spacetime_equalizer));
+		equalizer.addReqiredItm(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.spacetime_equalizer));
 		shield = new BioticStatShield("shield", 36);
 		attack = new BioticStatAttack("attack", 30);
 		cloak = new BioticStatCloak("cloak", 36);
@@ -65,7 +65,7 @@ public class OverdriveBioticStats {
 	}
 
 	private static void configure() {
-		teleport.addReqiredItm(new ItemStack(MatterOverdrive.ITEMS.h_compensator));
+		teleport.addReqiredItm(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.h_compensator));
 		teleport.addToEnabledBlacklist(shield);
 		nanoArmor.setRoot(nanobots, false);
 		nanoArmor.addCompetitor(attack);
@@ -74,7 +74,7 @@ public class OverdriveBioticStats {
 		inertialDampers.setRoot(highJump, false);
 		equalizer.setRoot(inertialDampers, false);
 		shield.setRoot(nanoArmor, true);
-		shield.addReqiredItm(new ItemStack(MatterOverdrive.ITEMS.forceFieldEmitter, 1));
+		shield.addReqiredItm(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.forceFieldEmitter, 1));
 		attack.addCompetitor(nanoArmor);
 		attack.setRoot(nanobots, false);
 		cloak.setRoot(shield, true);
@@ -94,32 +94,32 @@ public class OverdriveBioticStats {
 		teleport.setGuiInfo(new BionicStatGuiInfo(0, stepSizeY * -2));
 
 		zeroCalories.setGuiInfo(new BionicStatGuiInfo(stepSizeX, 0));
-		oxygen.setGuiInfo(new BionicStatGuiInfo(stepSizeX, stepSizeY * 2, EnumFacing.UP, true));
-		flotation.setGuiInfo(new BionicStatGuiInfo(stepSizeX, stepSizeY * 3, EnumFacing.UP));
+		oxygen.setGuiInfo(new BionicStatGuiInfo(stepSizeX, stepSizeY * 2, Direction.UP, true));
+		flotation.setGuiInfo(new BionicStatGuiInfo(stepSizeX, stepSizeY * 3, Direction.UP));
 
 		nightvision.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 2, stepSizeY * -2));
 
 		nanobots.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, 0));
 
-		nanoArmor.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * 2, EnumFacing.UP, true));
-		shield.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * 3, EnumFacing.UP));
-		cloak.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * 4, EnumFacing.UP));
-		autoShield.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3 - 30, stepSizeY * 3, EnumFacing.EAST));
+		nanoArmor.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * 2, Direction.UP, true));
+		shield.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * 3, Direction.UP));
+		cloak.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * 4, Direction.UP));
+		autoShield.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3 - 30, stepSizeY * 3, Direction.EAST));
 
-		attack.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * -2, EnumFacing.DOWN, true));
-		flashCooling.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * -3, EnumFacing.DOWN));
-		shockwave.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * -4, EnumFacing.DOWN));
+		attack.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * -2, Direction.DOWN, true));
+		flashCooling.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * -3, Direction.DOWN));
+		shockwave.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 3, stepSizeY * -4, Direction.DOWN));
 
 		minimap.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 4, stepSizeY * 2));
 
 		speed.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5, 0));
-		highJump.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5, stepSizeY * -2, EnumFacing.DOWN, true));
-		airDash.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5 + 30, stepSizeY * -2, EnumFacing.WEST, false));
-		inertialDampers.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5, stepSizeY * -3, EnumFacing.DOWN));
-		equalizer.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5, stepSizeY * -4, EnumFacing.DOWN));
+		highJump.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5, stepSizeY * -2, Direction.DOWN, true));
+		airDash.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5 + 30, stepSizeY * -2, Direction.WEST, false));
+		inertialDampers.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5, stepSizeY * -3, Direction.DOWN));
+		equalizer.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 5, stepSizeY * -4, Direction.DOWN));
 
 		stepAssist.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 6, stepSizeY * 2));
-		itemMagnet.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 6, stepSizeY * 3, EnumFacing.UP));
+		itemMagnet.setGuiInfo(new BionicStatGuiInfo(stepSizeX * 6, stepSizeY * 3, Direction.UP));
 	}
 
 	public static void registerAll(ConfigurationHandler configurationHandler,
