@@ -2,14 +2,17 @@
 package huntyboy102.moremod.fluids;
 
 import huntyboy102.moremod.Reference;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraftforge.fluids.ForgeFlowingFluid;
 
-public class FluidMatterPlasma extends Fluid {
-	public FluidMatterPlasma(String fluidName) {
-		super(fluidName, new ResourceLocation(Reference.MOD_ID, "fluids/matter_plasma/still"),
-				new ResourceLocation(Reference.MOD_ID, "fluids/matter_plasma/flowing"));
-		setViscosity(8000);
-		setLuminosity(15);
+public class FluidMatterPlasma extends ForgeFlowingFluid {
+	public FluidMatterPlasma() {
+		super(new Properties(() -> Fluids.EMPTY, () -> Fluids.EMPTY,
+				new ResourceLocation(Reference.MOD_ID, "fluids/matter_plasma/still"),
+				new ResourceLocation(Reference.MOD_ID, "fluids/matter_plasma/flowing"))
+				.density(8000)
+				.viscosity(8000)
+				.luminosity(15));
 	}
 }

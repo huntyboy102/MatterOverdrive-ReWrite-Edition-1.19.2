@@ -14,13 +14,14 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.material.Material;
 
 public class BlockDecorativeRotated extends BlockDecorative {
 	public static final EnumProperty<Direction.Axis> AXIS = EnumProperty.<Direction.Axis>create("axis",
 			Direction.Axis.class);
 
-	public BlockDecorativeRotated(MaterialTritanium material, String name, float hardness, int harvestLevel, float resistance,
-								  int mapColor) {
+	public BlockDecorativeRotated(Material material, String name, float hardness, int harvestLevel, float resistance,
+                                  int mapColor) {
 		super(material, name, hardness, harvestLevel, resistance, mapColor);
 	}
 
