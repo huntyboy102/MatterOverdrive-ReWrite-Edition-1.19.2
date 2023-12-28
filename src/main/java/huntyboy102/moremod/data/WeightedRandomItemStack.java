@@ -1,8 +1,8 @@
 
 package huntyboy102.moremod.data;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.WeightedRandom;
+import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
 
@@ -15,8 +15,7 @@ public class WeightedRandomItemStack extends WeightedRandom.Item {
 	}
 
 	public WeightedRandomItemStack(@Nonnull ItemStack stack, int weight) {
-
-		super(weight);
+		super();
 		this.stack = stack;
 	}
 

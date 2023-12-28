@@ -1,16 +1,17 @@
 
 package huntyboy102.moremod.util.math;
 
+import com.mojang.authlib.minecraft.client.MinecraftClient;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.Random;
 
@@ -36,7 +37,7 @@ public class MOMathHelper {
 		}
 	}
 
-	public static Vector3f randomSpherePoint(double x0, double y0, double z0, Vec3d radius, Random rand) {
+	public static Vector3f randomSpherePoint(double x0, double y0, double z0, Vec3 radius, Random rand) {
 		double u = rand.nextDouble();
 		double v = rand.nextDouble();
 		double theta = 2 * Math.PI * u;
@@ -64,29 +65,33 @@ public class MOMathHelper {
 		return mean + random.nextGaussian() * variance;
 	}
 
-	@SideOnly(Side.CLIENT)
-	public static Vec3d mouseToWorldRay(int mouseX, int mouseY, int width, int height) {
+	@OnlyIn(Dist.CLIENT)
+	public static Vec3 mouseToWorldRay(int mouseX, int mouseY, int width, int height) {
 		double aspectRatio = ((double) width / (double) height);
-		double fov = ((Minecraft.getMinecraft().gameSettings.fovSetting / 2d) + 11) * (Math.PI / 180);
-		Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+		double fov = (Minecraft.getInstance().options.fov().get()).doubleValue() / 2d + 11 * (Math.PI / 180);
+		Entity renderViewEntity = Minecraft.getInstance().getCameraEntity();
 
 		double a = -((double) mouseX / (double) width - 0.5) * 2;
 		double b = -((double) mouseY / (double) height - 0.5) * 2;
 		double tanf = Math.tan(fov);
-		float yawn = renderViewEntity.rotationYaw;
-		float pitch = renderViewEntity.rotationPitch;
+
+		float pitch = renderViewEntity.getXRot();
+		float yawn = renderViewEntity.getYRot();
 
 		Matrix4f rot = new Matrix4f();
 		rot.rotate(yawn * (float) (Math.PI / 180), new Vector3f(0, -1, 0));
 		rot.rotate(pitch * (float) (Math.PI / 180), new Vector3f(1, 0, 0));
-		Vector4f foward = new Vector4f(0, 0, 1, 0);
+
+		// Apply multiplication using the mul method
+		Vector4f forward = new Vector4f(0, 0, 1, 0);
 		Vector4f up = new Vector4f(0, 1, 0, 0);
 		Vector4f left = new Vector4f(1, 0, 0, 0);
-		Matrix4f.transform(rot, foward, foward);
-		Matrix4f.transform(rot, up, up);
-		Matrix4f.transform(rot, left, left);
 
-		return new Vec3d(foward.x, foward.y, foward.z)
+		rot.transform(forward);
+		rot.transform(up);
+		rot.transform(left);
+
+		return new Vec3(forward.x, forward.y, forward.z)
 				.add(left.x * tanf * aspectRatio * a, left.y * tanf * aspectRatio * a, left.z * tanf * aspectRatio * a)
 				.add(up.x * tanf * b, up.y * tanf * b, up.z * tanf * b).normalize();
 	}
@@ -117,8 +122,13 @@ public class MOMathHelper {
 	}
 
 	public static Vector2f Intersects(Vector2f a1, Vector2f a2, Vector2f b1, Vector2f b2) {
-		Vector2f b = Vector2f.sub(a2, a1, null);
-		Vector2f d = Vector2f.sub(b2, b1, null);
+		Vector2f b = new Vector2f();
+		Vector2f d = new Vector2f();
+		Vector2f c = new Vector2f();
+
+		a2.sub(a1, b);
+		b2.sub(b1, d);
+
 		float bDotDPerp = b.x * d.y - b.y * d.x;
 
 		// if b dot d == 0, it means the lines are parallel so have infinite
@@ -127,7 +137,7 @@ public class MOMathHelper {
 			return null;
 		}
 
-		Vector2f c = Vector2f.sub(b1, a1, null);
+		b1.sub(a1, c);
 		float t = (c.x * d.y - c.y * d.x) / bDotDPerp;
 		if (t < 0 || t > 1) {
 			return null;
@@ -138,12 +148,12 @@ public class MOMathHelper {
 			return null;
 		}
 
-		b.scale(t);
-		return Vector2f.add(a1, b, null);
+		b.mul(t);
+		return a1.add(b, new Vector2f());
 	}
 
 	public static float distance(Vector2f one, Vector2f two) {
-		return MathHelper.sqrt((one.x - two.x) * (one.x - two.x) + (one.y - two.y) * (one.y - two.y));
+		return Mth.sqrt((one.x - two.x) * (one.x - two.x) + (one.y - two.y) * (one.y - two.y));
 	}
 
 	public static double distance(int x, int y, int z, int x1, int y1, int z1) {
@@ -159,12 +169,12 @@ public class MOMathHelper {
 	}
 
 	public static float Lerp(float form, float to, float time) {
-		float newTime = MathHelper.clamp(time, 0, 1);
+		float newTime = Mth.clamp(time, 0, 1);
 		return (1 - newTime) * form + newTime * to;
 	}
 
 	public static double Lerp(double form, double to, double time) {
-		double newTime = MathHelper.clamp(time, 0, 1);
+		double newTime = Mth.clamp(time, 0, 1);
 		return (1 - newTime) * form + newTime * to;
 	}
 
@@ -216,23 +226,25 @@ public class MOMathHelper {
 		}
 	}
 
-	public static void setScale(javax.vecmath.Vector3f vec, javax.vecmath.Matrix4f src, javax.vecmath.Matrix4f dest) {
+	public static void setScale(Vector3f vec, Matrix4f src, Matrix4f dest) {
 		if (dest == null) {
-			dest = new javax.vecmath.Matrix4f();
+			dest = new Matrix4f();
 		}
 
-		dest.m00 = src.m00 * vec.getX();
-		dest.m01 = src.m01 * vec.getX();
-		dest.m02 = src.m02 * vec.getX();
-		dest.m03 = src.m03 * vec.getX();
-		dest.m10 = src.m10 * vec.getY();
-		dest.m11 = src.m11 * vec.getY();
-		dest.m12 = src.m12 * vec.getY();
-		dest.m13 = src.m13 * vec.getY();
-		dest.m20 = src.m20 * vec.getZ();
-		dest.m21 = src.m21 * vec.getZ();
-		dest.m22 = src.m22 * vec.getZ();
-		dest.m23 = src.m23 * vec.getZ();
+		dest.m00(src.m00() * vec.x);
+		dest.m01(src.m01() * vec.x);
+		dest.m02(src.m02() * vec.x);
+		dest.m03(src.m03() * vec.x);
+
+		dest.m10(src.m10() * vec.y);
+		dest.m11(src.m11() * vec.y);
+		dest.m12(src.m12() * vec.y);
+		dest.m13(src.m13() * vec.y);
+
+		dest.m20(src.m20() * vec.z);
+		dest.m21(src.m21() * vec.z);
+		dest.m22(src.m22() * vec.z);
+		dest.m23(src.m23() * vec.z);
 	}
 
 }

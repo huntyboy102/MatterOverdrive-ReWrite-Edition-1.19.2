@@ -1,25 +1,25 @@
 
 package huntyboy102.moremod.util;
 
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
 
 public final class AABBUtils {
-	public static AxisAlignedBB rotateFace(AxisAlignedBB box, EnumFacing side) {
+	public static AABB rotateFace(AABB box, Direction side) {
 		switch (side) {
 		case DOWN:
 		default:
 			return box;
 		case UP:
-			return new AxisAlignedBB(box.minX, 1 - box.maxY, box.minZ, box.maxX, 1 - box.minY, box.maxZ);
+			return new AABB(box.minX, 1 - box.maxY, box.minZ, box.maxX, 1 - box.minY, box.maxZ);
 		case NORTH:
-			return new AxisAlignedBB(box.minX, box.minZ, box.minY, box.maxX, box.maxZ, box.maxY);
+			return new AABB(box.minX, box.minZ, box.minY, box.maxX, box.maxZ, box.maxY);
 		case SOUTH:
-			return new AxisAlignedBB(box.minX, box.minZ, 1 - box.maxY, box.maxX, box.maxZ, 1 - box.minY);
+			return new AABB(box.minX, box.minZ, 1 - box.maxY, box.maxX, box.maxZ, 1 - box.minY);
 		case WEST:
-			return new AxisAlignedBB(box.minY, box.minZ, box.minX, box.maxY, box.maxZ, box.maxX);
+			return new AABB(box.minY, box.minZ, box.minX, box.maxY, box.maxZ, box.maxX);
 		case EAST:
-			return new AxisAlignedBB(1 - box.maxY, box.minZ, box.minX, 1 - box.minY, box.maxZ, box.maxX);
+			return new AABB(1 - box.maxY, box.minZ, box.minX, 1 - box.minY, box.maxZ, box.maxX);
 		}
 	}
 }

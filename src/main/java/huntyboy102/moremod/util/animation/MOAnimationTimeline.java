@@ -2,7 +2,7 @@
 package huntyboy102.moremod.util.animation;
 
 import huntyboy102.moremod.util.math.MOMathHelper;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +98,7 @@ public class MOAnimationTimeline {
 	public void tick(float tick) {
 		if (isPlaying) {
 			if (time < maxTime) {
-				time = MathHelper.clamp(time + tick, 0, maxTime);
+				time = Mth.clamp(time + tick, 0, maxTime);
 			} else if (repeat) {
 				time = 0;
 			} else {
@@ -198,7 +198,7 @@ public class MOAnimationTimeline {
 
 		public float getLocalTime(float time) {
 			if (easing != null) {
-				return MathHelper.clamp(easing.calculate(time - from, 0, 1, length), 0, 1);
+				return Mth.clamp(easing.calculate(time - from, 0, 1, length), 0, 1);
 			} else {
 				return MOMathHelper.Lerp(0, 1, (time - from) / length);
 			}

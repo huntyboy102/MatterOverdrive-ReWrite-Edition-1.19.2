@@ -5,7 +5,7 @@ import huntyboy102.moremod.api.dialog.IDialogNpc;
 import huntyboy102.moremod.api.dialog.IDialogRegistry;
 import huntyboy102.moremod.client.render.conversation.DialogShot;
 import huntyboy102.moremod.data.dialog.DialogMessage;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.player.Player;
 
 public class DialogFactory {
 	private final IDialogRegistry registry;
@@ -47,7 +47,7 @@ public class DialogFactory {
 		return messages;
 	}
 
-	public DialogMessage addOnlyVisibleOptions(EntityPlayer entityPlayer, IDialogNpc dialogNpc, DialogMessage parent,
+	public DialogMessage addOnlyVisibleOptions(Player entityPlayer, IDialogNpc dialogNpc, DialogMessage parent,
 			DialogMessage... options) {
 		for (DialogMessage option : options) {
 			if (option.isVisible(dialogNpc, entityPlayer)) {

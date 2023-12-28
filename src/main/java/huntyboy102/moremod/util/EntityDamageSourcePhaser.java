@@ -1,12 +1,13 @@
 
 package huntyboy102.moremod.util;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 
 public class EntityDamageSourcePhaser extends EntityDamageSource {
@@ -22,19 +23,19 @@ public class EntityDamageSourcePhaser extends EntityDamageSource {
 		return damageSourceEntity;
 	}
 
-	public ITextComponent func_151519_b(EntityLivingBase entity) {
+	public Component func_151519_b(LivingEntity entity) {
 		String normalMsg = "death.attack." + damageType;
 		String itemMsg = normalMsg + ".item";
 
-		if (damageSourceEntity instanceof EntityLivingBase) {
-			ItemStack itemStack = ((EntityLivingBase) damageSourceEntity).getActiveItemStack();
-			if (itemStack != null && itemStack.hasDisplayName() && MOStringHelper.hasTranslation(itemMsg)) {
-				return new TextComponentTranslation(itemMsg, entity.getDisplayName().getFormattedText(),
+		if (damageSourceEntity instanceof LivingEntity) {
+			ItemStack itemStack = ((LivingEntity) damageSourceEntity).getActiveItemStack();
+			if (itemStack != null && itemStack.hasCustomHoverName() && MOStringHelper.hasTranslation(itemMsg)) {
+				return new TranslationTextComponent(itemMsg, entity.getDisplayName().getFormattedText(),
 						damageSourceEntity.getDisplayName().getFormattedText(), itemStack.getTextComponent());
 			}
 		}
 
-		return new TextComponentTranslation(normalMsg, entity.getDisplayName(), damageSourceEntity.getDisplayName());
+		return new TranslationTextComponent(normalMsg, entity.getDisplayName(), damageSourceEntity.getDisplayName());
 	}
 
 	/**
@@ -42,7 +43,7 @@ public class EntityDamageSourcePhaser extends EntityDamageSource {
 	 * the current difficulty.
 	 */
 	public boolean isDifficultyScaled() {
-		return this.damageSourceEntity != null && this.damageSourceEntity instanceof EntityLivingBase
-				&& !(this.damageSourceEntity instanceof EntityPlayer);
+		return this.damageSourceEntity != null && this.damageSourceEntity instanceof LivingEntity
+				&& !(this.damageSourceEntity instanceof Player);
 	}
 }
