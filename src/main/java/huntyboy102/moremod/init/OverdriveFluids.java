@@ -33,7 +33,12 @@ public class OverdriveFluids {
 	public static final ForgeFlowingFluid.Properties MATTER_PLASMA_PROPERTIES = new ForgeFlowingFluid.Properties(
 			MATTER_PLASMA,
 			FlOWING_MATTER_PLASMA
-	)
+	);
+
+	public static final ForgeFlowingFluid.Properties MOLTEN_TRITANIUM_PROPERTIES = new ForgeFlowingFluid.Properties(
+			MOLTEN_TRITANIUM,
+			FLOWING_MOLTEN_TRITANIUM
+	);
 
 	public static void init() {
 		matterPlasma = new FluidMatterPlasma("matter_plasma");
