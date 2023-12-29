@@ -54,7 +54,7 @@ public class MatterOverdriveEntities {
 		addEntity(EntityFailedCow.class, "failed_cow", 4470310, 0x33CC33, id++);
 		addEntity(EntityFailedChicken.class, "failed_chicken", 10592673, 0x33CC33, id++);
 		addEntity(EntityFailedSheep.class, "failed_sheep", 15198183, 0x33CC33, id++);
-		addEntity(EntityVillagerMadScientist.class, "mad_scientist", 0xFFFFFF, 0, id++));
+		addEntity(EntityVillagerMadScientist.class, "mad_scientist", 0xFFFFFF, 0, id++);
 		addEntity(EntityMutantScientist.class, "mutant_scientist", 0xFFFFFF, 0x00FF00, id++);
 		if (addEntity(EntityMeleeRougeAndroidMob.class, "rogue_android", 0xFFFFF, 0, id++))
 			EntityRogueAndroid.addAsBiomeGen(EntityMeleeRougeAndroidMob.class);
