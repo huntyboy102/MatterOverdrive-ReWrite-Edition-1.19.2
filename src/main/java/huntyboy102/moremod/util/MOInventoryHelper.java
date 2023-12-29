@@ -1,16 +1,19 @@
 
 package huntyboy102.moremod.util;
 
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
 
 import javax.annotation.Nonnull;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,59 +21,62 @@ import java.util.List;
 public class MOInventoryHelper {
 
 	public static void setInventorySlotContents(@Nonnull ItemStack container, int slot, @Nonnull ItemStack stack) {
-		if (StackUtils.isNullOrEmpty(stack)) {
-			if (!container.hasTagCompound()) {
-				container.setTagCompound(new NBTTagCompound());
-			}
-			container.getTagCompound().setTag("Slot" + slot, new NBTTagCompound());
+		if (!stack.isEmpty()) {
+			container.getOrCreateTag().put("Slot" + slot, new CompoundTag());
 		} else {
-			NBTTagCompound itemTag = new NBTTagCompound();
-			stack.writeToNBT(itemTag);
-			if (!container.hasTagCompound()) {
-				container.setTagCompound(new NBTTagCompound());
-			}
-			container.getTagCompound().setTag("Slot" + slot, itemTag);
+			CompoundTag itemTag = stack.save(new CompoundTag());
+			container.getOrCreateTag().put("Slot" + slot, itemTag);
 		}
 	}
 
 	@Nonnull
 	public static ItemStack decrStackSize(ItemStack container, int slot, int amount) {
-		if (container.getTagCompound().getCompoundTag("Slot" + slot).isEmpty()) {
+		CompoundTag slotTag = container.getTag().getCompound("Slot" +slot);
+
+		if (slotTag.isEmpty()) {
 			return ItemStack.EMPTY;
 		}
-		ItemStack stack = new ItemStack(container.getTagCompound().getCompoundTag("Slot" + slot));
-		ItemStack retStack = stack.splitStack(amount);
-		if (stack.getCount() <= 0) {
-			container.getTagCompound().setTag("Slot" + slot, new NBTTagCompound());
+		ItemStack stack = ItemStack.of(slotTag);
+		int stackSize = Math.min(stack.getCount(), amount);
+
+		ItemStack retStack = stack.copy();
+		retStack.setCount(stackSize);
+
+		stack.shrink(stackSize);
+
+		if (stack.isEmpty()) {
+			container.getTag().remove("Slot" + slot);
 		} else {
-			NBTTagCompound itemTag = new NBTTagCompound();
-			stack.writeToNBT(itemTag);
-			container.getTagCompound().setTag("Slot" + slot, itemTag);
+			CompoundTag itemTag = stack.save(new CompoundTag());
+			container.getTag().put("Slot" + slot, itemTag);
 		}
+
 		return retStack;
 	}
 
 	@Nonnull
 	public static ItemStack getStackInSlot(ItemStack container, int slot) {
-		if (!container.hasTagCompound() || container.getTagCompound().getCompoundTag("Slot" + slot).isEmpty()) {
+		if (!container.hasTag() || container.getTag().getCompound("Slot" + slot).isEmpty()) {
 			return ItemStack.EMPTY;
 		}
-		return new ItemStack(container.getTagCompound().getCompoundTag("Slot" + slot));
+		CompoundTag itemTag = container.getTag().getCompound("Slot" + slot);
+		ItemStack stack = ItemStack.of(itemTag);
+		return stack;
 	}
 
 	public static List<ItemStack> getStacks(ItemStack container) {
-		if (!container.hasTagCompound()) {
+		if (!container.hasTag()) {
 			return Collections.emptyList();
 		}
 
 		List<ItemStack> itemStacks = new ArrayList<>();
 
-		for (String s : container.getTagCompound().getKeySet()) {
+		for (String s : container.getTag().getAllKeys()) {
 			if (s.startsWith("Slot")) {
-				NBTBase nbtbase = container.getTagCompound().getTag(s);
-				if (nbtbase instanceof NBTTagCompound) {
-					ItemStack stack = new ItemStack((NBTTagCompound) nbtbase);
-					if (!StackUtils.isNullOrEmpty(stack)) {
+				Tag nbtTag = container.getTag().get(s);
+				if (nbtTag instanceof CompoundTag compoundTag) {
+                    ItemStack stack = ItemStack.of(compoundTag);
+					if (!stack.isEmpty()) {
 						itemStacks.add(stack);
 					}
 				}
@@ -79,114 +85,119 @@ public class MOInventoryHelper {
 		return itemStacks;
 	}
 
-	public static ItemStack addItemInContainer(Container container, ItemStack itemStack) {
-		for (int i = 0; i < container.inventorySlots.size(); i++) {
-			if (container.getSlot(i).isItemValid(itemStack)) {
-				if (StackUtils.isNullOrEmpty(container.getSlot(i).getStack())) {
-					container.getSlot(i).putStack(itemStack);
-					if (itemStack.getCount() > itemStack.getMaxStackSize()) {
-						itemStack.setCount(itemStack.getMaxStackSize());
-					} else {
-						return null;
-					}
-				} else if (ItemStack.areItemStacksEqual(container.getSlot(i).getStack(), itemStack) && container
-						.getSlot(i).getStack().getCount() < container.getSlot(i).getStack().getMaxStackSize()) {
-					int newStackSize = Math.min(container.getSlot(i).getStack().getCount() + itemStack.getCount(),
-							container.getSlot(i).getStack().getMaxStackSize());
-					int leftStackSize = container.getSlot(i).getStack().getCount() + itemStack.getCount()
-							- newStackSize;
-					container.getSlot(i).getStack().setCount(newStackSize);
-					if (leftStackSize <= 0) {
-						return null;
-					}
+	public static ItemStack addItemInContainer(InventoryMenu container, ItemStack itemStack) {
+		for (Slot slot : container.slots) {
+			if (slot.mayPlace(itemStack)) {
+				if (slot.hasItem()) {
+					if (ItemStack.isSame(slot.getItem(), itemStack) && ItemStack.tagMatches(slot.getItem(), itemStack)) {
+						int newStackSize = Math.min(slot.getItem().getCount() + itemStack.getCount(), slot.getMaxStackSize());
+						int leftStackSize = slot.getItem().getCount() + itemStack.getCount() - newStackSize;
+						slot.getItem().setCount(newStackSize);
 
-					itemStack.setCount(newStackSize);
+						if (leftStackSize <= 0) {
+							return ItemStack.EMPTY;
+						}
+
+						itemStack.setCount(itemStack.getMaxStackSize());
+					}
+				} else {
+					int maxStackSize = Math.min(itemStack.getMaxStackSize(), slot.getMaxStackSize());
+					ItemStack stackToAdd = itemStack.copy();
+					stackToAdd.setCount(Math.min(itemStack.getCount(), maxStackSize));
+					slot.set(stackToAdd);
+
+					if (itemStack.getCount() > maxStackSize){
+						itemStack.shrink(maxStackSize);
+					} else {
+						return ItemStack.EMPTY;
+					}
 				}
 			}
 		}
 		return itemStack;
 	}
 
-	public static ItemStack insertItemStackIntoInventory(IInventory inventory, ItemStack itemstack, EnumFacing side) {
-		if (itemstack != null && inventory != null) {
-			int var3 = itemstack.getCount();
-			if (inventory instanceof ISidedInventory) {
-				ISidedInventory var4 = (ISidedInventory) inventory;
-				int[] var5 = var4.getSlotsForFace(side);
-				if (var5 == null) {
-					return itemstack;
-				}
+	public static ItemStack insertItemStackIntoInventory(MenuProvider inventoryProvider, ItemStack itemstack, Direction side) {
+		if (itemstack != null && inventoryProvider != null) {
+			int originalCount = itemstack.getCount();
+			Inventory inv = (Inventory) inventoryProvider;
 
-				int var6;
-				for (var6 = 0; var6 < var5.length && itemstack != null; ++var6) {
-					if (var4.canInsertItem(var5[var6], itemstack, side)) {
-						ItemStack var7 = inventory.getStackInSlot(var5[var6]);
-						if (ItemStack.areItemStacksEqual(itemstack, var7)) {
-							itemstack = addToOccupiedInventorySlot(var4, var5[var6], itemstack, var7);
-						}
-					}
-				}
+            for (int slot = 0; slot < inv.getContainerSize(); slot++) {
+                if (inv.canPlaceItem(slot, itemstack)) {
+                    ItemStack stackInSlot = inv.getItem(slot);
 
-				for (var6 = 0; var6 < var5.length && itemstack != null; ++var6) {
-					if (inventory.getStackInSlot(var5[var6]) == null
-							&& var4.canInsertItem(var5[var6], itemstack, side)) {
-						itemstack = addToEmptyInventorySlot(var4, var5[var6], itemstack);
-					}
-				}
-			} else {
-				int var8 = inventory.getSizeInventory();
+                    if (ItemStack.isSame(itemstack, stackInSlot)) {
+                        itemstack = addToOccupiedInventorySlot(inventoryProvider, slot, itemstack, stackInSlot);
+                    }
+                }
+            }
 
-				int var9;
-				for (var9 = 0; var9 < var8 && itemstack != null; ++var9) {
-					ItemStack var10 = inventory.getStackInSlot(var9);
-					if (ItemStack.areItemStacksEqual(itemstack, var10)) {
-						itemstack = addToOccupiedInventorySlot(inventory, var9, itemstack, var10);
-					}
-				}
+            for (int slot = 0; slot < inv.getContainerSize(); slot++) {
+                if (inv.getItem(slot).isEmpty() && inv.canPlaceItem(slot, itemstack)) {
+                    itemstack = addToEmptyInventorySlot(inventoryProvider, slot, itemstack);
+                }
+            }
 
-				for (var9 = 0; var9 < var8 && itemstack != null; ++var9) {
-					if (StackUtils.isNullOrEmpty(inventory.getStackInSlot(var9))) {
-						itemstack = addToEmptyInventorySlot(inventory, var9, itemstack);
-					}
-				}
-			}
-
-			if (itemstack == null || itemstack.getCount() != var3) {
-				inventory.markDirty();
+            if (itemstack == null || itemstack.getCount() != originalCount) {
+				inv.setChanged();
 			}
 
 			return itemstack;
 		} else {
-			return null;
+			return ItemStack.EMPTY;
 		}
 	}
 
-	public static ItemStack addToOccupiedInventorySlot(IInventory inventory, int slot, ItemStack one, ItemStack two) {
-		int maxSize = Math.min(inventory.getInventoryStackLimit(), one.getMaxStackSize());
+	public static ItemStack addToOccupiedInventorySlot(MenuProvider inventoryProvider, int slotIndex, ItemStack one, ItemStack two) {
+		if (!(inventoryProvider instanceof InventoryMenu)) {
+			return one; // Return early if the provider is not an InventoryMenu
+		}
+
+		InventoryMenu inventory = ((InventoryMenu) inventoryProvider);
+
+		if (slotIndex < 0 || slotIndex >= inventory.slots.size()) {
+			return one;
+		}
+
+		Slot targetSlot = inventory.slots.get(slotIndex);
+
+		int maxSize = Math.min(targetSlot.getMaxStackSize(), one.getMaxStackSize());
 		if (one.getCount() + two.getCount() > maxSize) {
 			int remanningSize = maxSize - two.getCount();
 			two.setCount(maxSize);
 			one.shrink(remanningSize);
-			inventory.setInventorySlotContents(slot, two);
+			targetSlot.set(two);
 			return one;
 		} else {
 			two.grow(Math.min(one.getCount(), maxSize));
-			inventory.setInventorySlotContents(slot, two);
-			return maxSize >= one.getCount() ? ItemStack.EMPTY : one.splitStack(one.getCount() - maxSize);
+			targetSlot.set(two);
+			return maxSize >= one.getCount() ? ItemStack.EMPTY : one.split(one.getCount() - maxSize);
 		}
 	}
 
-	public static ItemStack addToEmptyInventorySlot(IInventory inventory, int slot, ItemStack itemStack) {
-		if (!inventory.isItemValidForSlot(slot, itemStack)) {
+	public static ItemStack addToEmptyInventorySlot(MenuProvider inventoryProvider, int slotIndex, ItemStack itemStack) {
+		if (!(inventoryProvider instanceof InventoryMenu)) {
+			return itemStack; // Return early if the provider is not an InventoryMenu
+		}
+
+		InventoryMenu inventory = ((InventoryMenu) inventoryProvider);
+
+		if (slotIndex < 0 || slotIndex >= inventory.slots.size()) {
+			return itemStack;
+		}
+
+		Slot targetSlot = inventory.getSlot(slotIndex);
+
+		if (!targetSlot.mayPlace(itemStack)) {
 			return itemStack;
 		} else {
-			int inventoryStackLimit = inventory.getInventoryStackLimit();
+			int inventoryStackLimit = targetSlot.getMaxStackSize();
 			ItemStack newItemStack = itemStack.copy();
 			newItemStack.setCount(Math.min(itemStack.getCount(), inventoryStackLimit));
-			inventory.setInventorySlotContents(slot, newItemStack);
+			targetSlot.set(newItemStack);
 
 			return inventoryStackLimit >= itemStack.getCount() ? null
-					: itemStack.splitStack(itemStack.getCount() - inventoryStackLimit);
+					: itemStack.split(itemStack.getCount() - inventoryStackLimit);
 		}
 	}
 
@@ -194,56 +205,54 @@ public class MOInventoryHelper {
 		return mergeItemStack(var0, var1, var2, var3, var4, true);
 	}
 
-	public static boolean mergeItemStack(List<Slot> slots, ItemStack stack, int var2, int var3, boolean var4,
-			boolean var5) {
-		boolean var6 = false;
-		int var7 = !var4 ? var2 : var3 - 1;
-		int var8 = !var4 ? 1 : -1;
-		Slot var9;
-		ItemStack var10;
-		int var11;
+	public static boolean mergeItemStack(List<Slot> slots, ItemStack stack, int startIndex, int endIndex, boolean reverse, boolean simulate) {
+		boolean merged = false;
+		int index = reverse ? endIndex -1 : startIndex;
+		int increment = reverse ? -1 : 1;
+
 		if (stack.isStackable()) {
-			for (; stack.getCount() > 0 && (!var4 && var7 < var3 || var4 && var7 >= var2); var7 += var8) {
-				var9 = slots.get(var7);
-				var10 = var9.getStack();
-				if (var9.isItemValid(stack) && !StackUtils.isNullOrEmpty(stack)
-						&& var10.getItem().equals(stack.getItem())
-						&& (!stack.getHasSubtypes() || stack.getItemDamage() == var10.getItemDamage())
-						&& ItemStack.areItemStackTagsEqual(stack, var10)) {
-					var11 = var10.getCount() - stack.getCount();
-					var10.grow(stack.getCount());
-					int var12 = Math.min(stack.getMaxStackSize(), var9.getSlotStackLimit());
-					if (var11 <= var12) {
-						stack.setCount(0);
-						var10.setCount(var11);
-						var9.onSlotChanged();
-						var6 = true;
-					} else if (var10.getCount() < var12) {
-						stack.shrink(var12 - var10.getCount());
-						var10.setCount(var12);
-						var9.onSlotChanged();
-						var6 = true;
+			while (stack.getCount() > 0 && (reverse ? index >= startIndex : index < endIndex)) {
+				Slot slot = slots.get(index);
+				ItemStack slotStack = slot.getItem();
+
+				if (slot.mayPlace(stack) && ItemStack.isSame(stack, slotStack) &&
+						(!stack.hasTag() || ItemStack.tagMatches(stack, slotStack))) {
+					int roomInSlot = slot.getMaxStackSize() - slotStack.getCount();
+					int transferAmount = Math.min(stack.getCount(), roomInSlot);
+
+					if (transferAmount > 0) {
+						if (!simulate) {
+							slotStack.grow(transferAmount);
+							stack.shrink(transferAmount);
+							slot.setChanged();
+						}
+						merged = true;
 					}
 				}
+				index += increment;
 			}
 		}
 
 		if (stack.getCount() > 0) {
-			for (var7 = !var4 ? var2 : var3 - 1; stack.getCount() > 0
-					&& (!var4 && var7 < var3 || var4 && var7 >= var2); var7 += var8) {
-				var9 = slots.get(var7);
-				var10 = var9.getStack();
-				if (var9.isItemValid(stack) && StackUtils.isNullOrEmpty(var10)) {
-					var11 = var5 ? Math.min(stack.getMaxStackSize(), var9.getSlotStackLimit())
-							: var9.getSlotStackLimit();
-					var10 = stack.splitStack(Math.min(stack.getCount(), var11));
-					var9.putStack(var10);
-					var9.onSlotChanged();
-					var6 = true;
+			index = reverse ? endIndex -1 : startIndex;
+
+			while (stack.getCount() > 0 && (reverse ? index >= startIndex : index < endIndex)) {
+				Slot slot = slots.get(index);
+
+				if (slot.mayPlace(stack) && slot.getItem().isEmpty()) {
+					int transferAmount = simulate ? Math.min(stack.getCount(), slot.getMaxStackSize()) : stack.getCount();
+
+					if (!simulate) {
+						ItemStack newStack = stack.split(transferAmount);
+						slot.set(newStack);
+						slot.setChanged();
+					}
+					merged = true;
 				}
+				index += increment;
 			}
 		}
 
-		return var6;
+		return merged;
 	}
 }

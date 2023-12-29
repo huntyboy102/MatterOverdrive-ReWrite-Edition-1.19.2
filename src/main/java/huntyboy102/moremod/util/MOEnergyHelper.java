@@ -1,10 +1,11 @@
 
 package huntyboy102.moremod.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 
@@ -38,11 +39,11 @@ public class MOEnergyHelper {
 	}
 
 	public static ItemStack setDefaultEnergyTag(ItemStack itemStack, int energy) {
-		if (itemStack.getTagCompound() == null) {
-			itemStack.setTagCompound(new NBTTagCompound());
+		if (itemStack.getTag() == null) {
+			itemStack.setTag(new CompoundTag());
 		}
 
-		itemStack.getTagCompound().setInteger("Energy", energy);
+		itemStack.getTag().putInt("Energy", energy);
 		return itemStack;
 	}
 
@@ -62,9 +63,9 @@ public class MOEnergyHelper {
 		return !itemStack.isEmpty() && itemStack.hasCapability(CapabilityEnergy.ENERGY, null);
 	}
 
-	public static int insertEnergyIntoAdjacentEnergyReceiver(TileEntity tileEntity, EnumFacing side, int amount,
-			boolean simulate) {
-		TileEntity tile2 = tileEntity.getWorld().getTileEntity(tileEntity.getPos().offset(side));
+	public static int insertEnergyIntoAdjacentEnergyReceiver(BlockEntity tileEntity, Direction side, int amount,
+															 boolean simulate) {
+		Block tile2 = tileEntity.getLevel().getBlockEntity(tileEntity.getBlockPos().offset(side));
 		if (tile2 == null)
 			return 0;
 

@@ -3,11 +3,11 @@ package huntyboy102.moremod.util;
 
 import huntyboy102.moremod.container.MOBaseContainer;
 import huntyboy102.moremod.container.slot.SlotPlayerInventory;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.world.Container;
 
 public class MOContainerHelper {
-	public static void AddPlayerSlots(InventoryPlayer inventory, MOBaseContainer container, int x, int y, boolean main,
-			boolean hotbar) {
+	public static void AddPlayerSlots(Container inventory, MOBaseContainer container, int x, int y, boolean main,
+									  boolean hotbar) {
 		if (main) {
 			for (int i = 0; i < 3; i++) {
 				for (int j = 0; j < 9; j++) {

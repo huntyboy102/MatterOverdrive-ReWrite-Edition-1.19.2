@@ -2,33 +2,36 @@
 package huntyboy102.moremod.util;
 
 import huntyboy102.moremod.api.network.IMatterNetworkFilter;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagLong;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.BlockPos;
 
 public class MatterNetworkHelper {
-	public static NBTTagCompound getFilterFromPositions(BlockPos... positions) {
-		NBTTagCompound tagCompound = new NBTTagCompound();
-		NBTTagList tagList = new NBTTagList();
+	public static CompoundTag getFilterFromPositions(BlockPos... positions) {
+		CompoundTag tagCompound = new CompoundTag();
+		ListTag tagList = new ListTag();
+
 		for (BlockPos position : positions) {
-			tagList.appendTag(new NBTTagLong(position.toLong()));
+			CompoundTag positionTag = new CompoundTag();
+			positionTag.putLong("pos", position.asLong());
+			tagList.add(positionTag);
 		}
-		tagCompound.setTag(IMatterNetworkFilter.CONNECTIONS_TAG, tagList);
+		tagCompound.put(IMatterNetworkFilter.CONNECTIONS_TAG, tagList);
 		return tagCompound;
 	}
 
-	public static NBTTagCompound addPositionsToFilter(NBTTagCompound filter, BlockPos... positions) {
+	public static CompoundTag addPositionsToFilter(CompoundTag filter, BlockPos... positions) {
 		if (filter == null) {
-			filter = new NBTTagCompound();
+			filter = new CompoundTag();
 		}
 
-		NBTTagList tagList = filter.getTagList(IMatterNetworkFilter.CONNECTIONS_TAG, Constants.NBT.TAG_COMPOUND);
+		ListTag tagList = filter.getList(IMatterNetworkFilter.CONNECTIONS_TAG, 10);
 		for (BlockPos position : positions) {
-			tagList.appendTag(new NBTTagLong(position.toLong()));
+			CompoundTag positionTag = new CompoundTag();
+			positionTag.putLong("pos", position.asLong());
+			tagList.add(positionTag);
 		}
-		filter.setTag(IMatterNetworkFilter.CONNECTIONS_TAG, tagList);
+		filter.put(IMatterNetworkFilter.CONNECTIONS_TAG, tagList);
 		return filter;
 	}
 }

@@ -4,6 +4,9 @@ package huntyboy102.moremod.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.Level;
 
 import com.google.gson.JsonArray;
@@ -11,15 +14,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import huntyboy102.moremod.api.exceptions.MORuntimeException;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTException;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.Str;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 public class MOJsonHelper {
 	private static String currentParentObject;
@@ -91,15 +92,18 @@ public class MOJsonHelper {
 			JsonElement element = jsonObject.get(key);
 			if (element.isJsonObject()) {
 				JsonObject obj = element.getAsJsonObject();
-				Item item = Item.getByNameOrId(obj.get("id").getAsString());
+				String itemId = obj.get("id").getAsString();
+				Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemId));
+
 				int count = getInt(obj, "count", 1);
 				int damage = getInt(obj, "damage", 0);
-				ItemStack itemStack = new ItemStack(item, count, damage);
+				ItemStack itemStack = new ItemStack(item, count);
+				itemStack.setDamageValue(damage);
 				if (obj.has("nbt")) {
 					try {
-						NBTTagCompound tagCompound = JsonToNBT.getTagFromJson(obj.get("nbt").toString());
-						itemStack.setTagCompound(tagCompound);
-					} catch (NBTException e) {
+						CompoundTag tagCompound = JsonToNBT.getTagFromJson(obj.get("nbt").toString());
+						itemStack.setTag(tagCompound);
+					} catch (Exception e) {
 						MOLog.log(Level.ERROR, e, "Could not parse NBT tag from Json in '%s'");
 					}
 				}
@@ -109,7 +113,7 @@ public class MOJsonHelper {
 		return def;
 	}
 
-	public static Vec3d getVec3(JsonObject jsonObject, String key, Vec3d def) {
+	public static Vec3 getVec3(JsonObject jsonObject, String key, Vec3 def) {
 		if (jsonObject.has(key)) {
 			JsonElement element = jsonObject.get(key);
 			if (element.isJsonArray()) {
@@ -119,7 +123,7 @@ public class MOJsonHelper {
 						double x = array.get(0).getAsDouble();
 						double y = array.get(1).getAsDouble();
 						double z = array.get(2).getAsDouble();
-						return new Vec3d(x, y, z);
+						return new Vec3(x, y, z);
 					} catch (Exception e) {
 						MOLog.log(Level.ERROR, e, "All elements in Vec3 array must be decimals");
 					}
@@ -129,14 +133,14 @@ public class MOJsonHelper {
 		return def;
 	}
 
-	public static NBTTagCompound getNbt(JsonObject jsonObject, String key, NBTTagCompound def) {
+	public static CompoundTag getNbt(JsonObject jsonObject, String key, CompoundTag def) {
 		if (jsonObject.has(key)) {
 			try {
 				String json = jsonObject.get(key).toString();
-				NBTTagCompound tagCompound = JsonToNBT.getTagFromJson(json);
+				CompoundTag tagCompound = JsonToNBT.getTagFromJson(json);
 				removeDoubleQuotes(tagCompound);
 				return tagCompound;
-			} catch (NBTException e) {
+			} catch (Exception e) {
 				MOLog.log(Level.ERROR, e, "Could not parse NBT tag from Json");
 			}
 		}
@@ -153,31 +157,32 @@ public class MOJsonHelper {
 		return def;
 	}
 
-	public static void removeDoubleQuotes(NBTTagCompound tagCompound) {
-		List<String> cachedKeyList = new ArrayList<>();
-		cachedKeyList.addAll(tagCompound.getKeySet());
+	public static void removeDoubleQuotes(CompoundTag tagCompound) {
+		List<String> cachedKeyList = new ArrayList<>(tagCompound.getAllKeys());
+
 		for (String key : cachedKeyList) {
-			NBTBase base = tagCompound.getTag(key);
-			tagCompound.removeTag(key);
+			Tag base = tagCompound.get(key);
+			tagCompound.remove(key);
 
 			key = key.replace("\"", "");
-			if (base instanceof NBTTagCompound) {
-				removeDoubleQuotes((NBTTagCompound) base);
-			} else if (base instanceof NBTTagList) {
-				removeDoubleQuotes((NBTTagList) base);
+
+			if (base instanceof CompoundTag) {
+				removeDoubleQuotes((CompoundTag) base);
+			} else if (base instanceof ListTag) {
+				removeDoubleQuotes((ListTag) base);
 			}
-			tagCompound.setTag(key, base);
+			tagCompound.put(key, base);
 		}
 	}
 
-	public static void removeDoubleQuotes(NBTTagList tagList) {
-		for (int i = 0; i < tagList.tagCount(); i++) {
-			if (tagList.get(i) instanceof NBTTagCompound) {
-				removeDoubleQuotes((NBTTagCompound) tagList.get(i));
-			} else if (tagList.get(i) instanceof NBTTagList) {
-				removeDoubleQuotes((NBTTagList) tagList.get(i));
-			}
-		}
+	public static void removeDoubleQuotes(ListTag tagList) {
+        for (Tag tag : tagList) {
+            if (tag instanceof CompoundTag) {
+                removeDoubleQuotes((CompoundTag) tag);
+            } else if (tag instanceof ListTag) {
+                removeDoubleQuotes((ListTag) tag);
+            }
+        }
 	}
 
 	public static void setCurrentParentObject(String parentObject) {

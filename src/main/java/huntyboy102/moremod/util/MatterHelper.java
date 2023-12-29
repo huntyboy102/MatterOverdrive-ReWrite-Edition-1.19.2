@@ -2,26 +2,27 @@
 package huntyboy102.moremod.util;
 
 import huntyboy102.moremod.items.MatterScanner;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.inventory.IUpgrade;
 import huntyboy102.moremod.api.matter.IMatterHandler;
 import huntyboy102.moremod.api.matter.IMatterItem;
 import huntyboy102.moremod.api.matter.IMatterPatternStorage;
 import huntyboy102.moremod.init.OverdriveFluids;
-import net.minecraft.block.Block;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.init.Blocks;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class MatterHelper {
 			if (item.getItem() instanceof IMatterItem) {
 				return ((IMatterItem) item.getItem()).getMatter(item);
 			} else {
-				return MatterOverdrive.MATTER_REGISTRY.getMatter(item);
+				return MatterOverdriveRewriteEdition.MATTER_REGISTRY.getMatter(item);
 			}
 		}
 		return 0;
@@ -60,13 +61,12 @@ public class MatterHelper {
 		return recived;
 	}
 
-	private static IRecipe GetRecipeOf(ItemStack item) {
-		List recipes = ForgeRegistries.RECIPES.getValues();
-		for (Object recipe1 : recipes) {
-			IRecipe recipe = (IRecipe) recipe1;
+	private static Recipe GetRecipeOf(Level world, ItemStack item) {
+		RecipeManager recipeManager = world.getRecipeManager();
+		Iterable<Recipe<?>> recipes = recipeManager.getRecipes();
 
-			if (recipe != null && !recipe.getRecipeOutput().isEmpty()
-					&& recipe.getRecipeOutput().getItem() == item.getItem()) {
+		for (Recipe<?> recipe : recipes) {
+			if (recipe.getResultItem().sameItem(item)) {
 				return recipe;
 			}
 		}
@@ -93,7 +93,7 @@ public class MatterHelper {
 
 		Item item = stack.getItem();
 
-		if (item instanceof ItemBlock) {
+		if (item instanceof BlockItem) {
 			Block block = Block.getBlockFromItem(item);
 
 			return block != Blocks.BEDROCK && block != Blocks.AIR;
@@ -114,27 +114,27 @@ public class MatterHelper {
 		return MOStringHelper.formatNumber(matter) + " / " + MOStringHelper.formatNumber(capacity) + MATTER_UNIT;
 	}
 
-	public static boolean DropInventory(World world, IInventory inventory, BlockPos pos) {
+	public static boolean DropInventory(Level world, Inventory inventory, BlockPos pos) {
 		if (inventory != null) {
-			for (int i1 = 0; i1 < inventory.getSizeInventory(); ++i1) {
-				ItemStack itemstack = inventory.getStackInSlot(i1);
+			for (int i1 = 0; i1 < inventory.getContainerSize(); ++i1) {
+				ItemStack itemstack = inventory.getItem(i1);
 
 				if (!itemstack.isEmpty()) {
-					float f = world.rand.nextFloat() * 0.8F + 0.1F;
-					float f1 = world.rand.nextFloat() * 0.8F + 0.1F;
-					float f2 = world.rand.nextFloat() * 0.8F + 0.1F;
+					float f = world.getRandom().nextFloat() * 0.8F + 0.1F;
+					float f1 = world.getRandom().nextFloat() * 0.8F + 0.1F;
+					float f2 = world.getRandom().nextFloat() * 0.8F + 0.1F;
 
-					EntityItem entityitem = new EntityItem(world, (double) ((float) pos.getX() + f),
-							(double) ((float) pos.getY() + f1), (double) ((float) pos.getZ() + f2), itemstack);
+					ItemEntity entityitem = new ItemEntity(world, (double) ((float) pos.getX() + f),
+							((float) pos.getY() + f1), (double) ((float) pos.getZ() + f2), itemstack);
 
-					if (itemstack.hasTagCompound()) {
-						entityitem.getItem().setTagCompound(itemstack.getTagCompound().copy());
+					if (itemstack.hasTag()) {
+						entityitem.getItem().setTag(itemstack.getTag().copy());
 					}
 
 					float f3 = 0.05F;
-					entityitem.motionX = (double) ((float) world.rand.nextGaussian() * f3);
-					entityitem.motionY = (double) ((float) world.rand.nextGaussian() * f3 + 0.2F);
-					entityitem.motionZ = (double) ((float) world.rand.nextGaussian() * f3);
+					entityitem.xo = ((float) world.getRandom().nextGaussian() * f3);
+					entityitem.yo = ((float) world.getRandom().nextGaussian() * f3 + 0.2F);
+					entityitem.zo = ((float) world.getRandom().nextGaussian() * f3);
 					world.spawnEntity(entityitem);
 				}
 			}
@@ -147,9 +147,9 @@ public class MatterHelper {
 	public static void DrawMatterInfoTooltip(ItemStack itemStack, int speed, int energyPerTick, List<String> tooltips) {
 		int matter = MatterHelper.getMatterAmountFromItem(itemStack);
 		if (matter > 0) {
-			tooltips.add(TextFormatting.ITALIC.toString() + TextFormatting.BLUE.toString() + "Matter: "
+			tooltips.add(ChatFormatting.ITALIC.toString() + ChatFormatting.BLUE.toString() + "Matter: "
 					+ MatterHelper.formatMatter(matter));
-			tooltips.add(TextFormatting.ITALIC.toString() + TextFormatting.DARK_RED + "Power: "
+			tooltips.add(ChatFormatting.ITALIC.toString() + ChatFormatting.DARK_RED + "Power: "
 					+ MOEnergyHelper.formatEnergy(speed * matter * energyPerTick));
 		}
 	}

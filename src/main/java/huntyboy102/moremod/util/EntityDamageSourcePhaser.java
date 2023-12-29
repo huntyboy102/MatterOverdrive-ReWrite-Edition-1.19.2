@@ -7,8 +7,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
 
 public class EntityDamageSourcePhaser extends EntityDamageSource {
 	protected final Entity damageSourceEntity;
@@ -28,14 +26,14 @@ public class EntityDamageSourcePhaser extends EntityDamageSource {
 		String itemMsg = normalMsg + ".item";
 
 		if (damageSourceEntity instanceof LivingEntity) {
-			ItemStack itemStack = ((LivingEntity) damageSourceEntity).getActiveItemStack();
-			if (itemStack != null && itemStack.hasCustomHoverName() && MOStringHelper.hasTranslation(itemMsg)) {
-				return new TranslationTextComponent(itemMsg, entity.getDisplayName().getFormattedText(),
-						damageSourceEntity.getDisplayName().getFormattedText(), itemStack.getTextComponent());
+			ItemStack itemStack = ((LivingEntity) damageSourceEntity).getUseItem();
+			if (itemStack.hasCustomHoverName() && MOStringHelper.hasTranslation(itemMsg)) {
+				return Component.translatable(itemMsg, entity.getDisplayName(),
+                        damageSourceEntity.getDisplayName().getString(), itemStack.getHoverName());
 			}
 		}
 
-		return new TranslationTextComponent(normalMsg, entity.getDisplayName(), damageSourceEntity.getDisplayName());
+		return Component.translatable(normalMsg, entity.getDisplayName(), damageSourceEntity.getDisplayName());
 	}
 
 	/**

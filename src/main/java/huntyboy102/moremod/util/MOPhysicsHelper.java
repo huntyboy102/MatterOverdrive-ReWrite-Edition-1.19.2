@@ -2,41 +2,41 @@
 package huntyboy102.moremod.util;
 
 import huntyboy102.moremod.util.math.MOMathHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
 public class MOPhysicsHelper {
-	public static boolean insideBounds(Vec3d pos, AxisAlignedBB bounds) {
+	public static boolean insideBounds(Vec3 pos, AABB bounds) {
 		return bounds.minX <= pos.x && bounds.minY <= pos.y && bounds.minZ <= pos.z && bounds.maxX >= pos.x
 				&& bounds.maxY >= pos.y && bounds.maxZ >= pos.z;
 	}
 
-	public static RayTraceResult rayTrace(EntityLivingBase viewer, World world, double distance, float ticks,
+	public static RayTraceResult rayTrace(LivingEntity viewer, Level world, double distance, float ticks,
 			Vec3d offset) {
 		return rayTrace(viewer, world, distance, ticks, offset, false, false);
 	}
 
-	public static RayTraceResult rayTrace(EntityLivingBase viewer, World world, double distance, float ticks,
+	public static RayTraceResult rayTrace(LivingEntity viewer, Level world, double distance, float ticks,
 			Vec3d offset, boolean checkBlockCollision, boolean onlySolid) {
 		return rayTrace(viewer, world, distance, ticks, offset, checkBlockCollision, onlySolid, null);
 	}
 
-	public static RayTraceResult rayTrace(EntityLivingBase viewer, World world, double distance, float ticks,
-			Vec3d offset, boolean checkBlockCollision, boolean onlySolid, Vec3d dir) {
+	public static RayTraceResult rayTrace(LivingEntity viewer, Level world, double distance, float ticks,
+			Vec3d offset, boolean checkBlockCollision, boolean onlySolid, Vec3 dir) {
 		return rayTrace(getPosition(viewer, ticks), world, distance, ticks, offset, checkBlockCollision, onlySolid, dir,
 				viewer);
 	}
 
-	public static RayTraceResult rayTrace(Vec3d fromPos, World world, double distance, float ticks, Vec3d offset,
-			boolean checkBlockCollision, boolean onlySolid, Vec3d dir, EntityLivingBase viewer) {
+	public static RayTraceResult rayTrace(Vec3 fromPos, Level world, double distance, float ticks, Vec3 offset,
+			boolean checkBlockCollision, boolean onlySolid, Vec3 dir, LivingEntity viewer) {
 		RayTraceResult objectMouseOver = null;
 		Entity pointedEntity = null;
 
@@ -106,44 +106,44 @@ public class MOPhysicsHelper {
 		return objectMouseOver;
 	}
 
-	public static RayTraceResult rayTraceForBlocks(EntityLivingBase viewer, World world, double distance, float ticks,
+	public static RayTraceResult rayTraceForBlocks(LivingEntity viewer, Level world, double distance, float ticks,
 			Vec3d offset, boolean collisionCheck, boolean onlySolid) {
 		return rayTraceForBlocks(viewer, world, distance, ticks, offset, collisionCheck, onlySolid, null);
 	}
 
-	public static RayTraceResult rayTraceForBlocks(EntityLivingBase viewer, World world, double distance, float ticks,
+	public static RayTraceResult rayTraceForBlocks(LivingEntity viewer, Level world, double distance, float ticks,
 			Vec3d offset, boolean collisionCheck, boolean onlySolid, Vec3d dir) {
 		return rayTraceForBlocks(getPosition(viewer, ticks), world, distance, ticks, offset, collisionCheck, onlySolid,
 				dir == null ? viewer.getLook(ticks) : dir);
 	}
 
-	public static RayTraceResult rayTraceForBlocks(Vec3d fromPosition, World world, double distance, float ticks,
-			Vec3d offset, boolean collisionCheck, boolean onlySolid, Vec3d dir) {
-		Vec3d Vec3d = new Vec3d(fromPosition.x, fromPosition.y, fromPosition.z);
+	public static RayTraceResult rayTraceForBlocks(Vec3 fromPosition, Level world, double distance, float ticks,
+			Vec3 offset, boolean collisionCheck, boolean onlySolid, Vec3 dir) {
+		Vec3 Vec3d = new Vec3(fromPosition.x, fromPosition.y, fromPosition.z);
 		if (offset != null) {
 			Vec3d = Vec3d.add(offset.x, offset.y, offset.z);
 		}
-		Vec3d Vec3d2 = Vec3d.add(dir.x * distance, dir.y * distance, dir.z * distance);
+		Vec3 Vec3d2 = Vec3d.add(dir.x * distance, dir.y * distance, dir.z * distance);
 		return world.rayTraceBlocks(Vec3d, Vec3d2, collisionCheck, onlySolid, true);
 	}
 
 	@SideOnly(Side.CLIENT)
 	public static RayTraceResult mouseRaytraceForBlocks(int mouseX, int mouseY, int width, int height,
-			EntityLivingBase viewer, World world, boolean collisionCheck, boolean onlySolid) {
-		Vec3d dir = MOMathHelper.mouseToWorldRay(mouseX, mouseY, width, height);
-		Vec3d Vec3d = viewer.getPositionEyes(1);
-		Vec3d Vec3d2 = Vec3d.add(dir.x * 32, dir.y * 32, dir.z * 32);
+			LivingEntity viewer, Level world, boolean collisionCheck, boolean onlySolid) {
+		Vec3 dir = MOMathHelper.mouseToWorldRay(mouseX, mouseY, width, height);
+		Vec3 Vec3d = viewer.getPositionEyes(1);
+		Vec3 Vec3d2 = Vec3d.add(dir.x * 32, dir.y * 32, dir.z * 32);
 		return world.rayTraceBlocks(Vec3d, Vec3d2, false, false, true);
 	}
 
-	public static Vec3d getPosition(EntityLivingBase entity, float p_70666_1_) {
+	public static Vec3 getPosition(LivingEntity entity, float p_70666_1_) {
 		if (p_70666_1_ == 1.0F) {
-			return new Vec3d(entity.posX, entity.posY, entity.posZ);
+			return new Vec3(entity.posX, entity.posY, entity.posZ);
 		} else {
 			double d0 = entity.prevPosX + (entity.posX - entity.prevPosX) * (double) p_70666_1_;
 			double d1 = entity.prevPosY + (entity.posY - entity.prevPosY) * (double) p_70666_1_;
 			double d2 = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double) p_70666_1_;
-			return new Vec3d(d0, d1, d2);
+			return new Vec3(d0, d1, d2);
 		}
 	}
 }
