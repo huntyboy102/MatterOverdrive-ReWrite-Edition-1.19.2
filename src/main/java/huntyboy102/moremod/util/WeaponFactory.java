@@ -4,15 +4,16 @@ package huntyboy102.moremod.util;
 import huntyboy102.moremod.items.includes.EnergyContainer;
 import huntyboy102.moremod.items.weapon.EnergyWeapon;
 import huntyboy102.moremod.items.weapon.module.WeaponModuleBarrel;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.weapon.IWeapon;
 import huntyboy102.moremod.api.weapon.IWeaponModule;
 import huntyboy102.moremod.data.WeightedRandomItemStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.util.WeightedRandom;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.energy.CapabilityEnergy;
 
 import javax.annotation.Nonnull;
@@ -76,30 +77,30 @@ public class WeaponFactory {
 	public void initModules() {
 		barrelModules.add(new WeightedRandomWeaponModule(null, 200, 0, MAX_LOOT_LEVEL));
 		barrelModules.add(new WeightedRandomWeaponModule(
-				new ItemStack(MatterOverdrive.ITEMS.weapon_module_barrel, 1, WeaponModuleBarrel.DAMAGE_BARREL_ID), 100,
+				new ItemStack(MatterOverdriveRewriteEdition.ITEMS.weapon_module_barrel, 1, WeaponModuleBarrel.DAMAGE_BARREL_ID), 100,
 				1, MAX_LOOT_LEVEL));
 		barrelModules.add(new WeightedRandomWeaponModule(
-				new ItemStack(MatterOverdrive.ITEMS.weapon_module_barrel, 1, WeaponModuleBarrel.FIRE_BARREL_ID), 10, 1,
+				new ItemStack(MatterOverdriveRewriteEdition.ITEMS.weapon_module_barrel, 1, WeaponModuleBarrel.FIRE_BARREL_ID), 10, 1,
 				MAX_LOOT_LEVEL));
 		barrelModules.add(new WeightedRandomWeaponModule(
-				new ItemStack(MatterOverdrive.ITEMS.weapon_module_barrel, 1, WeaponModuleBarrel.EXPLOSION_BARREL_ID), 5,
+				new ItemStack(MatterOverdriveRewriteEdition.ITEMS.weapon_module_barrel, 1, WeaponModuleBarrel.EXPLOSION_BARREL_ID), 5,
 				2, MAX_LOOT_LEVEL));
 
 		batteryModules.add(
-				new WeightedRandomWeaponModule(new ItemStack(MatterOverdrive.ITEMS.battery), 100, 1, MAX_LOOT_LEVEL));
+				new WeightedRandomWeaponModule(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.battery), 100, 1, MAX_LOOT_LEVEL));
 		batteryModules.add(
-				new WeightedRandomWeaponModule(new ItemStack(MatterOverdrive.ITEMS.hc_battery), 20, 1, MAX_LOOT_LEVEL));
+				new WeightedRandomWeaponModule(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.hc_battery), 20, 1, MAX_LOOT_LEVEL));
 
 		otherModules.add(new WeightedRandomWeaponModule(null, 300, 0, MAX_LOOT_LEVEL));
-		otherModules.add(new WeightedRandomWeaponModule(new ItemStack(MatterOverdrive.ITEMS.sniperScope), 10, 1,
+		otherModules.add(new WeightedRandomWeaponModule(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.sniperScope), 10, 1,
 				MAX_LOOT_LEVEL));
 	}
 
 	public void initWeapons() {
-		weapons.add(new WeightedRandomItemStack(new ItemStack(MatterOverdrive.ITEMS.phaserRifle), 70));
-		weapons.add(new WeightedRandomItemStack(new ItemStack(MatterOverdrive.ITEMS.omniTool), 30));
-		weapons.add(new WeightedRandomItemStack(new ItemStack(MatterOverdrive.ITEMS.plasmaShotgun), 10));
-		weapons.add(new WeightedRandomItemStack(new ItemStack(MatterOverdrive.ITEMS.ionSniper), 5));
+		weapons.add(new WeightedRandomItemStack(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.phaserRifle), 70));
+		weapons.add(new WeightedRandomItemStack(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.omniTool), 30));
+		weapons.add(new WeightedRandomItemStack(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.plasmaShotgun), 10));
+		weapons.add(new WeightedRandomItemStack(new ItemStack(MatterOverdriveRewriteEdition.ITEMS.ionSniper), 5));
 	}
 
 	public ItemStack getRandomDecoratedEnergyWeapon(WeaponGenerationContext context) {
@@ -114,7 +115,7 @@ public class WeaponFactory {
 
 	public ItemStack getRandomEnergyWeapon(WeaponGenerationContext context) {
 		ItemStack weapon;
-		weapon = WeightedRandom.getRandomItem(random, weapons).getStack();
+		weapon = MatterOverdriveRewriteEdition.getRandomItem(random, weapons).getStack();
 		if (context.fullCharge) {
 			((EnergyContainer) EnergyWeapon.getStorage(weapon)).setFull();
 		}
@@ -157,41 +158,41 @@ public class WeaponFactory {
 
 	public void setColorModuleBasedOnBarrel(ItemStack weapon, ItemStack barrel) {
 		if (barrel.getItem() instanceof WeaponModuleBarrel) {
-			if (barrel.getItemDamage() == WeaponModuleBarrel.EXPLOSION_BARREL_ID) {
+			if (barrel.getDamageValue() == WeaponModuleBarrel.EXPLOSION_BARREL_ID) {
 				// gold
-				WeaponHelper.setModuleAtSlot(1, weapon, new ItemStack(MatterOverdrive.ITEMS.weapon_module_color, 1, 6));
-			} else if (barrel.getItemDamage() == WeaponModuleBarrel.FIRE_BARREL_ID) {
+				WeaponHelper.setModuleAtSlot(1, weapon, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.weapon_module_color, 1, 6));
+			} else if (barrel.getDamageValue() == WeaponModuleBarrel.FIRE_BARREL_ID) {
 				// red
-				WeaponHelper.setModuleAtSlot(1, weapon, new ItemStack(MatterOverdrive.ITEMS.weapon_module_color, 1));
-			} else if (barrel.getItemDamage() == WeaponModuleBarrel.DAMAGE_BARREL_ID) {
+				WeaponHelper.setModuleAtSlot(1, weapon, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.weapon_module_color, 1));
+			} else if (barrel.getDamageValue() == WeaponModuleBarrel.DAMAGE_BARREL_ID) {
 				// blue
-				WeaponHelper.setModuleAtSlot(1, weapon, new ItemStack(MatterOverdrive.ITEMS.weapon_module_color, 1, 2));
+				WeaponHelper.setModuleAtSlot(1, weapon, new ItemStack(MatterOverdriveRewriteEdition.ITEMS.weapon_module_color, 1, 2));
 			}
 		}
 	}
 
 	public void modifyToLegendary(ItemStack weapon, WeaponGenerationContext context) {
-		weapon.setStackDisplayName(Reference.UNICODE_LEGENDARY + " " + TextFormatting.GOLD
+		weapon.setStackDisplayName(Reference.UNICODE_LEGENDARY + " " + ChatFormatting.GOLD
 				+ MOStringHelper.translateToLocal("rarity.legendary") + " " + weapon.getDisplayName());
 
 		int damageLevel = random.nextInt(context.level + 1);
 		if (damageLevel > 0) {
-			weapon.getTagCompound().setFloat(EnergyWeapon.CUSTOM_DAMAGE_MULTIPLY_TAG, 1 + 0.1f * damageLevel);
+			weapon.getTag().putFloat(EnergyWeapon.CUSTOM_DAMAGE_MULTIPLY_TAG, 1 + 0.1f * damageLevel);
 		}
 
 		int accuracyLevel = random.nextInt(context.level + 1);
 		if (accuracyLevel > 0) {
-			weapon.getTagCompound().setFloat(EnergyWeapon.CUSTOM_ACCURACY_MULTIPLY_TAG, 1f - (0.1f * accuracyLevel));
+			weapon.getTag().putFloat(EnergyWeapon.CUSTOM_ACCURACY_MULTIPLY_TAG, 1f - (0.1f * accuracyLevel));
 		}
 
 		int shootCooldownLevel = random.nextInt(context.level + 1);
 		if (shootCooldownLevel > 0) {
-			weapon.getTagCompound().setFloat(EnergyWeapon.CUSTOM_SPEED_MULTIPLY_TAG, 1f - (0.05f * shootCooldownLevel));
+			weapon.getTag().putFloat(EnergyWeapon.CUSTOM_SPEED_MULTIPLY_TAG, 1f - (0.05f * shootCooldownLevel));
 		}
 
 		int rangeLevel = random.nextInt(context.level + 1);
 		if (rangeLevel > 0) {
-			weapon.getTagCompound().setFloat(EnergyWeapon.CUSTOM_RANGE_MULTIPLY_TAG, 1f + 0.15f * rangeLevel);
+			weapon.getTag().putFloat(EnergyWeapon.CUSTOM_RANGE_MULTIPLY_TAG, 1f + 0.15f * rangeLevel);
 		}
 	}
 
@@ -228,7 +229,7 @@ public class WeaponFactory {
 		}
 	}
 
-	public static class WeightedRandomWeaponModule extends WeightedRandom.Item {
+	public static class WeightedRandomWeaponModule extends WeightedRandom {
 		private final ItemStack weaponModule;
 		private int minLevel;
 		private int maxLevel;

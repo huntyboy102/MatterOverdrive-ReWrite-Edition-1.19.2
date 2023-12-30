@@ -1,41 +1,44 @@
 
 package huntyboy102.moremod.util;
 
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import huntyboy102.moremod.util.math.MOMathHelper;
 import huntyboy102.moremod.blocks.includes.MOBlock;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.client.render.tileentity.TileEntityRendererPatternMonitor;
-import net.minecraft.block.state.IBlockState;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
+import javax.swing.text.html.BlockView;
+import java.awt.*;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class RenderUtils {
-	private static final FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
-	private static final RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+	private static final Font fontRenderer = Minecraft.getInstance().font;
+	private static final ItemRenderer renderItem = Minecraft.getInstance().getItemRenderer();
 	private static float lastLightMapX, lastLightMapY;
 
 	public static void renderStack(int x, int y, ItemStack stack) {
@@ -80,7 +83,7 @@ public class RenderUtils {
 				String s = text == null ? String.valueOf(stack.getCount()) : text;
 
 				if (text == null && stack.getCount() < 1) {
-					s = TextFormatting.RED + String.valueOf(stack.getCount());
+					s = ChatFormatting.RED + String.valueOf(stack.getCount());
 				}
 
 				GlStateManager.disableLighting();
@@ -144,10 +147,10 @@ public class RenderUtils {
 	}
 
 //TODO
-	public static void rotateFromBlock(World world, BlockPos pos) {
+	public static void rotateFromBlock(Level world, BlockPos pos) {
 		if (world != null) {
-			IBlockState blockState = world.getBlockState(pos);
-			EnumFacing rotation = blockState.getValue(MOBlock.PROPERTY_DIRECTION);
+			BlockState blockState = world.getBlockState(pos);
+			Direction rotation = blockState.getValue(MOBlock.PROPERTY_DIRECTION);
 
 			switch (rotation) {
 			case WEST:
@@ -174,18 +177,18 @@ public class RenderUtils {
 		// "]");
 	}
 
-	public static void rotateFromBlock(Matrix4f mat, IBlockAccess world, BlockPos pos) {
+	public static void rotateFromBlock(Matrix4f mat, BlockView world, BlockPos pos) {
 		if (world != null) {
-			IBlockState blockState = world.getBlockState(pos);
-			EnumFacing rotation = blockState.getValue(MOBlock.PROPERTY_DIRECTION);
+			BlockState blockState = world.getBlockState(pos);
+			Direction rotation = blockState.getValue(MOBlock.PROPERTY_DIRECTION);
 
 			Vector3f axis = new Vector3f(0, 1, 0);
 
-			if (rotation == EnumFacing.WEST) {
+			if (rotation == Direction.WEST) {
 				mat.rotate(-(float) (Math.PI / 2), axis);
-			} else if (rotation == EnumFacing.EAST) {
+			} else if (rotation == Direction.EAST) {
 				mat.rotate((float) (Math.PI / 2), axis);
-			} else if (rotation == EnumFacing.NORTH) {
+			} else if (rotation == Direction.NORTH) {
 				mat.rotate(-(float) (Math.PI), axis);
 			}
 		}
@@ -431,13 +434,13 @@ public class RenderUtils {
 		GlStateManager.color(color.getFloatR(), color.getFloatG(), color.getFloatB(), color.getFloatA());
 	}
 
-	public static void beginDrawinngBlockScreen(double x, double y, double z, EnumFacing side, Color color,
-			TileEntity entity) {
+	public static void beginDrawinngBlockScreen(double x, double y, double z, Direction side, Color color,
+			BlockEntity entity) {
 		beginDrawinngBlockScreen(x, y, z, side, color, entity, 0.05, 1);
 	}
 
-	public static void beginDrawinngBlockScreen(double x, double y, double z, EnumFacing side, Color color,
-			TileEntity entity, double offset, float glowAlpha) {
+	public static void beginDrawinngBlockScreen(double x, double y, double z, Direction side, Color color,
+												BlockEntity entity, double offset, float glowAlpha) {
 		GlStateManager.enableBlend();
 		GlStateManager.disableLighting();
 		disableLightmap();
@@ -472,7 +475,7 @@ public class RenderUtils {
 		RenderUtils.drawPlane(1);
 	}
 
-	public static void drawScreenInfoWithGlobalAutoSize(String[] info, Color color, EnumFacing side, int leftMargin,
+	public static void drawScreenInfoWithGlobalAutoSize(String[] info, Color color, Direction side, int leftMargin,
 			int rightMargin, float maxScaleFactor) {
 		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		GlStateManager.pushMatrix();
@@ -493,7 +496,7 @@ public class RenderUtils {
 		}
 
 		if (maxWidth > 0) {
-			scaleFactor = MathHelper.clamp((float) sizeX / (float) maxWidth, 0.02f, maxScaleFactor);
+			scaleFactor = Mth.clamp((float) sizeX / (float) maxWidth, 0.02f, maxScaleFactor);
 		}
 
 		for (String anInfo : info) {
@@ -504,7 +507,7 @@ public class RenderUtils {
 			}
 		}
 
-		height = MathHelper.clamp(height, 0, sizeY);
+		height = Mth.clamp(height, 0, sizeY);
 
 		int yCount = 0;
 		for (String anInfo : info) {
@@ -528,7 +531,7 @@ public class RenderUtils {
 		GlStateManager.popMatrix();
 	}
 
-	public static void drawScreenInfoWithLocalAutoSize(String[] info, Color color, EnumFacing side, int leftMargin,
+	public static void drawScreenInfoWithLocalAutoSize(String[] info, Color color, Direction side, int leftMargin,
 			int rightMargin, float maxScaleFactor) {
 		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		GlStateManager.pushMatrix();
@@ -544,7 +547,7 @@ public class RenderUtils {
 			float scaleFactor = 1;
 			int width = fontRenderer.getStringWidth(anInfo);
 			if (width > 0) {
-				scaleFactor = MathHelper.clamp((float) sizeX / (float) width, 0.02f, maxScaleFactor);
+				scaleFactor = Mth.clamp((float) sizeX / (float) width, 0.02f, maxScaleFactor);
 			}
 			int scaledHeight = (int) (fontRenderer.FONT_HEIGHT * scaleFactor);
 
@@ -557,7 +560,7 @@ public class RenderUtils {
 			}
 		}
 
-		height = MathHelper.clamp(height, 0, sizeY);
+		height = Mth.clamp(height, 0, sizeY);
 
 		int yCount = 0;
 		for (String anInfo : info) {
@@ -565,7 +568,7 @@ public class RenderUtils {
 			float scaleFactor = 1;
 			int width = fontRenderer.getStringWidth(anInfo);
 			if (width > 0) {
-				scaleFactor = MathHelper.clamp((float) sizeX / (float) width, 0.02f, maxScaleFactor);
+				scaleFactor = Mth.clamp((float) sizeX / (float) width, 0.02f, maxScaleFactor);
 			}
 			int scaledHeight = (int) (fontRenderer.FONT_HEIGHT * scaleFactor);
 
@@ -627,14 +630,14 @@ public class RenderUtils {
 	}
 
 	public static void bindTexture(ResourceLocation texture) {
-		Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
+		Minecraft.getInstance().getTextureManager().bindForSetup(texture);
 	}
 
 	// From CodeChickenLib
 	public static void translateToWorlds(Entity entity, float frame) {
-		double interpPosX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * frame;
-		double interpPosY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * frame;
-		double interpPosZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * frame;
+		double interpPosX = entity.lastTickPosX + (entity.getX() - entity.lastTickPosX) * frame;
+		double interpPosY = entity.lastTickPosY + (entity.getY() - entity.lastTickPosY) * frame;
+		double interpPosZ = entity.lastTickPosZ + (entity.getZ() - entity.lastTickPosZ) * frame;
 
 		GlStateManager.translate(-interpPosX, -interpPosY, -interpPosZ);
 	}
@@ -644,19 +647,19 @@ public class RenderUtils {
 		GlStateManager.rotate(viewer.rotationPitch, 1, 0, 0);
 	}
 
-	public static void tessalateParticle(Entity viewer, TextureAtlasSprite particleIcon, double scale, Vec3d position,
+	public static void tessalateParticle(Entity viewer, TextureAtlasSprite particleIcon, double scale, Vec3 position,
 			Color color) {
 		tessalateParticle(viewer, particleIcon, scale, position, color.getFloatR(), color.getFloatG(),
 				color.getFloatB(), color.getFloatA());
 	}
 
-	public static void tessalateParticle(Entity viewer, TextureAtlasSprite particleIcon, double scale, Vec3d position,
+	public static void tessalateParticle(Entity viewer, TextureAtlasSprite particleIcon, double scale, Vec3 position,
 			float r, float g, float b, float a) {
-		float f1 = MathHelper.cos(viewer.rotationYaw * 0.017453292F);
-		float f2 = MathHelper.sin(viewer.rotationYaw * 0.017453292F);
-		float f3 = -f2 * MathHelper.sin(viewer.rotationPitch * 0.017453292F);
-		float f4 = f1 * MathHelper.sin(viewer.rotationPitch * 0.017453292F);
-		float f5 = MathHelper.cos(viewer.rotationPitch * 0.017453292F);
+		float f1 = Mth.cos(viewer.rotationYaw * 0.017453292F);
+		float f2 = Mth.sin(viewer.rotationYaw * 0.017453292F);
+		float f3 = -f2 * Mth.sin(viewer.rotationPitch * 0.017453292F);
+		float f4 = f1 * Mth.sin(viewer.rotationPitch * 0.017453292F);
+		float f5 = Mth.cos(viewer.rotationPitch * 0.017453292F);
 
 		float uMin = particleIcon.getMinU();
 		float uMax = particleIcon.getMaxU();
@@ -778,7 +781,7 @@ public class RenderUtils {
 		Tessellator.getInstance().draw();
 	}
 
-	public static void rotateTowards(Vec3d from, Vec3d to, Vec3d up) {
+	public static void rotateTowards(Vec3 from, Vec3 to, Vec3 up) {
 		double dot = from.dotProduct(to);
 		if (Math.abs(dot - (-1.0)) < Double.MIN_VALUE) {
 			GlStateManager.rotate(180, (float) up.x, (float) up.y, (float) up.z);
@@ -788,7 +791,7 @@ public class RenderUtils {
 		}
 
 		double rotAngle = Math.acos(dot);
-		Vec3d rotAxis = from.crossProduct(to).normalize();
+		Vec3 rotAxis = from.crossProduct(to).normalize();
 		GlStateManager.rotate((float) (rotAngle * (180d / Math.PI)), (float) rotAxis.x, (float) rotAxis.y,
 				(float) rotAxis.z);
 	}

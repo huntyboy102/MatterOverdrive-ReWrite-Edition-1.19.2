@@ -9,7 +9,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.Constants;
 
 public class QuestStack {
 	boolean completed;
@@ -24,7 +23,7 @@ public class QuestStack {
 	public QuestStack(IQuest quest, Entity giver) {
 		this.quest = quest;
 		if (giver != null) {
-			this.giverUniqueID = giver.getUniqueID();
+			this.giverUniqueID = giver.getUUID();
 		}
 		this.giver = giver;
 	}
@@ -53,25 +52,25 @@ public class QuestStack {
 
 	public void writeToNBT(CompoundTag tagCompound) {
 		if (this.tagCompound != null) {
-			tagCompound.setTag("Data", this.tagCompound);
+			tagCompound.put("Data", this.tagCompound);
 		}
 		if (giverUniqueID != null) {
-			tagCompound.setLong("giveIdLow", giverUniqueID.getLeastSignificantBits());
-			tagCompound.setLong("giveIdHigh", giverUniqueID.getMostSignificantBits());
+			tagCompound.putLong("giveIdLow", giverUniqueID.getLeastSignificantBits());
+			tagCompound.putLong("giveIdHigh", giverUniqueID.getMostSignificantBits());
 		}
-		tagCompound.setShort("Quest", (short) MatterOverdriveRewriteEdition.QUESTS.getQuestID(quest));
-		tagCompound.setBoolean("Completed", completed);
+		tagCompound.putShort("Quest", (short) MatterOverdriveRewriteEdition.QUESTS.getQuestID(quest));
+		tagCompound.putBoolean("Completed", completed);
 	}
 
 	public void readFromNBT(CompoundTag tagCompound) {
-		if (tagCompound.hasKey("Data", Constants.NBT.TAG_COMPOUND)) {
-			this.tagCompound = tagCompound.getCompoundTag("Data");
+		if (tagCompound.hasUUID("Data")) {
+			this.tagCompound = tagCompound.getCompound("Data");
 		}
-		if (tagCompound.hasKey("giveIdLow", Constants.NBT.TAG_LONG)
-				&& tagCompound.hasKey("giveIdHigh", Constants.NBT.TAG_LONG)) {
+		if (tagCompound.hasUUID("giveIdLow")
+				&& tagCompound.hasUUID("giveIdHigh")) {
 			giverUniqueID = new UUID(tagCompound.getLong("giveIdLow"), tagCompound.getLong("giveIdHigh"));
 		}
-		if (tagCompound.hasKey("Quest", Constants.NBT.TAG_SHORT)) {
+		if (tagCompound.hasUUID("Quest")) {
 			quest = MatterOverdriveRewriteEdition.QUESTS.getQuestWithID(tagCompound.getShort("Quest"));
 		}
 		completed = tagCompound.getBoolean("Completed");
@@ -111,14 +110,14 @@ public class QuestStack {
 
 	public void setGiver(Entity entity) {
 		this.giver = entity;
-		this.giverUniqueID = giver.getUniqueID();
+		this.giverUniqueID = giver.getUUID();
 	}
 
 	public boolean isGiver(Entity entity) {
 		if (giver != null && giver == entity) {
 			return true;
 		}
-		return giverUniqueID != null && entity.getUniqueID().equals(giverUniqueID);
+		return giverUniqueID != null && entity.getUUID().equals(giverUniqueID);
 	}
 
 	public boolean hasGiver() {
@@ -161,7 +160,7 @@ public class QuestStack {
 		questStack.giverUniqueID = giverUniqueID;
 		questStack.giver = giver;
 		if (getTagCompound() != null) {
-			questStack.setTagCompound((CompoundTag) getTagCompound().copy());
+			questStack.setTagCompound(getTagCompound().copy());
 		}
 		return questStack;
 	}
@@ -170,7 +169,7 @@ public class QuestStack {
 		ItemStack contract = new ItemStack(MatterOverdriveRewriteEdition.ITEMS.contract);
 		CompoundTag questTag = new CompoundTag();
 		writeToNBT(questTag);
-		contract.setTagCompound(questTag);
+		contract.setTag(questTag);
 		return contract;
 	}
 

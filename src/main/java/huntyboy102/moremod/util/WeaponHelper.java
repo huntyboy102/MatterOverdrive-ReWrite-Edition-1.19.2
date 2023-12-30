@@ -11,7 +11,7 @@ import huntyboy102.moremod.api.weapon.IWeapon;
 import huntyboy102.moremod.api.weapon.IWeaponColor;
 import huntyboy102.moremod.api.weapon.IWeaponModule;
 import huntyboy102.moremod.api.weapon.IWeaponStat;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class WeaponHelper {
 	@Nonnull

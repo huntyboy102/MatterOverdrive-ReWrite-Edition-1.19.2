@@ -1,17 +1,17 @@
 
 package huntyboy102.moremod.util;
 
-import net.minecraft.launchwrapper.Launch;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.core.Direction;
+import net.minecraftforge.fml.loading.FMLLoader;
 
 public class Platform {
-	private static boolean dev = (Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
+	private static boolean dev = FMLLoader.isProduction();
 
 	public static boolean isDev() {
 		return dev;
 	}
 
-	public static EnumFacing rotateAround(EnumFacing forward, EnumFacing axis) {
+	public static Direction rotateAround(Direction forward, Direction axis) {
 		if (axis == null || forward == null) {
 			return forward;
 		}
@@ -19,18 +19,16 @@ public class Platform {
 		switch (forward) {
 		case DOWN:
 			switch (axis) {
-			case DOWN:
-				return forward;
-			case UP:
+			case DOWN, UP:
 				return forward;
 			case NORTH:
-				return EnumFacing.EAST;
+				return Direction.EAST;
 			case SOUTH:
-				return EnumFacing.WEST;
+				return Direction.WEST;
 			case EAST:
-				return EnumFacing.NORTH;
+				return Direction.NORTH;
 			case WEST:
-				return EnumFacing.SOUTH;
+				return Direction.SOUTH;
 			default:
 				break;
 			}
@@ -38,13 +36,13 @@ public class Platform {
 		case UP:
 			switch (axis) {
 			case NORTH:
-				return EnumFacing.WEST;
+				return Direction.WEST;
 			case SOUTH:
-				return EnumFacing.EAST;
+				return Direction.EAST;
 			case EAST:
-				return EnumFacing.SOUTH;
+				return Direction.SOUTH;
 			case WEST:
-				return EnumFacing.NORTH;
+				return Direction.NORTH;
 			default:
 				break;
 			}
@@ -52,13 +50,13 @@ public class Platform {
 		case NORTH:
 			switch (axis) {
 			case UP:
-				return EnumFacing.WEST;
+				return Direction.WEST;
 			case DOWN:
-				return EnumFacing.EAST;
+				return Direction.EAST;
 			case EAST:
-				return EnumFacing.UP;
+				return Direction.UP;
 			case WEST:
-				return EnumFacing.DOWN;
+				return Direction.DOWN;
 			default:
 				break;
 			}
@@ -66,13 +64,13 @@ public class Platform {
 		case SOUTH:
 			switch (axis) {
 			case UP:
-				return EnumFacing.EAST;
+				return Direction.EAST;
 			case DOWN:
-				return EnumFacing.WEST;
+				return Direction.WEST;
 			case EAST:
-				return EnumFacing.DOWN;
+				return Direction.DOWN;
 			case WEST:
-				return EnumFacing.UP;
+				return Direction.UP;
 			default:
 				break;
 			}
@@ -80,26 +78,26 @@ public class Platform {
 		case EAST:
 			switch (axis) {
 			case UP:
-				return EnumFacing.NORTH;
+				return Direction.NORTH;
 			case DOWN:
-				return EnumFacing.SOUTH;
+				return Direction.SOUTH;
 			case NORTH:
-				return EnumFacing.UP;
+				return Direction.UP;
 			case SOUTH:
-				return EnumFacing.DOWN;
+				return Direction.DOWN;
 			default:
 				break;
 			}
 		case WEST:
 			switch (axis) {
 			case UP:
-				return EnumFacing.SOUTH;
+				return Direction.SOUTH;
 			case DOWN:
-				return EnumFacing.NORTH;
+				return Direction.NORTH;
 			case NORTH:
-				return EnumFacing.DOWN;
+				return Direction.DOWN;
 			case SOUTH:
-				return EnumFacing.UP;
+				return Direction.UP;
 			default:
 				break;
 			}

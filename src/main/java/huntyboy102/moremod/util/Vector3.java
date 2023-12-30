@@ -3,7 +3,7 @@ package huntyboy102.moremod.util;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class Vector3 {
 	@Getter
@@ -58,7 +58,7 @@ public class Vector3 {
 		double d0 = value.x - this.x;
 		double d1 = value.y - this.y;
 		double d2 = value.z - this.z;
-		return (double) MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+		return Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
 	}
 
 	public double squareDistanceTo(Vector3 value) {
@@ -69,7 +69,7 @@ public class Vector3 {
 	}
 
 	public double length() {
-		return (double) MathHelper.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+		return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
 	}
 
 	public String toString() {
@@ -81,7 +81,7 @@ public class Vector3 {
 	}
 
 	public Vector3 normalize() {
-		double d0 = (double) MathHelper.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+		double d0 = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
 		if (d0 < 1.0E-4D) {
 			this.set(0.0D, 0.0D, 0.0D);
 		} else {
@@ -105,8 +105,8 @@ public class Vector3 {
 	 */
 	public void rotateAroundX(float angle) {
 		angle *= Math.PI / 180.0;
-		float f1 = MathHelper.cos(angle);
-		float f2 = MathHelper.sin(angle);
+		float f1 = Mth.cos(angle);
+		float f2 = Mth.sin(angle);
 		double d0 = this.x;
 		double d1 = this.y * (double) f1 + this.z * (double) f2;
 		double d2 = this.z * (double) f1 - this.y * (double) f2;
@@ -118,8 +118,8 @@ public class Vector3 {
 	 */
 	public void rotateAroundY(float angle) {
 		angle *= Math.PI / 180.0;
-		float f1 = MathHelper.cos(angle);
-		float f2 = MathHelper.sin(angle);
+		float f1 = Mth.cos(angle);
+		float f2 = Mth.sin(angle);
 		double d0 = this.x * (double) f1 + this.z * (double) f2;
 		double d1 = this.y;
 		double d2 = this.z * (double) f1 - this.x * (double) f2;
@@ -131,8 +131,8 @@ public class Vector3 {
 	 */
 	public void rotateAroundZ(float angle) {
 		angle *= Math.PI / 180.0;
-		float f1 = MathHelper.cos(angle);
-		float f2 = MathHelper.sin(angle);
+		float f1 = Mth.cos(angle);
+		float f2 = Mth.sin(angle);
 		double d0 = this.x * (double) f1 + this.y * (double) f2;
 		double d1 = this.y * (double) f1 - this.x * (double) f2;
 		double d2 = this.z;

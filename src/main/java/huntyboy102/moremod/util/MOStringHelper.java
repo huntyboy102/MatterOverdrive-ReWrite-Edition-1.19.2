@@ -1,14 +1,15 @@
 
 package huntyboy102.moremod.util;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.starmap.PlanetStatType;
 import huntyboy102.moremod.api.weapon.IWeaponStat;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
-import org.lwjgl.input.Keyboard;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.ChatFormatting;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,9 +18,9 @@ import java.io.LineNumberReader;
 import java.text.DecimalFormat;
 
 public class MOStringHelper {
-	public static final String MORE_INFO = TextFormatting.RESET.toString() + TextFormatting.GRAY + "Hold "
-			+ TextFormatting.ITALIC + TextFormatting.YELLOW + "Shift" + TextFormatting.RESET.toString()
-			+ TextFormatting.GRAY + " for Details.";
+	public static final String MORE_INFO = ChatFormatting.RESET.toString() + ChatFormatting.GRAY + "Hold "
+			+ ChatFormatting.ITALIC + ChatFormatting.YELLOW + "Shift" + ChatFormatting.RESET.toString()
+			+ ChatFormatting.GRAY + " for Details.";
 
 	public static String formatNumber(double number) {
 		return formatNumber(number, "0.00");
@@ -59,15 +60,15 @@ public class MOStringHelper {
 	public static String typingAnimation(String message, int time, int maxTime) {
 		float percent = ((float) time / (float) maxTime);
 		int messageCount = message.length();
-		return message.substring(0, MathHelper.clamp(Math.round(messageCount * percent), 0, messageCount));
+		return message.substring(0, Mth.clamp(Math.round(messageCount * percent), 0, messageCount));
 	}
 
 	public static boolean hasTranslation(String key) {
-		return MatterOverdrive.PROXY.hasTranslation(key);
+		return MatterOverdriveRewriteEdition.PROXY.hasTranslation(key);
 	}
 
 	public static String translateToLocal(String key, Object... params) {
-		return MatterOverdrive.PROXY.translateToLocal(key, params);
+		return MatterOverdriveRewriteEdition.PROXY.translateToLocal(key, params);
 	}
 
 	public static String translateToLocal(PlanetStatType statType) {
@@ -79,15 +80,15 @@ public class MOStringHelper {
 	}
 
 	public static String weaponStatTranslateToLocal(IWeaponStat type) {
-		return translateToLocal("weaponstat." + type.getName() + ".name");
+		return translateToLocal("weaponstat." + type.getClass() + ".name");
 	}
 
 	public static String toInfo(UpgradeTypes type, double value, boolean good) {
 		String info = "";
 		if (good) {
-			info += TextFormatting.GREEN;
+			info += ChatFormatting.GREEN;
 		} else {
-			info += TextFormatting.RED;
+			info += ChatFormatting.RED;
 		}
 		DecimalFormat format = new DecimalFormat("##");
 		info += translateToLocal(type) + ": ";
@@ -98,9 +99,9 @@ public class MOStringHelper {
 	public static String weaponStatToInfo(IWeaponStat stat, float value) {
 		String info = "";
 		if (stat.isPositive(value)) {
-			info += TextFormatting.GREEN;
+			info += ChatFormatting.GREEN;
 		} else {
-			info += TextFormatting.RED;
+			info += ChatFormatting.RED;
 		}
 		DecimalFormat format = new DecimalFormat("##");
 		info += weaponStatTranslateToLocal(stat) + ": ";
@@ -171,10 +172,14 @@ public class MOStringHelper {
 	}
 
 	public static boolean isControlKeyDown() {
-		return Keyboard.isKeyDown(29) || Keyboard.isKeyDown(157);
+		long windowHandle = Minecraft.getInstance().getWindow().getWindow();
+		return GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS ||
+				GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
 	}
 
 	public static boolean isAltKeyDown() {
-		return Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
+		long windowHandle = Minecraft.getInstance().getWindow().getWindow();
+		return GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_LEFT_ALT) == GLFW.GLFW_PRESS ||
+				GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_RIGHT_ALT) == GLFW.GLFW_PRESS;
 	}
 }
