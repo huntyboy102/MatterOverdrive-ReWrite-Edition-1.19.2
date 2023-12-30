@@ -14,22 +14,25 @@ import huntyboy102.moremod.tile.TileEntityTritaniumCrate;
 import huntyboy102.moremod.tile.TileEntityWeaponStation;
 import huntyboy102.moremod.util.MOInventoryHelper;
 import huntyboy102.moremod.util.WeaponFactory;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.world.MOImageGen;
 import huntyboy102.moremod.world.MOLootTableManager;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.item.EnumDyeColor;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.Container;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.storage.loot.LootContext;
 import net.minecraft.world.storage.loot.LootTable;
 
@@ -46,34 +49,34 @@ public class MOAndroidHouseBuilding extends MOWorldGenBuilding {
 				"Emergency\nPower\nOffline", "System\nReboot\nFailure", "Help Me", "I Need\nWater" };
 		setMaxDistanceToAir(airLeeway);
 		setyOffset(-4);
-		addMapping(0x00fffc, MatterOverdrive.BLOCKS.decorative_beams,
-				MatterOverdrive.BLOCKS.decorative_carbon_fiber_plate, MatterOverdrive.BLOCKS.decorative_white_plate);
+		addMapping(0x00fffc, MatterOverdriveRewriteEdition.BLOCKS.decorative_beams,
+				MatterOverdriveRewriteEdition.BLOCKS.decorative_carbon_fiber_plate, MatterOverdriveRewriteEdition.BLOCKS.decorative_white_plate);
 		addMapping(0x623200, Blocks.DIRT);
-		addMapping(0xffa200, MatterOverdrive.BLOCKS.decorative_floor_tiles);
-		addMapping(0xfff600, MatterOverdrive.BLOCKS.decorative_holo_matrix);
+		addMapping(0xffa200, MatterOverdriveRewriteEdition.BLOCKS.decorative_floor_tiles);
+		addMapping(0xfff600, MatterOverdriveRewriteEdition.BLOCKS.decorative_holo_matrix);
 		addMapping(0x80b956, Blocks.GRASS);
-		addMapping(0x539ac3, MatterOverdrive.BLOCKS.decorative_tritanium_plate);
-		addMapping(0xb1c8d5, MatterOverdrive.BLOCKS.decorative_floor_noise,
-				MatterOverdrive.BLOCKS.decorative_floor_tiles, MatterOverdrive.BLOCKS.decorative_floor_tile);
-		addMapping(0x5f6569, MatterOverdrive.BLOCKS.decorative_vent_dark);
+		addMapping(0x539ac3, MatterOverdriveRewriteEdition.BLOCKS.decorative_tritanium_plate);
+		addMapping(0xb1c8d5, MatterOverdriveRewriteEdition.BLOCKS.decorative_floor_noise,
+				MatterOverdriveRewriteEdition.BLOCKS.decorative_floor_tiles, MatterOverdriveRewriteEdition.BLOCKS.decorative_floor_tile);
+		addMapping(0x5f6569, MatterOverdriveRewriteEdition.BLOCKS.decorative_vent_dark);
 		addMapping(0xf1f1f1, Blocks.AIR);
-		addMapping(0xe400ff, MatterOverdrive.BLOCKS.starMap);
-		addMapping(0x1850ad, MatterOverdrive.BLOCKS.decorative_clean);
-		addMapping(0x9553c3, MatterOverdrive.BLOCKS.industrialGlass);
-		addMapping(0x35d6e0, MatterOverdrive.BLOCKS.replicator);
-		addMapping(0x35e091, MatterOverdrive.BLOCKS.network_switch);
-		addMapping(0xc8d43d, MatterOverdrive.BLOCKS.tritaniumCrateColored[EnumDyeColor.ORANGE.getMetadata()]); // orange
+		addMapping(0xe400ff, MatterOverdriveRewriteEdition.BLOCKS.starMap);
+		addMapping(0x1850ad, MatterOverdriveRewriteEdition.BLOCKS.decorative_clean);
+		addMapping(0x9553c3, MatterOverdriveRewriteEdition.BLOCKS.industrialGlass);
+		addMapping(0x35d6e0, MatterOverdriveRewriteEdition.BLOCKS.replicator);
+		addMapping(0x35e091, MatterOverdriveRewriteEdition.BLOCKS.network_switch);
+		addMapping(0xc8d43d, MatterOverdriveRewriteEdition.BLOCKS.tritaniumCrateColored[DyeColor.ORANGE.getId()]); // orange
 																												// crate
-		addMapping(0x2a4071, MatterOverdrive.BLOCKS.androidStation, MatterOverdrive.BLOCKS.weapon_station);
-		addMapping(0xa13e5f, MatterOverdrive.BLOCKS.network_pipe);
-		addMapping(0xa16a3e, MatterOverdrive.BLOCKS.chargingStation);
-		addMapping(0x416173, MatterOverdrive.BLOCKS.decorative_tritanium_plate_stripe);
-		addMapping(0x187716, MatterOverdrive.BLOCKS.pattern_monitor);
-		addMapping(0xac7c1e, MatterOverdrive.BLOCKS.decorative_vent_bright);
-		addMapping(0x007eff, MatterOverdrive.BLOCKS.decorative_stripes);
+		addMapping(0x2a4071, MatterOverdriveRewriteEdition.BLOCKS.androidStation, MatterOverdriveRewriteEdition.BLOCKS.weapon_station);
+		addMapping(0xa13e5f, MatterOverdriveRewriteEdition.BLOCKS.network_pipe);
+		addMapping(0xa16a3e, MatterOverdriveRewriteEdition.BLOCKS.chargingStation);
+		addMapping(0x416173, MatterOverdriveRewriteEdition.BLOCKS.decorative_tritanium_plate_stripe);
+		addMapping(0x187716, MatterOverdriveRewriteEdition.BLOCKS.pattern_monitor);
+		addMapping(0xac7c1e, MatterOverdriveRewriteEdition.BLOCKS.decorative_vent_bright);
+		addMapping(0x007eff, MatterOverdriveRewriteEdition.BLOCKS.decorative_stripes);
 	}
 
-	public boolean isFlat(World world, BlockPos pos) {
+	public boolean isFlat(Level world, BlockPos pos) {
 		BlockPos y10 = world.getHeight(pos.add(layerWidth, 0, 0));
 		BlockPos y11 = world.getHeight(pos.add(layerWidth, 0, layerHeight));
 		BlockPos y01 = world.getHeight(pos.add(0, 0, layerHeight));
@@ -87,7 +90,7 @@ public class MOAndroidHouseBuilding extends MOWorldGenBuilding {
 		return false;
 	}
 
-	private boolean blockBelowMatches(int airLeeway, World world, Block block, BlockPos pos) {
+	private boolean blockBelowMatches(int airLeeway, Level world, Block block, BlockPos pos) {
 		for (int i = 0; i < airLeeway; i++) {
 			if (world.getBlockState(pos.add(0, -i, 0)).getBlock() == block) {
 				return true;
@@ -97,7 +100,7 @@ public class MOAndroidHouseBuilding extends MOWorldGenBuilding {
 	}
 	
 	@Override
-	public boolean isLocationValid(World world, BlockPos pos) {
+	public boolean isLocationValid(Level world, BlockPos pos) {
 		pos = new BlockPos(pos.getX(), Math.min(pos.getY(), world.getHeight()), pos.getZ());
 		return world.getBlockState(pos).getBlock() == Blocks.GRASS
 				&& world.getBlockState(pos.add(layerWidth, 0, 0)) == Blocks.GRASS
@@ -110,7 +113,7 @@ public class MOAndroidHouseBuilding extends MOWorldGenBuilding {
 	}
 	
 	@Override
-	protected void onGeneration(Random random, World world, BlockPos pos, WorldGenBuildingWorker worker) {
+	protected void onGeneration(Random random, Level world, BlockPos pos, WorldGenBuildingWorker worker) {
 		spawnLegendary(world, random, pos.add(12, 4, 10));
 		for (int i = 0; i < random.nextInt(3) + 3; i++) {
 			spawnAndroid(world, random, pos.add(7, i, 8));
@@ -118,7 +121,7 @@ public class MOAndroidHouseBuilding extends MOWorldGenBuilding {
 	}
 
 	@Override
-	public boolean shouldGenerate(Random random, World world, BlockPos pos) {
+	public boolean shouldGenerate(Random random, Level world, BlockPos pos) {
 		return world.provider.getDimension() == 0
 				&& world.getBiome(pos) != Biome.REGISTRY.getObject(new ResourceLocation("minecraft", "ocean"))
 				&& world.getBiome(pos) != Biome.REGISTRY.getObject(new ResourceLocation("minecraft", "frozen_ocean"))
@@ -127,59 +130,59 @@ public class MOAndroidHouseBuilding extends MOWorldGenBuilding {
 	}
 
 	@Override
-	public void onBlockPlace(World world, IBlockState state, BlockPos pos, Random random, int color,
+	public void onBlockPlace(Level world, BlockState state, BlockPos pos, Random random, int color,
 			MOImageGen.ImageGenWorker worker) {
-		if (state.getBlock() == MatterOverdrive.BLOCKS.holoSign) {
+		if (state.getBlock() == MatterOverdriveRewriteEdition.BLOCKS.holoSign) {
 			if (colorsMatch(color, 0xd8ff00)) {
-				world.setBlockState(pos, state.withProperty(MOBlock.PROPERTY_DIRECTION, EnumFacing.EAST), 3);
+				world.setBlock(pos, state.setValue(MOBlock.PROPERTY_DIRECTION, Direction.EAST), 3);
 			} else if (colorsMatch(color, 0xaccb00)) {
-				world.setBlockState(pos, state.withProperty(MOBlock.PROPERTY_DIRECTION, EnumFacing.WEST), 3);
+				world.setBlock(pos, state.setValue(MOBlock.PROPERTY_DIRECTION, Direction.WEST), 3);
 			}
-			TileEntity tileEntity = world.getTileEntity(pos);
+			BlockEntity tileEntity = world.getBlockEntity(pos);
 			if (tileEntity instanceof TileEntityHoloSign) {
 				if (random.nextInt(100) < 30) {
 					((TileEntityHoloSign) tileEntity).setText(holoTexts[random.nextInt(holoTexts.length)]);
 				}
 			}
 		} else if (state.getBlock() instanceof BlockTritaniumCrate) {
-			world.setBlockState(pos, state.withProperty(MOBlock.PROPERTY_DIRECTION, EnumFacing.WEST), 3);
-			TileEntity tileEntity = world.getTileEntity(pos);
+			world.setBlock(pos, state.setValue(MOBlock.PROPERTY_DIRECTION, Direction.WEST), 3);
+			BlockEntity tileEntity = world.getBlockEntity(pos);
 
-			if (tileEntity instanceof IInventory) {
+			if (tileEntity instanceof Container) {
 				TileEntityTritaniumCrate chest = (TileEntityTritaniumCrate) tileEntity;
 				LootContext.Builder lootcontext$builder = new LootContext.Builder((WorldServer) world);
 				LootTable loottable = world.getLootTableManager()
 						.getLootTableFromLocation(MOLootTableManager.MO_CRASHED_SHIP);
-				loottable.fillInventory(chest, world.rand, lootcontext$builder.build());
-				QuestStack questStack = MatterOverdrive.QUEST_FACTORY.generateQuestStack(random,
-						MatterOverdrive.QUESTS.getQuestByName("crash_landing"));
-				questStack.getTagCompound().setLong("pos", pos.toLong());
-				MOInventoryHelper.insertItemStackIntoInventory((IInventory) tileEntity, questStack.getContract(),
-						EnumFacing.DOWN);
+				loottable.fill(chest, world.random, lootcontext$builder.build());
+				QuestStack questStack = MatterOverdriveRewriteEdition.QUEST_FACTORY.generateQuestStack(random,
+						MatterOverdriveRewriteEdition.QUESTS.getQuestByName("crash_landing"));
+				questStack.getTagCompound().putLong("pos", pos.asLong());
+				MOInventoryHelper.insertItemStackIntoInventory((MenuProvider) tileEntity, questStack.getContract(),
+						Direction.DOWN);
 			}
 
 		} else if (state.getBlock() instanceof BlockWeaponStation) {
-			TileEntity tileEntity = world.getTileEntity(pos);
+			BlockEntity tileEntity = world.getBlockEntity(pos);
 			if (tileEntity instanceof TileEntityWeaponStation) {
 				if (random.nextInt(200) < 10) {
 					((TileEntityWeaponStation) tileEntity).setInventorySlotContents(
 							((TileEntityWeaponStation) tileEntity).INPUT_SLOT,
-							MatterOverdrive.WEAPON_FACTORY.getRandomDecoratedEnergyWeapon(
+							MatterOverdriveRewriteEdition.WEAPON_FACTORY.getRandomDecoratedEnergyWeapon(
 									new WeaponFactory.WeaponGenerationContext(3, null, true)));
 				}
 			}
 		} else if (state.getBlock() instanceof BlockChargingStation) {
 			if (colorsMatch(color, 0xa16a3e)) {
-				world.setBlockState(pos, state.withProperty(MOBlock.PROPERTY_DIRECTION, EnumFacing.SOUTH), 3);
+				world.setBlock(pos, state.setValue(MOBlock.PROPERTY_DIRECTION, Direction.SOUTH), 3);
 			}
 		} else if (state.getBlock() instanceof BlockReplicator) {
 			if (colorsMatch(color, 0x35d6e0)) {
-				world.setBlockState(pos, state.withProperty(MOBlock.PROPERTY_DIRECTION, EnumFacing.EAST), 3);
+				world.setBlock(pos, state.setValue(MOBlock.PROPERTY_DIRECTION, Direction.EAST), 3);
 			}
 		}
 	}
 
-	public void spawnAndroid(World world, Random random, BlockPos pos) {
+	public void spawnAndroid(Level world, Random random, BlockPos pos) {
 		if (random.nextInt(100) < 60) {
 			EntityRangedRogueAndroidMob androidMob = new EntityRangedRogueAndroidMob(world);
 			androidMob.setPosition(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
@@ -195,7 +198,7 @@ public class MOAndroidHouseBuilding extends MOWorldGenBuilding {
 		}
 	}
 
-	public void spawnLegendary(World world, Random random, BlockPos pos) {
+	public void spawnLegendary(Level world, Random random, BlockPos pos) {
 		EntityRangedRogueAndroidMob legendaryMob = new EntityRangedRogueAndroidMob(world, 3, true);
 		legendaryMob.setPosition(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
 		world.spawnEntity(legendaryMob);

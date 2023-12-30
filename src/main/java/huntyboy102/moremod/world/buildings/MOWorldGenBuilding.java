@@ -6,14 +6,14 @@ import huntyboy102.moremod.data.world.GenPositionWorldData;
 import huntyboy102.moremod.data.world.WorldPosition2D;
 import huntyboy102.moremod.world.MOImageGen;
 import huntyboy102.moremod.world.MOWorldGen;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.IChunkProvider;
-import net.minecraft.world.gen.IChunkGenerator;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import org.apache.logging.log4j.Level;
 
 import java.util.Random;
@@ -33,14 +33,14 @@ public abstract class MOWorldGenBuilding<T extends MOWorldGenBuilding.WorldGenBu
 	}
 
 	@Override
-	public void generate(Random random, BlockPos pos, World world, IChunkGenerator chunkGenerator,
-			IChunkProvider chunkProvider, int layer, int placeNotify, T worker) {
+	public void generate(Random random, BlockPos pos, Level world, ChunkGenerator chunkGenerator,
+						 BiomeSource chunkProvider, int layer, int placeNotify, T worker) {
 		generateFromImage(world, random, pos.add(0, getYOffset(), 0), layer, placeNotify, worker);
 	}
 
-	public boolean locationIsValidSpawn(World world, BlockPos pos) {
+	public boolean locationIsValidSpawn(Level world, BlockPos pos) {
 		int distanceToAir = 0;
-		IBlockState blockState = world.getBlockState(pos);
+		BlockState blockState = world.getBlockState(pos);
 
 		while (blockState.getBlock() != Blocks.AIR) {
 			if (distanceToAir > getMaxDistanceToAir()) {
@@ -53,9 +53,9 @@ public abstract class MOWorldGenBuilding<T extends MOWorldGenBuilding.WorldGenBu
 
 		pos = pos.add(0, distanceToAir - 1, 0);
 
-		IBlockState block = world.getBlockState(pos);
-		IBlockState blockAbove = world.getBlockState(pos.add(0, 1, 0));
-		IBlockState blockBelow = world.getBlockState(pos.add(0, -1, 0));
+		BlockState block = world.getBlockState(pos);
+		BlockState blockAbove = world.getBlockState(pos.add(0, 1, 0));
+		BlockState blockBelow = world.getBlockState(pos.add(0, -1, 0));
 
 		for (Block x : getValidSpawnBlocks()) {
 			if (!blockAbove.getBlock().isAir(blockAbove, world, pos.add(0, 1, 0))) {
@@ -96,11 +96,15 @@ public abstract class MOWorldGenBuilding<T extends MOWorldGenBuilding.WorldGenBu
 		this.yOffset = yOffset;
 	}
 
-	protected abstract void onGeneration(Random random, World world, BlockPos pos, T worker);
+	protected abstract void onGeneration(Random random, Level world, BlockPos pos, T worker);
 
-	public abstract boolean shouldGenerate(Random random, World world, BlockPos pos);
+	protected abstract void onGeneration(Random random, net.minecraft.world.level.Level world, BlockPos pos, WorldGenBuildingWorker worker);
 
-	public boolean isLocationValid(World world, BlockPos pos) {
+	public abstract boolean isLocationValid(net.minecraft.world.level.Level world, BlockPos pos);
+
+	public abstract boolean shouldGenerate(Random random, Level world, BlockPos pos);
+
+	public boolean isLocationValid(Level world, BlockPos pos) {
 		return locationIsValidSpawn(world, pos) && locationIsValidSpawn(world, pos.add(layerWidth, 0, 0))
 				&& locationIsValidSpawn(world, pos.add(layerWidth, 0, layerHeight))
 				&& locationIsValidSpawn(world, pos.add(0, 0, layerHeight));
@@ -114,7 +118,7 @@ public abstract class MOWorldGenBuilding<T extends MOWorldGenBuilding.WorldGenBu
 				new WorldPosition2D(worker.getPos().getX() + layerWidth / 2, worker.getPos().getZ() + layerHeight / 2));
 	}
 
-	public boolean isFarEnoughFromOthers(World world, int x, int z, int minDistance) {
+	public boolean isFarEnoughFromOthers(Level world, int x, int z, int minDistance) {
 		GenPositionWorldData worldData = MOWorldGen.getWorldPositionData(world);
 		if (worldData != null) {
 			return worldData.isFarEnough(getName(), x, z, minDistance);
@@ -122,7 +126,12 @@ public abstract class MOWorldGenBuilding<T extends MOWorldGenBuilding.WorldGenBu
 		return true;
 	}
 
-	public static class WorldGenBuildingWorker extends ImageGenWorker {
+	public abstract boolean shouldGenerate(Random random, net.minecraft.world.level.Level world, BlockPos pos);
+
+	public abstract void onBlockPlace(net.minecraft.world.level.Level world, BlockState state, BlockPos pos, Random random, int color,
+									  ImageGenWorker worker);
+
+    public static class WorldGenBuildingWorker extends ImageGenWorker {
 		MOWorldGenBuilding worldGenBuilding;
 
 		public void setWorldGenBuilding(MOWorldGenBuilding worldGenBuilding) {
