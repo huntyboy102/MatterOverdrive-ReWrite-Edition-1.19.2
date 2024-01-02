@@ -5,17 +5,19 @@ import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.util.math.MOMathHelper;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.FoodFurnaceSlot;
 import huntyboy102.moremod.data.inventory.RemoveOnlySlot;
-import net.minecraft.item.crafting.FurnaceRecipes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.FurnaceRecipes;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
@@ -26,11 +28,11 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 	public static final int ENERGY_CAPACITY = 512000;
 	public static final int ENERGY_TRANSFER = 512000;
 	public int INPUT_SLOT_ID, OUTPUT_SLOT_ID;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private float nextHeadX, nextHeadY;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private float lastHeadX, lastHeadY;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public int currentItemBurnTime;
 	private float headAnimationTime;
 	private int cookTime;
@@ -45,46 +47,52 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		INPUT_SLOT_ID = inventory.AddSlot(new FoodFurnaceSlot(true).setSendToClient(true));
-		OUTPUT_SLOT_ID = inventory.AddSlot(new RemoveOnlySlot(false).setSendToClient(true));
-		super.RegisterSlots(inventory);
+	protected void RegisterSlots(CustomInventory customInventory) {
+		INPUT_SLOT_ID = customInventory.AddSlot(new FoodFurnaceSlot(true).setSendToClient(true));
+		OUTPUT_SLOT_ID = customInventory.AddSlot(new RemoveOnlySlot(false).setSendToClient(true));
+		super.RegisterSlots(customInventory);
 	}
 
 	public boolean canPutInOutput() {
-		ItemStack input = inventory.getStackInSlot(INPUT_SLOT_ID);
-		ItemStack output = inventory.getStackInSlot(OUTPUT_SLOT_ID);
+		ItemStack input = customInventory.getStackInSlot(INPUT_SLOT_ID);
+		ItemStack output = customInventory.getStackInSlot(OUTPUT_SLOT_ID);
 
 		if (input.isEmpty()) {
 			return false;
 		} else {
-			ItemStack res = FurnaceRecipes.instance().getSmeltingResult(input);
-			if (res.isEmpty())
-				return false;
-			if (output.isEmpty())
-				return true;
-			if (!output.isItemEqual(res))
-				return false;
-			int result = output.getCount() + res.getCount();
-			return result <= res.getMaxStackSize();
+			RecipeManager recipeManager = level.getRecipeManager();
+			Recipe<?> recipe = recipeManager.getRecipeFor(RecipeType.SMOKING, new SimpleContainer(input), level).orElse(null);
+			if (recipe instanceof SmokingRecipe) {
+				ItemStack result = ((SmokingRecipe) recipe).assemble(new SimpleContainer(input));
+				if (result.isEmpty())
+					return false;
+				if (output.isEmpty())
+					return true;
+				if (!output.sameItem(result))
+					return false;
+				int totalStackSize = output.getCount() + result.getCount();
+				return totalStackSize <= result.getMaxStackSize();
+			}
 		}
+
+		return false;
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setInteger("cookTime", cookTime);
+			nbt.putInt("cookTime", cookTime);
 		}
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			cookTime = nbt.getInteger("cookTime");
+			cookTime = nbt.getInt("cookTime");
 		}
 	}
 
@@ -103,27 +111,33 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 	}
 
 	public int getEnergyDrainMax() {
-		ItemStack input = inventory.getStackInSlot(INPUT_SLOT_ID);
-		ItemStack res = FurnaceRecipes.instance().getSmeltingResult(input);
-		if (res != null) {
+		ItemStack input = customInventory.getStackInSlot(INPUT_SLOT_ID);
+		RecipeManager recipeManager = level.getRecipeManager();
+		Recipe<?> recipe = recipeManager.getRecipeFor(RecipeType.SMOKING, new SimpleContainer(input), level).orElse(null);
+
+		if (recipe instanceof SmokingRecipe) {
 			return (int) (1000 * getUpgradeMultiply(UpgradeTypes.PowerUsage));
 		}
 		return 0;
 	}
 
 	public int getSpeed() {
-		ItemStack input = inventory.getStackInSlot(INPUT_SLOT_ID);
-		ItemStack res = FurnaceRecipes.instance().getSmeltingResult(input);
-		if (res != null) {
+		ItemStack input = customInventory.getStackInSlot(INPUT_SLOT_ID);
+		RecipeManager recipeManager = level.getRecipeManager();
+		Recipe<?> recipe = recipeManager.getRecipeFor(RecipeType.SMOKING, new SimpleContainer(input), level).orElse(null);
+
+		if (recipe instanceof SmokingRecipe) {
 			return (int) (1 * getUpgradeMultiply(UpgradeTypes.Speed));
 		}
 		return 0;
 	}
 
 	public boolean isCooking() {
-		ItemStack input = inventory.getStackInSlot(INPUT_SLOT_ID);
-		ItemStack res = FurnaceRecipes.instance().getSmeltingResult(input);
-		return res != null && canPutInOutput() && getRedstoneActive();
+		ItemStack input = customInventory.getStackInSlot(INPUT_SLOT_ID);
+		RecipeManager recipeManager = level.getRecipeManager();
+		Recipe<?> recipe = recipeManager.getRecipeFor(RecipeType.SMOKING, new SimpleContainer(input), level).orElse(null);
+
+		return recipe instanceof SmokingRecipe && canPutInOutput() && getRedstoneActive();
 	}
 
 	@Override
@@ -147,14 +161,14 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 	@Override
 	public void update() {
 		super.update();
-		if (world.isRemote && isActive()) {
+		if (level.isClientSide && isActive()) {
 			handleHeadAnimation();
 		}
 		manageCooking();
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack item, EnumFacing side) {
+	public boolean canExtractItem(int slot, ItemStack item, Direction side) {
 		return slot == OUTPUT_SLOT_ID;
 	}
 
@@ -176,25 +190,25 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 		return 0;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void handleHeadAnimation() {
 		if (headAnimationTime >= 1) {
 			lastHeadX = nextHeadX;
 			lastHeadY = nextHeadY;
-			nextHeadX = MathHelper.clamp((float) random.nextGaussian(), -1, 1);
-			nextHeadY = MathHelper.clamp((float) random.nextGaussian(), -1, 1);
+			nextHeadX = Mth.clamp((float) random.nextGaussian(), -1, 1);
+			nextHeadY = Mth.clamp((float) random.nextGaussian(), -1, 1);
 			headAnimationTime = 0;
 		}
 
 		headAnimationTime += 0.05f;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public float geatHeadX() {
 		return MOMathHelper.Lerp(lastHeadX, nextHeadX, headAnimationTime);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public float geatHeadY() {
 		return MOMathHelper.Lerp(lastHeadY, nextHeadY, headAnimationTime);
 	}
@@ -210,12 +224,12 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 
 	@Nonnull
 	@Override
-	public int[] getSlotsForFace(@Nonnull EnumFacing side) {
+	public int[] getSlotsForFace(@Nonnull Direction side) {
 		return new int[] { INPUT_SLOT_ID, OUTPUT_SLOT_ID };
 	}
 
 	protected void manageCooking() {
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			if (this.isCooking()) {
 				if (this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick()) {
 					this.cookTime++;
@@ -237,15 +251,21 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 
 	public void cookItem() {
 		if (canPutInOutput()) {
-			ItemStack input = inventory.getStackInSlot(INPUT_SLOT_ID);
-			ItemStack outputSlot = inventory.getStackInSlot(OUTPUT_SLOT_ID);
-			ItemStack result = FurnaceRecipes.instance().getSmeltingResult(input);
-			if (!outputSlot.isEmpty()) {
-				input.shrink(1);
-				outputSlot.grow(1);
-			} else {
-				input.shrink(1);
-				inventory.setInventorySlotContents(OUTPUT_SLOT_ID, result.copy());
+			ItemStack input = customInventory.getStackInSlot(INPUT_SLOT_ID);
+			ItemStack outputSlot = customInventory.getStackInSlot(OUTPUT_SLOT_ID);
+
+			RecipeManager recipeManager = level.getRecipeManager();
+			Recipe<?> recipe = recipeManager.getRecipeFor(RecipeType.SMOKING, new SimpleContainer(input), level).orElse(null);
+
+			if (recipe instanceof SmokingRecipe) {
+				ItemStack result = ((SmokingRecipe) recipe).getResultItem();
+				if (!outputSlot.isEmpty()) {
+					input.shrink(1);
+					outputSlot.grow(1);
+				} else {
+					input.shrink(1);
+					customInventory.setInventorySlotContents(OUTPUT_SLOT_ID, result.copy());
+				}
 			}
 		}
 	}

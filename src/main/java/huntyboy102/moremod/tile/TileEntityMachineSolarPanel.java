@@ -7,10 +7,10 @@ import javax.annotation.Nullable;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.util.MOEnergyHelper;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.LightLayer;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 
@@ -30,7 +30,7 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 
 	@Override
 	public void update() {
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			manageExtract();
 			manageChagrgeAmount();
 		}
@@ -45,11 +45,11 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 
 	@Override
 	protected void manageCharging() {
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			if (isActive()) {
 				if (energyStorage.getEnergyStored() < getEnergyStorage().getMaxEnergyStored()) {
 					int energy = energyStorage.getEnergyStored();
-					energy = MathHelper.clamp(energy + getChargeAmount(), 0, energyStorage.getMaxEnergyStored());
+					energy = Mth.clamp(energy + getChargeAmount(), 0, energyStorage.getMaxEnergyStored());
 					if (energy != energyStorage.getEnergyStored()) {
 						UpdateClientPower();
 					}
@@ -61,8 +61,8 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 
 	@Override
 	public boolean getServerActive() {
-		if (world.provider.hasSkyLight()) {
-			boolean i1 = world.canSeeSky(getPos().up());
+		if (level.dimensionType().hasSkyLight()) {
+			boolean i1 = level.canSeeSky(getBlockPos().north());
 			float time = getTime();
 			if (i1 && time > 0.5) {
 				return true;
@@ -75,23 +75,21 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 		int energy = energyStorage.getEnergyStored();
 
 		if (energy > 0) {
-			for (int i = 0; i < 6; i++) {
+			for (Direction direction : Direction.values()) {
 				int energyToTransfer = Math.min(energy, MAX_ENERGY_EXTRACT);
 				if (energyToTransfer > 0) {
-					energy -= MOEnergyHelper.insertEnergyIntoAdjacentEnergyReceiver(this, EnumFacing.VALUES[i],
-							energyToTransfer, false);
+					energy -= MOEnergyHelper.insertEnergyIntoAdjacentEnergyReceiver(this, direction, energyToTransfer, false);
 				}
 			}
-
 			getEnergyStorage().setEnergy(energy);
 		}
 	}
 
 	public void manageChagrgeAmount() {
-		if (!world.isRemote) {
-			if (world.provider.hasSkyLight()) {
+		if (!level.isClientSide) {
+			if (level.dimensionType().hasSkyLight()) {
 				float f = 0;
-				int i1 = world.getLightFor(EnumSkyBlock.SKY, getPos().up()) - world.getSkylightSubtracted();
+				int i1 = level.getBrightness(LightLayer.SKY, getBlockPos().north()) - level.getSkyDarken();
 
 				if (i1 >= 15) {
 					f = getTime();
@@ -105,15 +103,16 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 	}
 
 	public float getTime() {
-		float f = world.getCelestialAngleRadians(1.0F);
+		float celestialAngle = level.getCelestialAngle(1.0F);
+		float celestialAngleRadians = (float) Math.toRadians(celestialAngle);
 
-		if (f < (float) Math.PI) {
-			f += (0.0F - f) * 0.2F;
+		if (celestialAngleRadians < (float) Math.PI) {
+			celestialAngleRadians += (0.0F - celestialAngleRadians) * 0.2F;
 		} else {
-			f += (((float) Math.PI * 2F) - f) * 0.2F;
+			celestialAngleRadians += (((float) Math.PI * 2F) - celestialAngleRadians) * 0.2F;
 		}
 
-		return (float) Math.cos(f);
+		return (float) Math.cos(celestialAngleRadians);
 	}
 
 	public byte getChargeAmount() {
@@ -145,12 +144,12 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 
 	@Override
-	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
+	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable Direction facing) {
 		if (capability == CapabilityEnergy.ENERGY) {
 			return true;
 		}
@@ -160,7 +159,7 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 	@Nonnull
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
+	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
 		if (capability == CapabilityEnergy.ENERGY) {
 			return (T) energyStorage;
 		}
