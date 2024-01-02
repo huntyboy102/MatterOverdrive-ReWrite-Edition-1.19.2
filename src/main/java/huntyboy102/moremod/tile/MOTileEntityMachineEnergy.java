@@ -5,7 +5,7 @@ import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.util.MOEnergyHelper;
 import huntyboy102.moremod.MatterOverdriveRewriteEdition;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.MachineEnergyStorage;
 import huntyboy102.moremod.data.inventory.EnergySlot;
 import huntyboy102.moremod.network.packet.client.PacketPowerUpdate;
@@ -31,9 +31,9 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		energySlotID = inventory.AddSlot(new EnergySlot(true));
-		super.RegisterSlots(inventory);
+	protected void RegisterSlots(CustomInventory customInventory) {
+		energySlotID = customInventory.AddSlot(new EnergySlot(true));
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override
@@ -63,20 +63,20 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 			if (!this.level.isClientSide) {
 				int emptyEnergySpace = getFreeEnergySpace();
 				int maxEnergyCanSpare = MOEnergyHelper.extractEnergyFromContainer(
-						this.inventory.getStackInSlot(energySlotID), emptyEnergySpace, true);
+						this.customInventory.getStackInSlot(energySlotID), emptyEnergySpace, true);
 
 				if (emptyEnergySpace > 0 && maxEnergyCanSpare > 0) {
 					getEnergyStorage().receiveEnergy(MOEnergyHelper.extractEnergyFromContainer(
-							this.inventory.getStackInSlot(energySlotID), emptyEnergySpace, false), false);
+							this.customInventory.getStackInSlot(energySlotID), emptyEnergySpace, false), false);
 				}
 			}
 		}
 	}
 
 	public boolean isCharging() {
-		return !this.inventory.getStackInSlot(energySlotID).isEmpty()
-				&& MOEnergyHelper.isEnergyContainerItem(this.inventory.getStackInSlot(energySlotID))
-				&& this.inventory.getStackInSlot(energySlotID).getCapability(CapabilityEnergy.ENERGY, null)
+		return !this.customInventory.getStackInSlot(energySlotID).isEmpty()
+				&& MOEnergyHelper.isEnergyContainerItem(this.customInventory.getStackInSlot(energySlotID))
+				&& this.customInventory.getStackInSlot(energySlotID).getCapability(CapabilityEnergy.ENERGY, null)
 						.extractEnergy(getFreeEnergySpace(), true) > 0;
 	}
 

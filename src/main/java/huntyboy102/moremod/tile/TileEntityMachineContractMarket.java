@@ -9,7 +9,7 @@ import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import matteroverdrive.MatterOverdrive;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.RemoveOnlySlot;
 import huntyboy102.moremod.data.inventory.SlotContract;
 import huntyboy102.moremod.data.quest.WeightedRandomQuest;
@@ -34,11 +34,11 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		super.RegisterSlots(inventory);
-		inventory.AddSlot(new RemoveOnlySlot(true));
+	protected void RegisterSlots(CustomInventory customInventory) {
+		super.RegisterSlots(customInventory);
+		customInventory.AddSlot(new RemoveOnlySlot(true));
 		for (int i = 0; i < CONTRACT_SLOTS; i++) {
-			inventory.AddSlot(new SlotContract(false));
+			customInventory.AddSlot(new SlotContract(false));
 		}
 	}
 
@@ -60,9 +60,9 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 		Quest quest = ((WeightedRandomQuest) WeightedRandom.getRandomItem(random,
 				MatterOverdriveQuests.contractGeneration)).getQuest();
 		QuestStack questStack = MatterOverdrive.QUEST_FACTORY.generateQuestStack(random, quest);
-		for (int i = 0; i < inventory.getSizeInventory(); i++) {
-			if (inventory.getSlot(i).getItem() != null) {
-				ItemStack itemStack = inventory.getSlot(i).getItem();
+		for (int i = 0; i < customInventory.getSizeInventory(); i++) {
+			if (customInventory.getSlot(i).getItem() != null) {
+				ItemStack itemStack = customInventory.getSlot(i).getItem();
 				if (itemStack.getTagCompound() != null) {
 					QuestStack qs = QuestStack.loadFromNBT(itemStack.getTagCompound());
 					if (questStack.getQuest().areQuestStacksEqual(questStack, qs)) {
@@ -72,7 +72,7 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 			}
 		}
 
-		inventory.addItem(questStack.getContract());
+		customInventory.addItem(questStack.getContract());
 		addGenerationDelay();
 		forceSync();
 	}
@@ -80,7 +80,7 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 	public void addGenerationDelay() {
 		int freeSlots = getFreeSlots();
 		lastGenerationTime = world.getTotalWorldTime() + QUEST_GENERATE_DELAY_MIN
-				+ (inventory.getSizeInventory() - freeSlots) * QUEST_GENERATE_DELAY_PER_SLOT;
+				+ (customInventory.getSizeInventory() - freeSlots) * QUEST_GENERATE_DELAY_PER_SLOT;
 	}
 
 	@Override
@@ -101,8 +101,8 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 
 	public int getFreeSlots() {
 		int freeSlots = 0;
-		for (int i = 0; i < inventory.getSizeInventory(); i++) {
-			if (inventory.getSlot(i).getItem() == null) {
+		for (int i = 0; i < customInventory.getSizeInventory(); i++) {
+			if (customInventory.getSlot(i).getItem() == null) {
 				freeSlots++;
 			}
 		}

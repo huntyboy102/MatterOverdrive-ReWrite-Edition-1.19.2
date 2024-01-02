@@ -43,7 +43,7 @@ public class TileEntityAndroidStation extends MOTileEntityMachine {
 	}
 
 	public Inventory getActiveInventory() {
-		return inventory;
+		return customInventory;
 	}
 
 	@Override

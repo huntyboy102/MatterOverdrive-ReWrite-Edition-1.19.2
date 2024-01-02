@@ -8,7 +8,7 @@ import huntyboy102.moremod.blocks.BlockMatterRecycler;
 import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.RemoveOnlySlot;
 import huntyboy102.moremod.data.inventory.SlotRecycler;
 import net.minecraft.block.state.IBlockState;
@@ -41,10 +41,10 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		INPUT_SLOT_ID = inventory.AddSlot(new SlotRecycler(true));
-		OUTPUT_SLOT_ID = inventory.AddSlot(new RemoveOnlySlot(false));
-		super.RegisterSlots(inventory);
+	protected void RegisterSlots(CustomInventory customInventory) {
+		INPUT_SLOT_ID = customInventory.AddSlot(new SlotRecycler(true));
+		OUTPUT_SLOT_ID = customInventory.AddSlot(new RemoveOnlySlot(false));
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override

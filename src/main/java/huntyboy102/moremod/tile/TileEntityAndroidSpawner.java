@@ -20,7 +20,7 @@ import huntyboy102.moremod.machines.configs.ConfigPropertyString;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.util.WeaponHelper;
 import huntyboy102.moremod.Reference;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.ModuleSlot;
 import huntyboy102.moremod.data.inventory.TeleportFlashDriveSlot;
 import net.minecraft.sounds.SoundEvent;
@@ -48,18 +48,18 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 		playerSlotsHotbar = true;
 	}
 
-	protected void RegisterSlots(Inventory inventory) {
-		COLOR_MODULE_SLOT = inventory.AddSlot(new ModuleSlot(true, Reference.MODULE_COLOR, null));
+	protected void RegisterSlots(CustomInventory customInventory) {
+		COLOR_MODULE_SLOT = customInventory.AddSlot(new ModuleSlot(true, Reference.MODULE_COLOR, null));
 		TeleportFlashDriveSlot slot = new TeleportFlashDriveSlot(false);
 		slot.setKeepOnDismante(true);
-		FLASH_DRIVE_SLOT_START = inventory.AddSlot(slot);
+		FLASH_DRIVE_SLOT_START = customInventory.AddSlot(slot);
 
 		for (int i = 0; i < FLASH_DRIVE_COUNT - 1; i++) {
 			slot = new TeleportFlashDriveSlot(false);
 			slot.setKeepOnDismante(true);
-			inventory.AddSlot(slot);
+			customInventory.AddSlot(slot);
 		}
-		super.RegisterSlots(inventory);
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override
@@ -97,15 +97,15 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 							PlayerTeam team = getTeam();
 							if (team != null) {
 								entity.setTeam(team);
-								if (inventory.getStackInSlot(COLOR_MODULE_SLOT) != null && inventory
+								if (customInventory.getStackInSlot(COLOR_MODULE_SLOT) != null && customInventory
 										.getStackInSlot(COLOR_MODULE_SLOT).getItem() instanceof IWeaponColor) {
 									entity.setVisorColor(
-											((IWeaponColor) inventory.getStackInSlot(COLOR_MODULE_SLOT).getItem())
-													.getColor(inventory.getStackInSlot(COLOR_MODULE_SLOT), null));
+											((IWeaponColor) customInventory.getStackInSlot(COLOR_MODULE_SLOT).getItem())
+													.getColor(customInventory.getStackInSlot(COLOR_MODULE_SLOT), null));
 									if (entity.getHeldItem(InteractionHand.MAIN_HAND) != null) {
 										WeaponHelper.setModuleAtSlot(Reference.MODULE_COLOR,
 												entity.getHeldItem(InteractionHand.MAIN_HAND),
-												inventory.getStackInSlot(COLOR_MODULE_SLOT));
+												customInventory.getStackInSlot(COLOR_MODULE_SLOT));
 									}
 								}
 							}
@@ -138,7 +138,7 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 	public void assignPath(EntityRougeAndroidMob androidMob) {
 		List<Vec3> paths = new ArrayList<>();
 		for (int i = FLASH_DRIVE_SLOT_START; i < FLASH_DRIVE_COUNT; i++) {
-			ItemStack flashDrive = inventory.getSlot(i).getItem();
+			ItemStack flashDrive = customInventory.getSlot(i).getItem();
 			if (flashDrive != null && flashDrive.getItem() instanceof TransportFlashDrive) {
 				BlockPos position = ((TransportFlashDrive) flashDrive.getItem()).getTarget(flashDrive);
 				if (position != null) {

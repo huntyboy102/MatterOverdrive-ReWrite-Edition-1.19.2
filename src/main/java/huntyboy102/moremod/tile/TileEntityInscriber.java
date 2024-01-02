@@ -9,7 +9,7 @@ import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.util.math.MOMathHelper;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.InscriberSlot;
 import huntyboy102.moremod.data.inventory.RemoveOnlySlot;
 import huntyboy102.moremod.data.recipes.InscriberRecipe;
@@ -46,11 +46,11 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		MAIN_INPUT_SLOT_ID = inventory.AddSlot(new InscriberSlot(true, false).setSendToClient(true));
-		SEC_INPUT_SLOT_ID = inventory.AddSlot(new InscriberSlot(true, true));
-		OUTPUT_SLOT_ID = inventory.AddSlot(new RemoveOnlySlot(false).setSendToClient(true));
-		super.RegisterSlots(inventory);
+	protected void RegisterSlots(CustomInventory customInventory) {
+		MAIN_INPUT_SLOT_ID = customInventory.AddSlot(new InscriberSlot(true, false).setSendToClient(true));
+		SEC_INPUT_SLOT_ID = customInventory.AddSlot(new InscriberSlot(true, true));
+		OUTPUT_SLOT_ID = customInventory.AddSlot(new RemoveOnlySlot(false).setSendToClient(true));
+		super.RegisterSlots(customInventory);
 	}
 
 	protected void manageInscription() {
@@ -75,21 +75,21 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 	}
 
 	public boolean canPutInOutput() {
-		ItemStack outputStack = inventory.getStackInSlot(OUTPUT_SLOT_ID);
+		ItemStack outputStack = customInventory.getStackInSlot(OUTPUT_SLOT_ID);
 		return outputStack.isEmpty() || (cachedRecipe != null && outputStack.isItemEqual(cachedRecipe.getOutput(this)));
 	}
 
 	public void inscribeItem() {
 		if (cachedRecipe != null && canPutInOutput()) {
-			ItemStack outputSlot = inventory.getStackInSlot(OUTPUT_SLOT_ID);
+			ItemStack outputSlot = customInventory.getStackInSlot(OUTPUT_SLOT_ID);
 			if (!outputSlot.isEmpty()) {
 				outputSlot.grow(1);
 			} else {
-				inventory.setInventorySlotContents(OUTPUT_SLOT_ID, cachedRecipe.getOutput(this));
+				customInventory.setInventorySlotContents(OUTPUT_SLOT_ID, cachedRecipe.getOutput(this));
 			}
 
-			inventory.decrStackSize(MAIN_INPUT_SLOT_ID, 1);
-			inventory.decrStackSize(SEC_INPUT_SLOT_ID, 1);
+			customInventory.decrStackSize(MAIN_INPUT_SLOT_ID, 1);
+			customInventory.decrStackSize(SEC_INPUT_SLOT_ID, 1);
 
 			calculateRecipe();
 		}
@@ -223,8 +223,8 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 	}
 
 	public void calculateRecipe() {
-		ItemStack mainStack = inventory.getStackInSlot(MAIN_INPUT_SLOT_ID);
-		ItemStack secStack = inventory.getStackInSlot(SEC_INPUT_SLOT_ID);
+		ItemStack mainStack = customInventory.getStackInSlot(MAIN_INPUT_SLOT_ID);
+		ItemStack secStack = customInventory.getStackInSlot(SEC_INPUT_SLOT_ID);
 		if (!mainStack.isEmpty() && !secStack.isEmpty()) {
 			Optional<InscriberRecipe> recipe = MatterOverdriveRecipes.INSCRIBER.get(this);
 			cachedRecipe = recipe.orElse(null);
