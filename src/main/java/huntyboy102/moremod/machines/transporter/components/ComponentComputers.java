@@ -4,7 +4,7 @@ package huntyboy102.moremod.machines.transporter.components;
 import java.util.EnumSet;
 
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.machines.MachineComponentAbstract;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
@@ -251,7 +251,7 @@ public class ComponentComputers extends MachineComponentAbstract<TileEntityMachi
 	}
 
 	@Override
-	public void registerSlots(Inventory inventory) {
+	public void registerSlots(CustomInventory customInventory) {
 
 	}
 

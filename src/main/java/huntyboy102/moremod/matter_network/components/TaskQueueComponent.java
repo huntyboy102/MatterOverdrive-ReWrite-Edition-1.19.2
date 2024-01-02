@@ -9,7 +9,7 @@ import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.network.IMatterNetworkDispatcher;
 import huntyboy102.moremod.api.network.MatterNetworkTask;
 import huntyboy102.moremod.container.matter_network.ITaskQueueWatcher;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.matter_network.MatterNetworkTaskQueue;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -45,7 +45,7 @@ public class TaskQueueComponent<T extends MatterNetworkTask, M extends MOTileEnt
 	}
 
 	@Override
-	public void registerSlots(Inventory inventory) {
+	public void registerSlots(CustomInventory customInventory) {
 
 	}
 

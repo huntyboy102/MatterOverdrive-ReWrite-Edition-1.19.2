@@ -2,6 +2,7 @@
 package huntyboy102.moremod.entity.android_player;
 
 import com.google.common.collect.Multimap;
+import huntyboy102.moremod.data.CustomInventory;
 import matteroverdrive.MatterOverdrive;
 import huntyboy102.moremod.Reference;
 import matteroverdrive.api.android.IAndroid;
@@ -10,7 +11,6 @@ import huntyboy102.moremod.api.events.MOEventAndroid;
 import huntyboy102.moremod.api.events.weapon.MOEventEnergyWeapon;
 import huntyboy102.moremod.api.inventory.IBionicPart;
 import huntyboy102.moremod.client.sound.MOPositionedSound;
-import huntyboy102.moremod.data.Inventory;
 import huntyboy102.moremod.data.MinimapEntityInfo;
 import huntyboy102.moremod.data.inventory.BionicSlot;
 import huntyboy102.moremod.data.inventory.EnergySlot;
@@ -98,7 +98,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	private static boolean REMOVE_POTION_EFFECTS = true;
 	private static List<String> POTION_REMOVAL_BLACKLIST = new ArrayList<>();
 	private final int ENERGY_SLOT;
-	private final Inventory inventory;
+	private final CustomInventory customInventory;
 	private NonNullList<ItemStack> previousBionicParts = NonNullList.withSize(5, ItemStack.EMPTY);
 	private EntityPlayer player;
 	private IBioticStat activeStat;
@@ -110,13 +110,13 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	public AndroidPlayer(EntityPlayer player) {
 		this.maxEnergy = 512000;
-		inventory = new Inventory("Android");
-		inventory.AddSlot(new BionicSlot(false, Reference.BIONIC_HEAD));
-		inventory.AddSlot(new BionicSlot(false, Reference.BIONIC_ARMS));
-		inventory.AddSlot(new BionicSlot(false, Reference.BIONIC_LEGS));
-		inventory.AddSlot(new BionicSlot(false, Reference.BIONIC_CHEST));
-		inventory.AddSlot(new BionicSlot(false, Reference.BIONIC_OTHER));
-		ENERGY_SLOT = inventory.AddSlot(new EnergySlot(false));
+		customInventory = new CustomInventory("Android");
+		customInventory.AddSlot(new BionicSlot(false, Reference.BIONIC_HEAD));
+		customInventory.AddSlot(new BionicSlot(false, Reference.BIONIC_ARMS));
+		customInventory.AddSlot(new BionicSlot(false, Reference.BIONIC_LEGS));
+		customInventory.AddSlot(new BionicSlot(false, Reference.BIONIC_CHEST));
+		customInventory.AddSlot(new BionicSlot(false, Reference.BIONIC_OTHER));
+		ENERGY_SLOT = customInventory.AddSlot(new EnergySlot(false));
 		unlocked = new NBTTagCompound();
 		androidEffects = new AndroidEffects(this);
 		registerEffects(androidEffects);
@@ -186,7 +186,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public boolean isEmpty() {
-		return inventory.isEmpty();
+		return customInventory.isEmpty();
 	}
 
 	@Override
@@ -254,11 +254,11 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			}
 		}
 		if (dataTypes.contains(DataType.INVENTORY)) {
-			inventory.writeToNBT(prop, true);
+			customInventory.writeToNBT(prop, true);
 		} else if (dataTypes.contains(DataType.BATTERY)) {
-			if (!inventory.getStackInSlot(ENERGY_SLOT).isEmpty()) {
+			if (!customInventory.getStackInSlot(ENERGY_SLOT).isEmpty()) {
 				NBTTagCompound batteryTag = new NBTTagCompound();
-				inventory.getStackInSlot(ENERGY_SLOT).writeToNBT(batteryTag);
+				customInventory.getStackInSlot(ENERGY_SLOT).writeToNBT(batteryTag);
 				compound.setTag("Battery", batteryTag);
 			}
 		}
@@ -290,14 +290,14 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 				}
 			}
 			if (dataTypes.contains(DataType.INVENTORY)) {
-				this.inventory.clearItems();
-				this.inventory.readFromNBT(prop);
+				this.customInventory.clearItems();
+				this.customInventory.readFromNBT(prop);
 				initFlag = true;
 			} else if (dataTypes.contains(DataType.BATTERY)) {
-				inventory.setInventorySlotContents(ENERGY_SLOT, ItemStack.EMPTY);
+				customInventory.setInventorySlotContents(ENERGY_SLOT, ItemStack.EMPTY);
 				if (compound.hasKey("Battery", Constants.NBT.TAG_COMPOUND)) {
 					ItemStack battery = new ItemStack(compound.getCompoundTag("Battery"));
-					inventory.setInventorySlotContents(ENERGY_SLOT, battery);
+					customInventory.setInventorySlotContents(ENERGY_SLOT, battery);
 				}
 			}
 			if (initFlag) {
@@ -468,8 +468,8 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		manageStatAttributeModifiers();
 	}
 
-	public Inventory getInventory() {
-		return inventory;
+	public CustomInventory getInventory() {
+		return customInventory;
 	}
 
 	public int resetUnlocked() {
@@ -576,7 +576,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	private void clearAllEquipmentAttributeModifiers() {
 		for (int j = 0; j < 5; ++j) {
-			ItemStack itemstack1 = this.inventory.getStackInSlot(j);
+			ItemStack itemstack1 = this.customInventory.getStackInSlot(j);
 
 			if (!itemstack1.isEmpty() && itemstack1.getItem() instanceof IBionicPart) {
 				Multimap<String, AttributeModifier> multimap = ((IBionicPart) itemstack1.getItem()).getModifiers(this,
@@ -593,7 +593,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 		for (int j = 0; j < 5; ++j) {
 			ItemStack itemstack = this.previousBionicParts.get(j);
-			ItemStack itemstack1 = this.inventory.getStackInSlot(j);
+			ItemStack itemstack1 = this.customInventory.getStackInSlot(j);
 
 			if (!ItemStack.areItemStacksEqual(itemstack1, itemstack)) {
 				// ((WorldServer)player.world).getEntityTracker().func_151247_a(player, new
@@ -973,28 +973,28 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public int getSizeInventory() {
-		return inventory.getSizeInventory();
+		return customInventory.getSizeInventory();
 	}
 
 	@Override
 	@Nonnull
 	public ItemStack getStackInSlot(int slot) {
-		return inventory.getStackInSlot(slot);
+		return customInventory.getStackInSlot(slot);
 	}
 
 	@Override
 	public ItemStack decrStackSize(int slot, int amount) {
-		return inventory.decrStackSize(slot, amount);
+		return customInventory.decrStackSize(slot, amount);
 	}
 
 	@Override
 	public ItemStack removeStackFromSlot(int index) {
-		return inventory.removeStackFromSlot(index);
+		return customInventory.removeStackFromSlot(index);
 	}
 
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack stack) {
-		inventory.setInventorySlotContents(slot, stack);
+		customInventory.setInventorySlotContents(slot, stack);
 	}
 
 	@Override
@@ -1014,7 +1014,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public int getInventoryStackLimit() {
-		return inventory.getInventoryStackLimit();
+		return customInventory.getInventoryStackLimit();
 	}
 
 	@Override
@@ -1024,7 +1024,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public boolean isUsableByPlayer(EntityPlayer player) {
-		return inventory.isUsableByPlayer(player);
+		return customInventory.isUsableByPlayer(player);
 	}
 
 	@Override
@@ -1039,7 +1039,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public boolean isItemValidForSlot(int slot, ItemStack stack) {
-		return inventory.isItemValidForSlot(slot, stack);
+		return customInventory.isItemValidForSlot(slot, stack);
 	}
 
 	@Override
@@ -1059,7 +1059,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public void clear() {
-		inventory.clear();
+		customInventory.clear();
 	}
 
 	public AndroidEffects getAndroidEffects() {

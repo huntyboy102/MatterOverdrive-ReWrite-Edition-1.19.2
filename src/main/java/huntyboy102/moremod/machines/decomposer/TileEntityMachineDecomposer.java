@@ -3,7 +3,7 @@ package huntyboy102.moremod.machines.decomposer;
 import matteroverdrive.MatterOverdrive;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.blocks.BlockDecomposer;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.MatterSlot;
 import huntyboy102.moremod.data.inventory.RemoveOnlySlot;
 import huntyboy102.moremod.init.MatterOverdriveCapabilities;
@@ -59,10 +59,10 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		INPUT_SLOT_ID = inventory.AddSlot(new MatterSlot(true));
-		OUTPUT_SLOT_ID = inventory.AddSlot(new RemoveOnlySlot(false));
-		super.RegisterSlots(inventory);
+	protected void RegisterSlots(CustomInventory customInventory) {
+		INPUT_SLOT_ID = customInventory.AddSlot(new MatterSlot(true));
+		OUTPUT_SLOT_ID = customInventory.AddSlot(new RemoveOnlySlot(false));
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override
@@ -166,7 +166,7 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	}
 
 	public int getSpeed() {
-		double matter = Math.log1p(MatterHelper.getMatterAmountFromItem(inventory.getStackInSlot(INPUT_SLOT_ID)));
+		double matter = Math.log1p(MatterHelper.getMatterAmountFromItem(customInventory.getStackInSlot(INPUT_SLOT_ID)));
 		matter *= matter;
 		return (int) Math.round((matter + 6) * DECEOPOSE_SPEED_PER_MATTER * getUpgradeMultiply(UpgradeTypes.Speed));
 	}
@@ -177,7 +177,7 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	}
 
 	public int getEnergyDrainMax() {
-		int matter = MatterHelper.getMatterAmountFromItem(inventory.getStackInSlot(INPUT_SLOT_ID));
+		int matter = MatterHelper.getMatterAmountFromItem(customInventory.getStackInSlot(INPUT_SLOT_ID));
 		double upgradeMultiply = getUpgradeMultiply(UpgradeTypes.PowerUsage);
 		return (int) Math.round(Math.log1p(matter * 0.01) * 15 * DECOMPOSE_ENERGY_PER_MATTER * upgradeMultiply);
 	}

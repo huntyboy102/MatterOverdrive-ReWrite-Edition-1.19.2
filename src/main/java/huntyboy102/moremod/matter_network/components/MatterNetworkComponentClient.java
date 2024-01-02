@@ -10,7 +10,7 @@ import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.matter_network.IMatterNetworkComponent;
 import huntyboy102.moremod.api.matter_network.IMatterNetworkConnection;
 import huntyboy102.moremod.api.transport.IGridNode;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.transport.MatterNetwork;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -138,7 +138,7 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 	}
 
 	@Override
-	public void registerSlots(Inventory inventory) {
+	public void registerSlots(CustomInventory customInventory) {
 
 	}
 

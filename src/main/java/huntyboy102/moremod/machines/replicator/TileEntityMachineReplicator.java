@@ -9,7 +9,7 @@ import huntyboy102.moremod.api.network.IMatterNetworkDispatcher;
 import huntyboy102.moremod.api.transport.IGridNode;
 import huntyboy102.moremod.blocks.BlockReplicator;
 import huntyboy102.moremod.blocks.includes.MOBlock;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.DatabaseSlot;
 import huntyboy102.moremod.data.inventory.RemoveOnlySlot;
 import huntyboy102.moremod.data.inventory.ShieldingSlot;
@@ -89,12 +89,12 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 		return (oldState.getBlock() != newState.getBlock());
 	}
 
-	protected void RegisterSlots(Inventory inventory) {
-		OUTPUT_SLOT_ID = inventory.AddSlot(new RemoveOnlySlot(false).setSendToClient(true));
-		SECOND_OUTPUT_SLOT_ID = inventory.AddSlot(new RemoveOnlySlot(false));
-		DATABASE_SLOT_ID = inventory.AddSlot(new DatabaseSlot(true));
-		SHIELDING_SLOT_ID = inventory.AddSlot(new ShieldingSlot(true));
-		super.RegisterSlots(inventory);
+	protected void RegisterSlots(CustomInventory customInventory) {
+		OUTPUT_SLOT_ID = customInventory.AddSlot(new RemoveOnlySlot(false).setSendToClient(true));
+		SECOND_OUTPUT_SLOT_ID = customInventory.AddSlot(new RemoveOnlySlot(false));
+		DATABASE_SLOT_ID = customInventory.AddSlot(new DatabaseSlot(true));
+		SHIELDING_SLOT_ID = customInventory.AddSlot(new ShieldingSlot(true));
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override
