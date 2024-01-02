@@ -4,18 +4,18 @@ package huntyboy102.moremod.tile.pipes;
 import huntyboy102.moremod.api.matter_network.IMatterNetworkConnection;
 import huntyboy102.moremod.api.transport.IGridNode;
 import huntyboy102.moremod.util.math.MOMathHelper;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.data.transport.MatterNetwork;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
 
 /**
  * Created by Simeon on 3/15/2015.
@@ -30,26 +30,26 @@ public class TileEntityNetworkPipe extends TileEntityPipe implements IMatterNetw
 
     @Override
     public void update() {
-        if (!world.isRemote) {
+        if (!level.isRemote) {
             manageNetwork();
         }
     }
 
     public void manageNetwork() {
         if (matterNetwork == null) {
-            if (!tryConnectToNeighborNetworks(world)) {
-                MatterNetwork network = MatterOverdrive.MATTER_NETWORK_HANDLER.getNetwork(this);
+            if (!tryConnectToNeighborNetworks(level)) {
+                MatterNetwork network = MatterOverdriveRewriteEdition.MATTER_NETWORK_HANDLER.getNetwork(this);
                 network.addNode(this);
             }
         }
     }
 
-    public boolean tryConnectToNeighborNetworks(World world) {
+    public boolean tryConnectToNeighborNetworks(Level world) {
         boolean hasConnected = false;
-        for (EnumFacing side : EnumFacing.VALUES) {
+        for (Direction side : Direction.VALUES) {
             BlockPos neighborPos = pos.offset(side);
-            if (world.isBlockLoaded(neighborPos)) {
-                TileEntity neighborEntity = world.getTileEntity(neighborPos);
+            if (world.isLoaded(neighborPos)) {
+                BlockEntity neighborEntity = world.getBlockEntity(neighborPos);
                 if (neighborEntity instanceof IMatterNetworkConnection && isConnectableSide(side)) {
                     if (((IMatterNetworkConnection) neighborEntity).getNetwork() != null && ((IMatterNetworkConnection) neighborEntity).getNetwork() != this.matterNetwork) {
                         ((IMatterNetworkConnection) neighborEntity).getNetwork().addNode(this);
@@ -62,23 +62,23 @@ public class TileEntityNetworkPipe extends TileEntityPipe implements IMatterNetw
     }
 
     @Override
-    public boolean canConnectToNetworkNode(IBlockState blockState, IGridNode toNode, EnumFacing direction) {
+    public boolean canConnectToNetworkNode(BlockState blockState, IGridNode toNode, Direction direction) {
         return isConnectableSide(direction);
     }
 
     @Override
-    public boolean canConnectToPipe(TileEntity entity, EnumFacing direction) {
+    public boolean canConnectToPipe(BlockEntity entity, Direction direction) {
         return isConnectableSide(direction);
     }
 
     @Override
-    public void onAdded(World world, BlockPos pos, IBlockState state) {
-        if (!world.isRemote) {
+    public void onAdded(Level world, BlockPos pos, BlockState state) {
+        if (!world.isClientSide) {
             int connectionCount = 0;
-            for (EnumFacing enumFacing : EnumFacing.VALUES) {
+            for (Direction enumFacing : Direction.VALUES) {
                 BlockPos neighborPos = pos.offset(enumFacing);
-                TileEntity tileEntityNeignbor = world.getTileEntity(neighborPos);
-                IBlockState neighborState = world.getBlockState(neighborPos);
+                BlockEntity tileEntityNeignbor = world.getBlockEntity(neighborPos);
+                BlockState neighborState = world.getBlockState(neighborPos);
                 if (tileEntityNeignbor instanceof IMatterNetworkConnection) {
                     if (connectionCount < 2 && ((IMatterNetworkConnection) tileEntityNeignbor).establishConnectionFromSide(neighborState, enumFacing.getOpposite())) {
                         this.setConnection(enumFacing, true);
@@ -91,19 +91,19 @@ public class TileEntityNetworkPipe extends TileEntityPipe implements IMatterNetw
     }
 
     @Override
-    public void onPlaced(World world, EntityLivingBase entityLiving) {
+    public void onPlaced(Level world, LivingEntity entityLiving) {
 
     }
 
     @Override
-    public void onDestroyed(World worldIn, BlockPos pos, IBlockState state) {
-        if (!worldIn.isRemote) {
+    public void onDestroyed(Level worldIn, BlockPos pos, BlockState state) {
+        if (!worldIn.isClientSide) {
             if (matterNetwork != null) {
                 matterNetwork.onNodeDestroy(state, this);
             }
-            for (EnumFacing enumFacing : EnumFacing.VALUES) {
+            for (Direction enumFacing : Direction.VALUES) {
                 if (isConnectableSide(enumFacing)) {
-                    TileEntity tileEntityConnection = worldIn.getTileEntity(pos.offset(enumFacing));
+                    BlockEntity tileEntityConnection = worldIn.getBlockEntity(pos.offset(enumFacing));
                     if (tileEntityConnection instanceof IMatterNetworkConnection) {
                         ((IMatterNetworkConnection) tileEntityConnection).breakConnection(state, enumFacing.getOpposite());
                     }
@@ -114,8 +114,8 @@ public class TileEntityNetworkPipe extends TileEntityPipe implements IMatterNetw
 
     @Override
     public void onChunkUnload() {
-        if (!world.isRemote) {
-            IBlockState blockState = world.getBlockState(getPos());
+        if (!level.isClientSide) {
+            BlockState blockState = level.getBlockState(getBlockPos());
             if (matterNetwork != null) {
                 matterNetwork.onNodeDestroy(blockState, this);
                 //MOLog.info("Chunk Unload");
@@ -124,7 +124,7 @@ public class TileEntityNetworkPipe extends TileEntityPipe implements IMatterNetw
     }
 
     @Override
-    public void onNeighborBlockChange(IBlockAccess world, BlockPos pos, IBlockState state, Block neighborBlock) {
+    public void onNeighborBlockChange(LevelAccessor world, BlockPos pos, BlockState state, Block neighborBlock) {
 
     }
 
@@ -144,40 +144,40 @@ public class TileEntityNetworkPipe extends TileEntityPipe implements IMatterNetw
     }
 
     @Override
-    public void broadcast(MatterNetworkPacket packet,EnumFacing direction)
+    public void broadcast(MatterNetworkPacket packet,Direction direction)
     {
         if (isValid())
         {
             for (int i = 0; i < 6; i++)
             {
                 if (direction.getOpposite().ordinal() != i)
-                    MatterNetworkHelper.broadcastPacketInDirection(world, packet, this, EnumFacing.VALUES[i]);
+                    MatterNetworkHelper.broadcastPacketInDirection(world, packet, this, Direction.VALUES[i]);
             }
         }
     }*/
 
     @Override
-    public boolean canConnectFromSide(IBlockState blockState, EnumFacing side) {
+    public boolean canConnectFromSide(BlockState blockState, Direction side) {
         return MOMathHelper.getBoolean(getConnectionsMask(), side.ordinal());
     }
 
     @Override
     public BlockPos getNodePos() {
-        return getPos();
+        return getNodePos();
     }
 
     @Override
-    public World getNodeWorld() {
-        return getWorld();
+    public Level getNodeWorld() {
+        return getNodeWorld();
     }
 
     @Override
-    public boolean establishConnectionFromSide(IBlockState blockState, EnumFacing side) {
+    public boolean establishConnectionFromSide(BlockState blockState, Direction side) {
         int connCount = getConnectionsCount();
         if (connCount < 2) {
             if (!MOMathHelper.getBoolean(getConnectionsMask(), side.ordinal())) {
                 setConnection(side, true);
-                world.markBlockRangeForRenderUpdate(pos, pos);
+                level.markBlockRangeForRenderUpdate(pos, pos);
                 return true;
             }
         }
@@ -185,9 +185,9 @@ public class TileEntityNetworkPipe extends TileEntityPipe implements IMatterNetw
     }
 
     @Override
-    public void breakConnection(IBlockState blockState, EnumFacing side) {
+    public void breakConnection(BlockState blockState, Direction side) {
         setConnection(side, false);
-        world.markBlockRangeForRenderUpdate(pos, pos);
+        level.markBlockRangeForRenderUpdate(pos, pos);
     }
 
     @Override
@@ -196,7 +196,7 @@ public class TileEntityNetworkPipe extends TileEntityPipe implements IMatterNetw
     }
 
     @Override
-    protected void onAwake(Side side) {
+    protected void onAwake(Dist side) {
 
     }
 

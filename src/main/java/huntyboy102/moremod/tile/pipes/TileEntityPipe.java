@@ -4,14 +4,19 @@ package huntyboy102.moremod.tile.pipes;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.util.math.MOMathHelper;
 import huntyboy102.moremod.tile.MOTileEntity;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -24,19 +29,19 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
     private int connections = 0;
 
     @Override
-    public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+    public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
         if (categories.contains(MachineNBTCategory.DATA)) {
-            nbt.setInteger("connections", (byte) getConnectionsMask());
+            nbt.putInt("connections", (byte) getConnectionsMask());
         }
     }
 
     @Override
-    public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+    public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
         if (categories.contains(MachineNBTCategory.DATA)) {
-            setConnections(nbt.getInteger("connections"), false);
+            setConnections(nbt.putInt("connections");, false);
             needsUpdate = false;
-            if (world != null)
-                world.markBlockRangeForRenderUpdate(pos, pos);
+            if (level != null)
+                level.markBlockRangeForRenderUpdate(pos, pos);
         }
     }
 
@@ -50,16 +55,28 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
         UPDATING_POS.clear();
 
         if (!awoken) {
-            onAwake(world.isRemote ? Side.CLIENT : Side.SERVER);
+            onAwake(level.isRemote ? Dist.CLIENT : Dist.DEDICATED_SERVER);
             awoken = true;
         }
     }
 
+    public abstract boolean canConnectToPipe(TileEntity entity, Direction direction);
+
+    public abstract void onAdded(Level world, BlockPos pos, BlockState state);
+
+    public abstract void onPlaced(Level world, LivingEntity entityLiving);
+
+    public abstract void onDestroyed(Level worldIn, BlockPos pos, BlockState state);
+
+    public abstract void onChunkUnload();
+
+    public abstract void onNeighborBlockChange(LevelAccessor world, BlockPos pos, BlockState state, Block neighborBlock);
+
     public void updateSides(boolean notify) {
         int connections = 0;
 
-        for (EnumFacing direction : EnumFacing.VALUES) {
-            TileEntity t = this.world.getTileEntity(getPos().offset(direction));
+        for (Direction direction : Direction.VALUES) {
+            BlockEntity t = this.level.getBlockEntity(getBlockPos().offset(direction));
 
             if (canConnectToPipe(t, direction)) {
                 connections |= 1 << direction.ordinal();
@@ -87,39 +104,41 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
     public void setConnections(int connections, boolean notify) {
         this.connections = connections;
         if (notify) {
-            UPDATING_POS.add(getPos());
-            world.markBlockRangeForRenderUpdate(pos, pos);
-            for (EnumFacing facing : EnumFacing.VALUES) {
+            UPDATING_POS.add(getBlockPos());
+            level.markBlockRangeForRenderUpdate(pos, pos);
+            for (Direction facing : Direction.VALUES) {
                 if (isConnectedFromSide(facing)) {
-                    if (!UPDATING_POS.contains(getPos().offset(facing)))
-                        world.neighborChanged(getPos().offset(facing), getBlockType(), getPos());
+                    if (!UPDATING_POS.contains(getBlockPos().offset(facing)))
+                        level.neighborChanged(getBlockPos().offset(facing), getBlockType(), getBlockPos());
                 }
             }
             markDirty();
         }
     }
 
-    public void setConnection(EnumFacing connection, boolean value) {
+    public void setConnection(Direction connection, boolean value) {
         this.connections = MOMathHelper.setBoolean(connections, connection.ordinal(), value);
         markDirty();
     }
 
-    public boolean isConnectedFromSide(EnumFacing enumFacing) {
+    public boolean isConnectedFromSide(Direction enumFacing) {
         return MOMathHelper.getBoolean(connections, enumFacing.ordinal());
     }
 
-    public abstract boolean canConnectToPipe(TileEntity entity, EnumFacing direction);
+    public abstract boolean canConnectToPipe(BlockEntity entity, Direction direction);
 
     public void queueUpdate() {
         needsUpdate = true;
     }
 
-    public boolean isConnectableSide(EnumFacing dir) {
+    public boolean isConnectableSide(Direction dir) {
         return MOMathHelper.getBoolean(connections, dir.ordinal());
     }
 
-    @SideOnly(Side.CLIENT)
-    public AxisAlignedBB getRenderBoundingBox() {
-        return new AxisAlignedBB(getPos(), getPos().add(1, 1, 1));
+    @OnlyIn(Dist.CLIENT)
+    public AABB getRenderBoundingBox() {
+        return new AABB(getBlockPos(), getBlockPos().add(1, 1, 1));
     }
+
+    protected abstract void onAwake(Dist side);
 }

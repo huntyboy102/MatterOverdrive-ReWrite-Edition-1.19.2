@@ -4,17 +4,17 @@ package huntyboy102.moremod.tile;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.util.MOEnergyHelper;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.data.Inventory;
 import huntyboy102.moremod.data.MachineEnergyStorage;
 import huntyboy102.moremod.data.inventory.EnergySlot;
 import huntyboy102.moremod.network.packet.client.PacketPowerUpdate;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.network.Connection;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,19 +37,19 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			NBTTagCompound energy = energyStorage.serializeNBT();
-			nbt.setTag("Energy", energy);
+			CompoundTag energy = energyStorage.serializeNBT();
+			nbt.put("Energy", energy);
 		}
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			energyStorage.deserializeNBT(nbt.getCompoundTag("Energy"));
+			energyStorage.deserializeNBT(nbt.getCompound("Energy"));
 		}
 	}
 
@@ -60,7 +60,7 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 
 	protected void manageCharging() {
 		if (isCharging()) {
-			if (!this.world.isRemote) {
+			if (!this.level.isClientSide) {
 				int emptyEnergySpace = getFreeEnergySpace();
 				int maxEnergyCanSpare = MOEnergyHelper.extractEnergyFromContainer(
 						this.inventory.getStackInSlot(energySlotID), emptyEnergySpace, true);
@@ -93,9 +93,9 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 	}
 
 	public void UpdateClientPower() {
-		MatterOverdrive.NETWORK.sendToAllAround(new PacketPowerUpdate(this),
-				new NetworkRegistry.TargetPoint(world.provider.getDimension(), getPos().getX(), getPos().getY(),
-						getPos().getZ(), ENERGY_CLIENT_SYNC_RANGE));
+		MatterOverdriveRewriteEdition.NETWORK.sendToAllAround(new PacketPowerUpdate(this),
+				new Connection(level.provider.getDimension(), getBlockPos().getX(), getBlockPos().getY(),
+						getBlockPos().getZ(), ENERGY_CLIENT_SYNC_RANGE));
 	}
 
 	@Override
@@ -103,8 +103,8 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 		super.readFromPlaceItem(itemStack);
 
 		if (itemStack != null) {
-			if (itemStack.hasTagCompound()) {
-				energyStorage.deserializeNBT(itemStack.getTagCompound().getCompoundTag("Energy"));
+			if (itemStack.hasTag()) {
+				energyStorage.deserializeNBT(itemStack.getTag().getCompound("Energy"));
 			}
 		}
 	}
@@ -115,18 +115,18 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 
 		if (itemStack != null) {
 			if (energyStorage.getEnergyStored() > 0) {
-				if (!itemStack.hasTagCompound()) {
-					itemStack.setTagCompound(new NBTTagCompound());
+				if (!itemStack.hasTag()) {
+					itemStack.setTag(new CompoundTag());
 				}
 
-				NBTTagCompound energy = energyStorage.serializeNBT();
-				itemStack.getTagCompound().setTag("Energy", energy);
+				CompoundTag energy = energyStorage.serializeNBT();
+				itemStack.getTag().put("Energy", energy);
 			}
 		}
 	}
 
 	@Override
-	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
+	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable Direction facing) {
 		if (capability == CapabilityEnergy.ENERGY) {
 			return true;
 		}
@@ -136,7 +136,7 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 
 	@Nonnull
 	@Override
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
+	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
 		if (capability == CapabilityEnergy.ENERGY) {
 			return CapabilityEnergy.ENERGY.cast(energyStorage);
 		}

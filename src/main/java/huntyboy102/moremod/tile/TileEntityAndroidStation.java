@@ -6,17 +6,16 @@ import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.Reference;
-import huntyboy102.moremod.data.Inventory;
 import huntyboy102.moremod.data.inventory.BionicSlot;
 import huntyboy102.moremod.data.inventory.EnergySlot;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.phys.AABB;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 
@@ -43,7 +42,7 @@ public class TileEntityAndroidStation extends MOTileEntityMachine {
 		super.RegisterSlots(inventory);
 	}
 
-	public IInventory getActiveInventory() {
+	public Inventory getActiveInventory() {
 		return inventory;
 	}
 
@@ -94,13 +93,13 @@ public class TileEntityAndroidStation extends MOTileEntityMachine {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getRenderBoundingBox() {
-		return new AxisAlignedBB(getPos(), getPos().add(1, 3, 1));
+	@OnlyIn(Dist.CLIENT)
+	public AABB getRenderBoundingBox() {
+		return new AABB(getBlockPos(), getBlockPos().add(1, 3, 1));
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean isUsableByPlayer(Player player) {
 		return MOPlayerCapabilityProvider.GetAndroidCapability(player) != null
 				&& MOPlayerCapabilityProvider.GetAndroidCapability(player).isAndroid()
 				&& super.isUsableByPlayer(player);
@@ -112,7 +111,7 @@ public class TileEntityAndroidStation extends MOTileEntityMachine {
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 }

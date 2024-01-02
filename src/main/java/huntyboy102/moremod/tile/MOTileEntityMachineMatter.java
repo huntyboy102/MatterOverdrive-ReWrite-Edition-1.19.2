@@ -8,12 +8,12 @@ import javax.annotation.Nullable;
 
 import huntyboy102.moremod.init.MatterOverdriveCapabilities;
 import huntyboy102.moremod.machines.MachineNBTCategory;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.data.MachineMatterStorage;
 import huntyboy102.moremod.network.packet.client.PacketMatterUpdate;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 
@@ -26,7 +26,7 @@ public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnerg
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA) && matterStorage != null) {
 			matterStorage.writeToNBT(nbt);
@@ -35,7 +35,7 @@ public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnerg
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA) && matterStorage != null) {
 			matterStorage.readFromNBT(nbt);
@@ -44,8 +44,8 @@ public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnerg
 	}
 
 	public void updateClientMatter() {
-		if (!world.isRemote) {
-			MatterOverdrive.NETWORK.sendToAllAround(new PacketMatterUpdate(this), this, 64);
+		if (!level.isClientSide) {
+			MatterOverdriveRewriteEdition.NETWORK.sendToAllAround(new PacketMatterUpdate(this), this, 64);
 		}
 	}
 
@@ -54,8 +54,8 @@ public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnerg
 		super.readFromPlaceItem(itemStack);
 
 		if (itemStack != null && matterStorage != null) {
-			if (itemStack.hasTagCompound()) {
-				matterStorage.readFromNBT(itemStack.getTagCompound());
+			if (itemStack.hasTag()) {
+				matterStorage.readFromNBT(itemStack.getTag());
 			}
 		}
 	}
@@ -66,14 +66,14 @@ public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnerg
 
 		if (itemStack != null && matterStorage != null) {
 			if (matterStorage.getMatterStored() > 0) {
-				if (!itemStack.hasTagCompound()) {
-					itemStack.setTagCompound(new NBTTagCompound());
+				if (!itemStack.hasTag()) {
+					itemStack.setTag(new CompoundTag());
 				}
 
-				matterStorage.writeToNBT(itemStack.getTagCompound());
-				itemStack.getTagCompound().setInteger("MaxMatter", matterStorage.getCapacity());
-				itemStack.getTagCompound().setInteger("MatterSend", matterStorage.getMaxExtract());
-				itemStack.getTagCompound().setInteger("MatterReceive", matterStorage.getMaxReceive());
+				matterStorage.writeToNBT(itemStack.getTag());
+				itemStack.getTag().putInt("MaxMatter", matterStorage.getCapacity());
+				itemStack.getTag().putInt("MatterSend", matterStorage.getMaxExtract());
+				itemStack.getTag().putInt("MatterReceive", matterStorage.getMaxReceive());
 			}
 		}
 	}
@@ -83,7 +83,7 @@ public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnerg
 	}
 
 	@Override
-	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
+	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable Direction facing) {
 		if (capability == MatterOverdriveCapabilities.MATTER_HANDLER
 				|| capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
 			return true;
@@ -94,7 +94,7 @@ public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnerg
 	@Nonnull
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
+	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
 		if (capability == MatterOverdriveCapabilities.MATTER_HANDLER
 				|| capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
 			return (T) matterStorage;

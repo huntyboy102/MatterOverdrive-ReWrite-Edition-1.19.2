@@ -15,6 +15,9 @@ import huntyboy102.moremod.items.SecurityProtocol;
 import huntyboy102.moremod.machines.components.ComponentConfigs;
 import huntyboy102.moremod.machines.configs.ConfigPropertyStringList;
 import huntyboy102.moremod.machines.events.MachineEvent;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.Level;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
@@ -178,6 +181,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 				0));
 		addComponent(configs);
 	}
+
+	protected abstract void RegisterSlots(net.minecraft.world.entity.player.Inventory inventory);
 
 	public abstract SoundEvent getSound();
 
@@ -394,6 +399,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		}
 	}
 
+	public abstract boolean isUsableByPlayer(Player player);
+
 	protected abstract void onMachineEvent(MachineEvent event);
 
 	protected void onMachineEventCompoments(MachineEvent event) {
@@ -484,6 +491,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		}
 	}
 
+	public abstract boolean shouldRenderInPass(int pass);
+
 	@Override
 	@Nonnull
 	public ItemStack getStackInSlot(int slot) {
@@ -538,6 +547,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			return 0;
 		}
 	}
+
+	public abstract void setInventorySlotContents(int slot, ItemStack itemStack);
 
 	@Override
 	public boolean isUsableByPlayer(EntityPlayer player) {
@@ -815,4 +826,6 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		}
 		return super.getCapability(capability, facing);
 	}
+
+    public abstract int[] getSlotsForFace(Direction side);
 }

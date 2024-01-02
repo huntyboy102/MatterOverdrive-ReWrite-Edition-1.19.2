@@ -23,17 +23,17 @@ import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.data.Inventory;
 import huntyboy102.moremod.data.inventory.ModuleSlot;
 import huntyboy102.moremod.data.inventory.TeleportFlashDriveSlot;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.api.distmarker.Dist;
 
 public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 	public static final int FLASH_DRIVE_COUNT = 6;
@@ -66,35 +66,35 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 	public void update() {
 		super.update();
 
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			if (isActive()) {
-				if (getSpawnDelay() == 0 || world.getTotalWorldTime() % getSpawnDelay() == 0) {
+				if (getSpawnDelay() == 0 || level.getGameTime() % getSpawnDelay() == 0) {
 					for (int i = spawnedAndroids.size(); i < getMaxSpawnCount(); ++i) {
 						EntityRougeAndroidMob entity;
 
 						if (random.nextInt(10) < 3) {
-							entity = new EntityMeleeRougeAndroidMob(world);
+							entity = new EntityMeleeRougeAndroidMob(level);
 						} else {
-							entity = new EntityRangedRogueAndroidMob(world);
+							entity = new EntityRangedRogueAndroidMob(level);
 						}
 						double spawnRange = getSpawnRange();
 
-						double x = (double) getPos().getX()
-								+ MathHelper.clamp(world.rand.nextGaussian(), 0, 1) * spawnRange;
-						double y = (double) (getPos().getY() + world.rand.nextInt(3) - 1);
-						double z = (double) getPos().getZ()
-								+ MathHelper.clamp(world.rand.nextGaussian(), 0, 1) * spawnRange;
-						int topY = world.getHeight(new BlockPos(x, y, z)).getY();
-						topY = Math.min(topY, getPos().getY() + 3);
-						entity.setLocationAndAngles(x, topY, z, world.rand.nextFloat() * 360.0F, 0.0F);
+						double x = (double) getBlockPos().getX()
+								+ Mth.clamp(level.random.nextGaussian(), 0, 1) * spawnRange;
+						double y = (double) (getBlockPos().getY() + level.random.nextInt(3) - 1);
+						double z = (double) getBlockPos().getZ()
+								+ Mth.clamp(level.random.nextGaussian(), 0, 1) * spawnRange;
+						int topY = level.getHeight(new BlockPos(x, y, z)).getY();
+						topY = Math.min(topY, getBlockPos().getY() + 3);
+						entity.setLocationAndAngles(x, topY, z, level.random.nextFloat() * 360.0F, 0.0F);
 
 						if (entity.getCanSpawnHere(true, true, true)) {
-							entity.onInitialSpawn(world.getDifficultyForLocation(getPos()), null);
-							entity.setSpawnerPosition(getPos());
+							entity.onInitialSpawn(level.getCurrentDifficultyAt(getBlockPos()), null);
+							entity.setSpawnerPosition(getBlockPos());
 							entity.enablePersistence();
 							addSpawnedAndroid(entity);
-							world.playBroadcastSound(2004, getPos(), 0);
-							ScorePlayerTeam team = getTeam();
+							level.playBroadcastSound(2004, getBlockPos(), 0);
+							PlayerTeam team = getTeam();
 							if (team != null) {
 								entity.setTeam(team);
 								if (inventory.getStackInSlot(COLOR_MODULE_SLOT) != null && inventory
@@ -102,9 +102,9 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 									entity.setVisorColor(
 											((IWeaponColor) inventory.getStackInSlot(COLOR_MODULE_SLOT).getItem())
 													.getColor(inventory.getStackInSlot(COLOR_MODULE_SLOT), null));
-									if (entity.getHeldItem(EnumHand.MAIN_HAND) != null) {
+									if (entity.getHeldItem(InteractionHand.MAIN_HAND) != null) {
 										WeaponHelper.setModuleAtSlot(Reference.MODULE_COLOR,
-												entity.getHeldItem(EnumHand.MAIN_HAND),
+												entity.getHeldItem(InteractionHand.MAIN_HAND),
 												inventory.getStackInSlot(COLOR_MODULE_SLOT));
 									}
 								}
@@ -119,10 +119,10 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 		}
 	}
 
-	public ScorePlayerTeam getTeam() {
+	public PlayerTeam getTeam() {
 		String teamName = getTeamName();
 		if (teamName != null && !teamName.isEmpty()) {
-			return world.getScoreboard().getTeam(teamName);
+			return level.getScoreboard().getPlayerTeam(teamName);
 		}
 		return null;
 	}
@@ -130,27 +130,27 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 	public boolean isTeamValid() {
 		String teamName = getTeamName();
 		if (teamName != null && !teamName.isEmpty()) {
-			return world.getScoreboard().getTeam(teamName) != null;
+			return level.getScoreboard().getPlayerTeam(teamName) != null;
 		}
 		return true;
 	}
 
 	public void assignPath(EntityRougeAndroidMob androidMob) {
-		List<Vec3d> paths = new ArrayList<>();
+		List<Vec3> paths = new ArrayList<>();
 		for (int i = FLASH_DRIVE_SLOT_START; i < FLASH_DRIVE_COUNT; i++) {
 			ItemStack flashDrive = inventory.getSlot(i).getItem();
 			if (flashDrive != null && flashDrive.getItem() instanceof TransportFlashDrive) {
 				BlockPos position = ((TransportFlashDrive) flashDrive.getItem()).getTarget(flashDrive);
 				if (position != null) {
-					paths.add(new Vec3d(position));
+					paths.add(new Vec3(position));
 				}
 			}
 		}
 
 		if (paths.size() <= 0) {
-			androidMob.setPath(new Vec3d[] { new Vec3d(getPos()) }, getSpawnRange());
+			androidMob.setPath(new Vec3[] { new Vec3(getBlockPos()) }, getSpawnRange());
 		} else {
-			androidMob.setPath(paths.toArray(new Vec3d[paths.size()]), getSpawnRange());
+			androidMob.setPath(paths.toArray(new Vec3[paths.size()]), getSpawnRange());
 		}
 	}
 
@@ -184,17 +184,17 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 	}
 
 	public EntityRougeAndroidMob spawnEntity(EntityRougeAndroidMob entity) {
-		world.spawnEntity(entity);
+		level.spawnEntity(entity);
 		return entity;
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 	}
 
@@ -224,9 +224,9 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 	}
 
 	@Override
-	protected void onAwake(Side side) {
-		if (side == Side.SERVER) {
-			for (Entity entity : world.loadedEntityList) {
+	protected void onAwake(Dist side) {
+		if (side == Dist.DEDICATED_SERVER) {
+			for (Entity entity : level.loadedEntityList) {
 				if (entity instanceof EntityRougeAndroidMob) {
 					if (((EntityRougeAndroidMob) entity).wasSpawnedFrom(this)) {
 						addSpawnedAndroid((EntityRougeAndroidMob) entity);
@@ -243,7 +243,7 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 

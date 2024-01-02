@@ -2,39 +2,39 @@
 package huntyboy102.moremod.tile;
 
 import huntyboy102.moremod.util.TileUtils;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.EntityPlayerMP;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nonnull;
 
 public class PacketDispatcher {
-	public static void dispatchTEToNearbyPlayers(@Nonnull TileEntity tile) {
-		if (tile.getWorld() instanceof WorldServer) {
-			WorldServer ws = ((WorldServer) tile.getWorld());
-			SPacketUpdateTileEntity packet = tile.getUpdatePacket();
+	public static void dispatchTEToNearbyPlayers(@Nonnull BlockEntity tile) {
+		if (tile.getLevel() instanceof ServerLevel) {
+			ServerLevel serverLevel  = ((ServerLevel) tile.getLevel());
+			ClientboundBlockEntityDataPacket packet = tile.getUpdatePacket();
 
 			if (packet == null)
 				return;
 
-			for (EntityPlayer player : ws.playerEntities) {
-				if (!(player instanceof EntityPlayerMP))
-					continue;
-				EntityPlayerMP playerMP = ((EntityPlayerMP) player);
+			AABB chunkBox = new AABB(tile.getBlockPos()).inflate(64);
 
-				if (playerMP.getDistanceSq(tile.getPos()) < 64 * 64 && ws.getPlayerChunkMap()
-						.isPlayerWatchingChunk(playerMP, tile.getPos().getX() >> 4, tile.getPos().getZ() >> 4)) {
-					playerMP.connection.sendPacket(packet);
+			for (ServerPlayer player : serverLevel.players()) {
+				if (chunkBox.contains(player.position())) {
+					player.connection.send(packet);
 				}
 			}
 		}
 	}
 
-	public static void dispatchTEToNearbyPlayers(@Nonnull World world, @Nonnull BlockPos pos) {
-		TileUtils.getTileEntity(world, pos, TileEntity.class).ifPresent(PacketDispatcher::dispatchTEToNearbyPlayers);
+	public static void dispatchTEToNearbyPlayers(@Nonnull Level world, @Nonnull BlockPos pos) {
+		TileUtils.getTileEntity(world, pos, BlockEntity.class).ifPresent(PacketDispatcher::dispatchTEToNearbyPlayers);
 	}
 }

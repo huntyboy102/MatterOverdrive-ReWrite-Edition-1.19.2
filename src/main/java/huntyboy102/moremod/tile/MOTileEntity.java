@@ -8,42 +8,42 @@ import javax.annotation.Nullable;
 
 import huntyboy102.moremod.api.IMOTileEntity;
 import huntyboy102.moremod.machines.MachineNBTCategory;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.network.packet.server.PacketSendMachineNBT;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public abstract class MOTileEntity extends TileEntity implements IMOTileEntity {
+public abstract class MOTileEntity extends BlockEntity implements IMOTileEntity {
 	private boolean awoken = false;
 
 	public MOTileEntity() {
 		super();
 	}
 
-	public MOTileEntity(World world, int meta) {
+	public MOTileEntity(Level world, int meta) {
 		super();
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void readFromNBT(CompoundTag nbt) {
 		super.readFromNBT(nbt);
 		readCustomNBT(nbt, MachineNBTCategory.ALL_OPTS);
 	}
 
 	public boolean shouldRender() {
-		return world.getBlockState(getPos()).getBlock() == getBlockType();
+		return level.getBlockState(getBlockPos()).getBlock() == getBlockType();
 	}
 
 	@Override
 	@Nonnull
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public CompoundTag writeToNBT(CompoundTag nbt) {
 		super.writeToNBT(nbt);
 		writeCustomNBT(nbt, MachineNBTCategory.ALL_OPTS, true);
 		return nbt;
@@ -51,42 +51,45 @@ public abstract class MOTileEntity extends TileEntity implements IMOTileEntity {
 
 	@Override
 	@Nonnull
-	public NBTTagCompound getUpdateTag() {
-		return this.writeToNBT(new NBTTagCompound());
+	public CompoundTag getUpdateTag() {
+		return this.writeToNBT(new CompoundTag());
 	}
 
 	@Nullable
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		return new SPacketUpdateTileEntity(this.getPos(), 0, this.getUpdateTag());
+	public ClientboundBlockEntityDataPacket getUpdatePacket() {
+		return new ClientboundBlockEntityDataPacket(this.getBlockPos(), 0, this.getUpdateTag());
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+	public boolean shouldRefresh(Level world, BlockPos pos, BlockState oldState, BlockState newSate) {
 		return oldState != newSate;
 	}
 
 	@Override
 	public void markDirty() {
-		super.markDirty();
-		PacketDispatcher.dispatchTEToNearbyPlayers(this);
-	}
-
-	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
-		this.readFromNBT(pkt.getNbtCompound());
-	}
-
-	public abstract void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk);
-
-	public abstract void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories);
-
-	@SideOnly(Side.CLIENT)
-	public void sendNBTToServer(EnumSet<MachineNBTCategory> categories, boolean forceUpdate, boolean sendDisk) {
-		if (world.isRemote) {
-			MatterOverdrive.NETWORK.sendToServer(new PacketSendMachineNBT(categories, this, forceUpdate, sendDisk));
+		if (level != null) {
+			BlockPos pos = this.getBlockPos();
+			BlockState state = level.getBlockState(pos);
+			level.sendBlockUpdated(pos, state, state, 3);
 		}
 	}
 
-	protected abstract void onAwake(Side side);
+	@Override
+	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+		this.readFromNBT(pkt.getTag());
+	}
+
+	public abstract void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk);
+
+	public abstract void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories);
+
+	@OnlyIn(Dist.CLIENT)
+	public void sendNBTToServer(EnumSet<MachineNBTCategory> categories, boolean forceUpdate, boolean sendDisk) {
+		if (level.isClientSide) {
+			MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketSendMachineNBT(categories, this, forceUpdate, sendDisk));
+		}
+	}
+
+	protected abstract void onAwake(Dist side);
 }
