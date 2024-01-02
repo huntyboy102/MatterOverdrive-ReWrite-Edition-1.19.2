@@ -10,26 +10,27 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.entity.player.Inventory;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class Inventory implements IInventory {
+public class CustomInventory extends Inventory {
 	final NonNullList<Slot> slots;
 	String name;
 	IUsableCondition usableCondition;
 
-	public Inventory(String name) {
+	public CustomInventory(String name) {
 		this(name, new ArrayList<>());
 	}
 
-	public Inventory(String name, Collection<Slot> slots) {
+	public CustomInventory(String name, Collection<Slot> slots) {
 		this(name, slots, null);
 	}
 
-	public Inventory(String name, Collection<Slot> slots, IUsableCondition usableCondition) {
+	public CustomInventory(String name, Collection<Slot> slots, IUsableCondition usableCondition) {
 		this.slots = NonNullList.create();
 		this.slots.addAll(slots);
 		this.name = name;
