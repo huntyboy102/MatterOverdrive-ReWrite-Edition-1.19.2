@@ -6,10 +6,10 @@ import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.configs.ConfigPropertyBoolean;
 import huntyboy102.moremod.machines.events.MachineEvent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
 
 import java.util.EnumSet;
 
@@ -21,11 +21,11 @@ public class TileEntityHoloSign extends MOTileEntityMachine {
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 
 		if (categories.contains(MachineNBTCategory.GUI)) {
-			nbt.setString("Text", text);
+			nbt.putString("Text", text);
 		}
 	}
 
@@ -56,7 +56,7 @@ public class TileEntityHoloSign extends MOTileEntityMachine {
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.GUI)) {
 			text = nbt.getString("Text");
@@ -64,7 +64,7 @@ public class TileEntityHoloSign extends MOTileEntityMachine {
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 

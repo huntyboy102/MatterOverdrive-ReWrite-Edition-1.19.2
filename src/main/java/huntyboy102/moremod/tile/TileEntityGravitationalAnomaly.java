@@ -30,6 +30,7 @@ import huntyboy102.moremod.util.math.MOMathHelper;
 import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Explosion;
@@ -56,19 +57,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.Connection;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.IFluidBlock;
-import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -160,7 +152,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	public void manageClientEntityGravitation(World world) {
+	public void manageClientEntityGravitation(Level world) {
 		if (!GRAVITATION) {
 			return;
 		}
@@ -169,24 +161,26 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 		rangeSq *= rangeSq;
 		Vec3 blockPos = new Vec3(getBlockPos());
 		blockPos.add(0.5, 0.5, 0.5);
-		Vec3 entityPos = Minecraft.getInstance().getPositionVector();
+		Vec3 entityPos = Minecraft.getInstance().player.position();
 
-		double distanceSq = entityPos.squareDistanceTo(blockPos);
+		double distanceSq = entityPos.distanceToSqr(blockPos);
 		if (distanceSq < rangeSq) {
-			if ((!Minecraft.getInstance().player.inventory.armorItemInSlot(2).isEmpty()
-					&& Minecraft.getInstance().player.inventory.armorItemInSlot(2)
-							.getItem() instanceof SpacetimeEqualizer)
-					|| Minecraft.getInstance().player.capabilities.isCreativeMode
+
+			ItemStack chestplateStack = Minecraft.getInstance().player.inventoryMenu.getSlot(38).getItem(); // Assuming chestplate is in slot 38
+
+			if ((!chestplateStack.isEmpty() && chestplateStack.getItem() instanceof SpacetimeEqualizer)
+					|| Minecraft.getInstance().player.getAbilities().instabuild
 					|| Minecraft.getInstance().player.isSpectator()
 					|| MOPlayerCapabilityProvider.GetAndroidCapability(Minecraft.getInstance().player)
-							.isUnlocked(OverdriveBioticStats.equalizer, 0))
+					.isUnlocked(OverdriveBioticStats.equalizer, 0)) {
 				return;
+			}
 
 			double acceleration = getAcceleration(distanceSq);
 			Vec3 dir = blockPos.subtract(entityPos).normalize();
-			Minecraft.getInstance().player.addVelocity(dir.x * acceleration, dir.y * acceleration,
+			Minecraft.getInstance().player.setDeltaMovement(dir.x * acceleration, dir.y * acceleration,
 					dir.z * acceleration);
-			Minecraft.getInstance().player.velocityChanged = true;
+			Minecraft.getInstance().player.hasImpulse = true;
 		}
 	}
 
@@ -198,45 +192,39 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 		double range = getMaxRange() + 1;
 		AABB bb = new AABB(getBlockPos().getX() - range, getBlockPos().getY() - range, getBlockPos().getZ() - range,
 				getBlockPos().getX() + range, getBlockPos().getY() + range, getBlockPos().getZ() + range);
-		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, bb);
+		List<Entity> entities = world.getEntitiesOfClass(Entity.class, bb);
 		Vec3 blockPos = new Vec3(getBlockPos()).add(0.5, 0.5, 0.5);
 
-		for (Object entityObject : entities) {
-			if (entityObject instanceof Entity) {
-				Entity entity = (Entity) entityObject;
-				if (entity instanceof IGravityEntity) {
-					if (!((IGravityEntity) entity).isAffectedByAnomaly(this)) {
-						continue;
-					}
-				}
-				Vec3 entityPos = entity.getPositionVector();
+		for (Entity entity : entities) {
+			if (entity instanceof IGravityEntity && !((IGravityEntity) entity).isAffectedByAnomaly(this)) {
+				continue;
+			}
+				Vec3 entityPos = entity.position();
 
 				// pos.y += entity.getEyeHeight();
-				double distanceSq = entityPos.squareDistanceTo(blockPos);
+				double distanceSq = entityPos.distanceToSqr(blockPos);
 				double acceleration = getAcceleration(distanceSq);
 				double eventHorizon = getEventHorizon();
 				Vec3 dir = blockPos.subtract(entityPos).normalize();
 				dir = new Vec3(dir.x * acceleration, dir.y * acceleration, dir.z * acceleration);
+
 				if (intersectsAnomaly(entityPos, dir, blockPos, eventHorizon)) {
 					consume(entity);
 				}
 
-				if (entityObject instanceof Player) // Players handle this clientside, no need to run on the
-															// server for no reason
-					continue;
+				if (entity instanceof Player) // Players handle this clientside, no need to run on the
+					continue; // server for no reason
 
-				if (entityObject instanceof LivingEntity) {
-					AtomicBoolean se = new AtomicBoolean(false);
-					((LivingEntity) entityObject).getArmorInventoryList().forEach(i -> {
-						if (!i.isEmpty() && i.getItem() instanceof SpacetimeEqualizer)
-							se.set(true);
-					});
-					if (se.get())
+				if (entity instanceof LivingEntity) {
+					boolean hasEqualizer = ((LivingEntity) entity).getArmorInventoryList().stream()
+							.anyMatch(i -> !i.isEmpty() && i.getItem() instanceof SpacetimeEqualizer);
+					if (hasEqualizer) {
 						continue;
+					}
 				}
 
-				entity.addVelocity(dir.x, dir.y, dir.z);
-			}
+				entity.setDeltaMovement(dir.x, dir.y, dir.z);
+
 		}
 	}
 
@@ -257,7 +245,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	public void stopSounds() {
 		if (sound != null) {
 			sound.stopPlaying();
-			FMLClientHandler.instance().getClient().getSoundHandler().stopSound(sound);
+			Minecraft.getInstance().getSoundManager().stop(sound);
 			sound = null;
 		}
 	}
@@ -265,14 +253,12 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	@OnlyIn(Dist.CLIENT)
 	public void playSounds() {
 		if (sound == null) {
-			sound = new GravitationalAnomalySound(MatterOverdriveSounds.windy, SoundCategory.BLOCKS, getBlockPos(), 0.2f,
-					getMaxRange());
-			FMLClientHandler.instance().getClient().getSoundHandler().playSound(sound);
-		} else if (!FMLClientHandler.instance().getClient().getSoundHandler().isSoundPlaying(sound)) {
+			sound = new GravitationalAnomalySound(MatterOverdriveSounds.windy, SoundSource.BLOCKS, getBlockPos(), 0.2f, getMaxRange());
+			Minecraft.getInstance().getSoundManager().play(sound);
+		} else if (!Minecraft.getInstance().getSoundManager().isActive(sound)) {
 			stopSounds();
-			sound = new GravitationalAnomalySound(MatterOverdriveSounds.windy, SoundCategory.BLOCKS, getBlockPos(), 0.2f,
-					getMaxRange());
-			FMLClientHandler.instance().getClient().getSoundHandler().playSound(sound);
+			sound = new GravitationalAnomalySound(MatterOverdriveSounds.windy, SoundSource.BLOCKS, getBlockPos(), 0.2f, getMaxRange());
+			Minecraft.getInstance().getSoundManager().play(sound);
 		}
 	}
 
@@ -335,15 +321,15 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 
 	@Nullable
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
+	public ClientboundBlockEntityDataPacket getUpdatePacket() {
 		CompoundTag syncData = new CompoundTag();
 		writeCustomNBT(syncData, MachineNBTCategory.ALL_OPTS, false);
-		return new SPacketUpdateTileEntity(getBlockPos(), 1, syncData);
+		return new ClientboundBlockEntityDataPacket(getBlockPos(), 1, syncData);
 	}
 
 	@Override
-	public void onDataPacket(Connection net, SPacketUpdateTileEntity pkt) {
-		CompoundTag syncData = pkt.getNbtCompound();
+	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+		CompoundTag syncData = pkt.getTag();
 		if (syncData != null) {
 			readCustomNBT(syncData, MachineNBTCategory.ALL_OPTS);
 		}

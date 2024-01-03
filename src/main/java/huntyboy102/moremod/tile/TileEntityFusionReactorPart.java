@@ -105,7 +105,7 @@ public class TileEntityFusionReactorPart extends MOTileEntityMachineMatter imple
 		super.update();
 		if (getBlockType() instanceof BlockFusionReactorIO) {
 			if (structure != null && fusionReactorController != null) {
-				for (Direction side : Direction.VALUES) {
+				for (Direction side : Direction.values()) {
 					BlockEntity tile = level.getBlockEntity(getBlockPos().offset(side));
 					if (tile == null || (tile instanceof IMultiBlockTile
 							&& structure.containsMultiBlockTile((IMultiBlockTile) tile)))

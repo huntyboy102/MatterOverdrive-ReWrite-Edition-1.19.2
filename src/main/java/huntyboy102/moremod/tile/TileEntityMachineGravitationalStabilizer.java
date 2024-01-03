@@ -12,19 +12,21 @@ import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.MOBlockHelper;
 import huntyboy102.moremod.fx.GravitationalStabilizerBeamParticle;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.util.vector.Vector3f;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.event.TickEvent;
+import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -33,7 +35,7 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 	public static Color color1 = new Color(0xFFFFFF);
 	public static Color color2 = new Color(0xFF0000);
 	public static Color color3 = new Color(0x115A84);
-	RayTraceResult hit;
+	BlockHitResult hit;
 
 	public TileEntityMachineGravitationalStabilizer() {
 		super(4);
@@ -43,9 +45,9 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 	public void update() {
 		super.update();
 
-		if (world.isRemote) {
-			spawnParticles(world);
-			hit = seacrhForAnomalies(world);
+		if (level.isClientSide) {
+			spawnParticles(level);
+			hit = seacrhForAnomalies(level);
 		}
 	}
 
@@ -54,32 +56,38 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 
 	}
 
-	RayTraceResult seacrhForAnomalies(World world) {
-		EnumFacing front = world.getBlockState(getPos()).getValue(MOBlock.PROPERTY_DIRECTION).getOpposite();
+	BlockHitResult seacrhForAnomalies(Level world) {
+		Direction front = world.getBlockState(getBlockPos()).getValue(MOBlock.PROPERTY_DIRECTION);
 		for (int i = 1; i < 64; i++) {
-			IBlockState blockState = world.getBlockState(getPos().offset(front, i));
-			if (blockState.getBlock() instanceof BlockGravitationalAnomaly || blockState.getMaterial().isOpaque()) {
-				return new RayTraceResult(
-						new Vec3d(getPos().offset(front, i)).subtract(Math.abs(front.getDirectionVec().getX() * 0.5),
-								Math.abs(front.getDirectionVec().getY() * 0.5),
-								Math.abs(front.getDirectionVec().getZ() * 0.5)),
-						front.getOpposite(), getPos().offset(front, i));
+			BlockPos offsetPos = getBlockPos().relative(front, i);
+			BlockState blockState = world.getBlockState(offsetPos);
+
+			if (blockState.getBlock() instanceof BlockGravitationalAnomaly || blockState.getMaterial().isSolidBlocking()) {
+				Vec3i offset = new Vec3i(
+						Math.abs(front.getStepX() * 0.5),
+						Math.abs(front.getStepY() * 0.5),
+						Math.abs(front.getStepZ() * 0.5)
+				);
+
+				Vec3 hitPos = new Vec3(offsetPos).subtract(offset.getX(), offset.getY(), offset.getZ());
+
+				return new BlockHitResult(hitPos, front.getOpposite(), offsetPos);
 			}
 		}
 		return null;
 	}
 
-	void manageAnomalies(World world) {
+	void manageAnomalies(Level world) {
 		hit = seacrhForAnomalies(world);
-		if (hit != null && world.getTileEntity(hit.getBlockPos()) instanceof TileEntityGravitationalAnomaly) {
-			((TileEntityGravitationalAnomaly) world.getTileEntity(hit.getBlockPos()))
-					.suppress(new AnomalySuppressor(getPos(), 20, 0.7f));
+		if (hit != null && world.getBlockEntity(hit.getBlockPos()) instanceof TileEntityGravitationalAnomaly) {
+			((TileEntityGravitationalAnomaly) world.getBlockEntity(hit.getBlockPos()))
+					.suppress(new AnomalySuppressor(getBlockPos(), 20, 0.7f));
 		}
 	}
 
 	public float getPercentage() {
 		if (hit != null) {
-			TileEntity tile = world.getTileEntity(hit.getBlockPos());
+			BlockEntity tile = level.getBlockEntity(hit.getBlockPos());
 			if (tile instanceof TileEntityGravitationalAnomaly) {
 				return Math.max(0, Math
 						.min((float) (((TileEntityGravitationalAnomaly) tile).getEventHorizon() - 0.3f) / 2.3f, 1f));
@@ -88,21 +96,21 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 		return -1;
 	}
 
-	@SideOnly(Side.CLIENT)
-	void spawnParticles(World world) {
-		if (hit != null && world.getTileEntity(hit.getBlockPos()) instanceof TileEntityGravitationalAnomaly) {
+	@OnlyIn(Dist.CLIENT)
+	void spawnParticles(Level world) {
+		if (hit != null && world.getBlockEntity(hit.getBlockPos()) instanceof TileEntityGravitationalAnomaly) {
 			if (random.nextFloat() < 0.3f) {
 
 				float r = (float) getParticleColorR();
 				float g = (float) getParticleColorG();
 				float b = (float) getParticleColorB();
-				EnumFacing up = MOBlockHelper.getAboveSide(world.getBlockState(getPos()).getValue(MOBlock.PROPERTY_DIRECTION))
+				Direction up = MOBlockHelper.getAboveSide(world.getBlockState(getBlockPos()).getValue(MOBlock.PROPERTY_DIRECTION))
 						.getOpposite();
 				GravitationalStabilizerBeamParticle particle = new GravitationalStabilizerBeamParticle(world,
-						new Vector3f(getPos().getX() + 0.5f, getPos().getY() + 0.5f, getPos().getZ() + 0.5f),
+						new Vector3f(getBlockPos().getX() + 0.5f, getBlockPos().getY() + 0.5f, getBlockPos().getZ() + 0.5f),
 						new Vector3f(hit.getBlockPos().getX() + 0.5f, hit.getBlockPos().getY() + 0.5f,
 								hit.getBlockPos().getZ() + 0.5f),
-						new Vector3f(up.getXOffset(), up.getYOffset(), up.getZOffset()), 1f, 0.3f, 80);
+						new Vector3f(up.getStepX(), up.getStepY(), up.getStepZ()), 1f, 0.3f, 80);
 				particle.setColor(r, g, b, 1);
 				ClientProxy.renderHandler.getRenderParticlesHandler().addEffect(particle,
 						RenderParticlesHandler.Blending.Additive);
@@ -110,18 +118,18 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public double getMaxRenderDistanceSquared() {
 		return 4086 * 2;
 	}
 
 	@Nonnull
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getRenderBoundingBox() {
-		AxisAlignedBB bb = Block.FULL_BLOCK_AABB.offset(getPos());
+	@OnlyIn(Dist.CLIENT)
+	public AABB getRenderBoundingBox() {
+		AABB bb = Block.FULL_BLOCK_AABB.offset(getBlockPos());
 		if (hit != null) {
-			return bb.expand(hit.getBlockPos().getX() - getPos().getX(), hit.getBlockPos().getY() - getPos().getY(),
-					hit.getBlockPos().getZ() - getPos().getZ());
+			return bb.expand(hit.getBlockPos().getX() - getBlockPos().getX(), hit.getBlockPos().getY() - getBlockPos().getY(),
+					hit.getBlockPos().getZ() - getBlockPos().getZ());
 		}
 		return bb;
 	}
@@ -183,7 +191,7 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 		return getBeamColorB();
 	}
 
-	public RayTraceResult getHit() {
+	public BlockHitResult getHit() {
 		return hit;
 	}
 
@@ -193,7 +201,7 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 	}
 
 	@Override
-	public void onServerTick(TickEvent.Phase phase, World world) {
+	public void onServerTick(TickEvent.Phase phase, Level world) {
 		if (world == null) {
 			return;
 		}
@@ -209,7 +217,7 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 }

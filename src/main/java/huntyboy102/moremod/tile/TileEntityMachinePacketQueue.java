@@ -9,20 +9,20 @@ import huntyboy102.moremod.api.transport.IGridNode;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.matter_network.components.MatterNetworkComponentQueue;
 import huntyboy102.moremod.data.transport.MatterNetwork;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public abstract class TileEntityMachinePacketQueue extends MOTileEntityMachine
 		implements IMatterNetworkClient, IMatterNetworkConnection {
 	public static int BROADCAST_DELAY = 2;
 	public static int TASK_QUEUE_SIZE = 16;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public int flashTime;
 	protected MatterNetworkComponentQueue networkComponent;
 
@@ -39,7 +39,7 @@ public abstract class TileEntityMachinePacketQueue extends MOTileEntityMachine
 	@Override
 	public void update() {
 		super.update();
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			if (flashTime > 0) {
 				flashTime--;
 			}
@@ -47,17 +47,17 @@ public abstract class TileEntityMachinePacketQueue extends MOTileEntityMachine
 	}
 
 	@Override
-	public boolean canConnectFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean canConnectFromSide(BlockState blockState, Direction side) {
 		return true;
 	}
 
 	@Override
-	public boolean establishConnectionFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean establishConnectionFromSide(BlockState blockState, Direction side) {
 		return canConnectFromSide(blockState, side);
 	}
 
 	@Override
-	public void breakConnection(IBlockState blockState, EnumFacing side) {
+	public void breakConnection(BlockState blockState, Direction side) {
 
 	}
 
@@ -90,17 +90,17 @@ public abstract class TileEntityMachinePacketQueue extends MOTileEntityMachine
 	}
 
 	@Override
-	public boolean canConnectToNetworkNode(IBlockState blockState, IGridNode toNode, EnumFacing direction) {
+	public boolean canConnectToNetworkNode(BlockState blockState, IGridNode toNode, Direction direction) {
 		return networkComponent.canConnectToNetworkNode(blockState, toNode, direction);
 	}
 
 	@Override
-	public void onPlaced(World world, EntityLivingBase entityLiving) {
+	public void onPlaced(Level world, LivingEntity entityLiving) {
 
 	}
 
 	@Override
-	protected void onAwake(Side side) {
+	protected void onAwake(Dist side) {
 
 	}
 
@@ -125,7 +125,7 @@ public abstract class TileEntityMachinePacketQueue extends MOTileEntityMachine
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public double getMaxRenderDistanceSquared() {
 		return 1024.0D;
 	}
@@ -137,12 +137,12 @@ public abstract class TileEntityMachinePacketQueue extends MOTileEntityMachine
 
 	@Override
 	public BlockPos getNodePos() {
-		return getPos();
+		return getBlockPos();
 	}
 
 	@Override
-	public World getNodeWorld() {
-		return getWorld();
+	public Level getNodeWorld() {
+		return getLevel();
 	}
 
 	/*

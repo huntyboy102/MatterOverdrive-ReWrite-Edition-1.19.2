@@ -28,6 +28,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.core.Direction;
@@ -93,19 +94,19 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 							entity.setSpawnerPosition(getBlockPos());
 							entity.enablePersistence();
 							addSpawnedAndroid(entity);
-							level.playBroadcastSound(2004, getBlockPos(), 0);
+							level.playSound(2004, getBlockPos(), 0);
 							PlayerTeam team = getTeam();
 							if (team != null) {
 								entity.setTeam(team);
-								if (customInventory.getStackInSlot(COLOR_MODULE_SLOT) != null && customInventory
-										.getStackInSlot(COLOR_MODULE_SLOT).getItem() instanceof IWeaponColor) {
+								ItemStack colorModuleStack = customInventory.getStackInSlot(COLOR_MODULE_SLOT);
+								if (colorModuleStack != null && colorModuleStack .getItem() instanceof IWeaponColor) {
 									entity.setVisorColor(
-											((IWeaponColor) customInventory.getStackInSlot(COLOR_MODULE_SLOT).getItem())
-													.getColor(customInventory.getStackInSlot(COLOR_MODULE_SLOT), null));
+											((IWeaponColor) colorModuleStack.getItem())
+													.getColor(colorModuleStack, null));
 									if (entity.getHeldItem(InteractionHand.MAIN_HAND) != null) {
 										WeaponHelper.setModuleAtSlot(Reference.MODULE_COLOR,
 												entity.getHeldItem(InteractionHand.MAIN_HAND),
-												customInventory.getStackInSlot(COLOR_MODULE_SLOT));
+												colorModuleStack);
 									}
 								}
 							}
@@ -226,12 +227,10 @@ public class TileEntityAndroidSpawner extends MOTileEntityMachine {
 	@Override
 	protected void onAwake(Dist side) {
 		if (side == Dist.DEDICATED_SERVER) {
-			for (Entity entity : level.loadedEntityList) {
-				if (entity instanceof EntityRougeAndroidMob) {
-					if (((EntityRougeAndroidMob) entity).wasSpawnedFrom(this)) {
-						addSpawnedAndroid((EntityRougeAndroidMob) entity);
-						assignPath((EntityRougeAndroidMob) entity);
-					}
+			for (Entity entity : level.getEntitiesOfClass(EntityRougeAndroidMob.class, new AABB(getBlockPos()))) {
+				if (((EntityRougeAndroidMob) entity).wasSpawnedFrom(this)) {
+					addSpawnedAndroid((EntityRougeAndroidMob) entity);
+					assignPath((EntityRougeAndroidMob) entity);
 				}
 			}
 		}

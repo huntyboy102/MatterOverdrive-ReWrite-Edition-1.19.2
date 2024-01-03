@@ -8,16 +8,16 @@ import huntyboy102.moremod.init.MatterOverdriveQuests;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.RemoveOnlySlot;
 import huntyboy102.moremod.data.inventory.SlotContract;
 import huntyboy102.moremod.data.quest.WeightedRandomQuest;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.WeightedRandom;
+import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
 
 import java.util.EnumSet;
 
@@ -45,7 +45,7 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 	@Override
 	public void update() {
 		super.update();
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			manageContractGeneration();
 		}
 	}
@@ -59,12 +59,12 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 	private void generateContract() {
 		Quest quest = ((WeightedRandomQuest) WeightedRandom.getRandomItem(random,
 				MatterOverdriveQuests.contractGeneration)).getQuest();
-		QuestStack questStack = MatterOverdrive.QUEST_FACTORY.generateQuestStack(random, quest);
+		QuestStack questStack = MatterOverdriveRewriteEdition.QUEST_FACTORY.generateQuestStack(random, quest);
 		for (int i = 0; i < customInventory.getSizeInventory(); i++) {
 			if (customInventory.getSlot(i).getItem() != null) {
 				ItemStack itemStack = customInventory.getSlot(i).getItem();
-				if (itemStack.getTagCompound() != null) {
-					QuestStack qs = QuestStack.loadFromNBT(itemStack.getTagCompound());
+				if (itemStack.getTag() != null) {
+					QuestStack qs = QuestStack.loadFromNBT(itemStack.getTag());
 					if (questStack.getQuest().areQuestStacksEqual(questStack, qs)) {
 						return;
 					}
@@ -79,12 +79,12 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 
 	public void addGenerationDelay() {
 		int freeSlots = getFreeSlots();
-		lastGenerationTime = world.getTotalWorldTime() + QUEST_GENERATE_DELAY_MIN
+		lastGenerationTime = level.getGameTime() + QUEST_GENERATE_DELAY_MIN
 				+ (customInventory.getSizeInventory() - freeSlots) * QUEST_GENERATE_DELAY_PER_SLOT;
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			lastGenerationTime = nbt.getLong("LastGenerationTime");
@@ -92,10 +92,10 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setLong("LastGenerationTime", lastGenerationTime);
+			nbt.putLong("LastGenerationTime", lastGenerationTime);
 		}
 	}
 
@@ -110,7 +110,7 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 	}
 
 	public int getTimeUntilNextQuest() {
-		return Math.max(0, (int) (lastGenerationTime - world.getTotalWorldTime()));
+		return Math.max(0, (int) (lastGenerationTime - level.getGameTime()));
 	}
 
 	@Override
@@ -144,7 +144,7 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 }

@@ -103,7 +103,7 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 	}
 
 	public float getTime() {
-		float celestialAngle = level.getCelestialAngle(1.0F);
+		float celestialAngle = level.getSunAngle(1.0F);
 		float celestialAngleRadians = (float) Math.toRadians(celestialAngle);
 
 		if (celestialAngleRadians < (float) Math.PI) {
