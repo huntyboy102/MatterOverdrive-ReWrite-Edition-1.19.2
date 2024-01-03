@@ -2,7 +2,7 @@
 package huntyboy102.moremod.machines.components;
 
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.MachineComponentAbstract;
 import huntyboy102.moremod.machines.MachineNBTCategory;
@@ -42,7 +42,7 @@ public class ComponentConfigs extends MachineComponentAbstract<MOTileEntityMachi
 	}
 
 	@Override
-	public void registerSlots(Inventory inventory) {
+	public void registerSlots(CustomInventory customInventory) {
 
 	}
 

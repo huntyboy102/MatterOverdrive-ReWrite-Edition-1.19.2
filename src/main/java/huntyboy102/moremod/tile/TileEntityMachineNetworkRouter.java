@@ -2,7 +2,7 @@
 package huntyboy102.moremod.tile;
 
 import huntyboy102.moremod.machines.events.MachineEvent;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.core.Direction;
 
 public class TileEntityMachineNetworkRouter extends TileEntityMachinePacketQueue {
 
@@ -17,7 +17,7 @@ public class TileEntityMachineNetworkRouter extends TileEntityMachinePacketQueue
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 }

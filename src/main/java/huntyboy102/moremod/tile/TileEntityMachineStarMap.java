@@ -11,16 +11,17 @@ import huntyboy102.moremod.starmap.data.Planet;
 import huntyboy102.moremod.starmap.data.Quadrant;
 import huntyboy102.moremod.starmap.data.SpaceBody;
 import huntyboy102.moremod.starmap.data.Star;
-import huntyboy102.moremod.data.Inventory;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import huntyboy102.moremod.data.CustomInventory;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.phys.AABB;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.EnumSet;
 
@@ -46,8 +47,8 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		super.RegisterSlots(inventory);
+	protected void RegisterSlots(CustomInventory customInventory) {
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override
@@ -73,32 +74,32 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 	@Override
 	public void markDirty() {
 		super.markDirty();
-		if (getInventory() != inventory) {
+		if (getInventory() != customInventory) {
 			getInventory().markDirty();
 		}
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setByte("ZoomLevel", (byte) zoomLevel);
-			NBTTagCompound positionTag = new NBTTagCompound();
-			NBTTagCompound destinationTag = new NBTTagCompound();
+			nbt.putByte("ZoomLevel", (byte) zoomLevel);
+			CompoundTag positionTag = new CompoundTag();
+			CompoundTag destinationTag = new CompoundTag();
 			position.writeToNBT(positionTag);
 			destination.writeToNBT(destinationTag);
-			nbt.setTag("GalacticPosition", positionTag);
-			nbt.setTag("GalacticDestination", destinationTag);
+			nbt.put("GalacticPosition", positionTag);
+			nbt.put("GalacticDestination", destinationTag);
 		}
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			zoomLevel = nbt.getByte("ZoomLevel");
-			GalacticPosition newPosition = new GalacticPosition(nbt.getCompoundTag("GalacticPosition"));
-			GalacticPosition newDestination = new GalacticPosition(nbt.getCompoundTag("GalacticDestination"));
+			GalacticPosition newPosition = new GalacticPosition(nbt.getCompound("GalacticPosition"));
+			GalacticPosition newDestination = new GalacticPosition(nbt.getCompound("GalacticDestination"));
 			position = newPosition;
 			destination = newDestination;
 		}
@@ -122,23 +123,23 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getRenderBoundingBox() {
-		return new AxisAlignedBB(getPos().getX() - 3, getPos().getY(), getPos().getZ() - 3, getPos().getX() + 3,
-				getPos().getY() + 5, getPos().getZ() + 3);
+	@OnlyIn(Dist.CLIENT)
+	public AABB getRenderBoundingBox() {
+		return new AABB(getBlockPos().getX() - 3, getBlockPos().getY(), getBlockPos().getZ() - 3,
+				getBlockPos().getX() + 3, getBlockPos().getY() + 5, getBlockPos().getZ() + 3);
 	}
 
 	@Override
-	public IInventory getInventory() {
+	public Inventory getInventory() {
 		if (getPlanet() != null) {
 			return getPlanet();
 		} else {
-			return inventory;
+			return customInventory;
 		}
 	}
 
 	public Planet getPlanet() {
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			return GalaxyClient.getInstance().getPlanet(destination);
 		} else {
 			return GalaxyServer.getInstance().getPlanet(destination);
@@ -146,7 +147,7 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 	}
 
 	public Star getStar() {
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			return GalaxyClient.getInstance().getStar(destination);
 		} else {
 			return GalaxyServer.getInstance().getStar(destination);
@@ -154,7 +155,7 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 	}
 
 	public Quadrant getQuadrant() {
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			return GalaxyClient.getInstance().getQuadrant(destination);
 		} else {
 			return GalaxyServer.getInstance().getQuadrant(destination);
@@ -173,21 +174,21 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 	protected void onMachineEvent(MachineEvent event) {
 		if (event instanceof MachineEvent.Placed) {
 			MachineEvent.Placed placed = (MachineEvent.Placed) event;
-			if (placed.entityLiving instanceof EntityPlayer) {
+			if (placed.entityLiving instanceof Player) {
 				if (placed.world.isRemote) {
-					Planet homeworld = GalaxyClient.getInstance().getHomeworld((EntityPlayer) placed.entityLiving);
+					Planet homeworld = GalaxyClient.getInstance().getHomeworld((Player) placed.entityLiving);
 					if (homeworld != null) {
 						position = new GalacticPosition(homeworld);
 					}
 				} else {
-					Planet homeworld = GalaxyServer.getInstance().getHomeworld((EntityPlayer) placed.entityLiving);
+					Planet homeworld = GalaxyServer.getInstance().getHomeworld((Player) placed.entityLiving);
 					if (homeworld != null) {
 						position = new GalacticPosition(homeworld);
 					}
 				}
 
 				destination = new GalacticPosition(position);
-				owner = ((EntityPlayer) placed.entityLiving).getGameProfile().getId();
+				owner = ((Player) placed.entityLiving).getGameProfile().getId();
 			}
 		}
 	}
@@ -221,22 +222,22 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 		}
 	}
 
-	public boolean isItemValidForSlot(int slot, ItemStack item, EntityPlayer player) {
+	public boolean isItemValidForSlot(int slot, ItemStack item, Player player) {
 		return (getPlanet() == null || getPlanet().isOwner(player)) && getInventory().isItemValidForSlot(slot, item);
 	}
 
-	public void onItemPickup(EntityPlayer player, ItemStack itemStack) {
-		if (!world.isRemote) {
+	public void onItemPickup(Player player, ItemStack itemStack) {
+		if (!level.isClientSide) {
 		}
 	}
 
 	public void onItemPlaced(ItemStack itemStack) {
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 		}
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 

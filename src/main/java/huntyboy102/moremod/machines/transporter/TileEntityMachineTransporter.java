@@ -7,7 +7,7 @@ import huntyboy102.moremod.api.events.MOEventTransport;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.transport.ITransportList;
 import huntyboy102.moremod.api.transport.TransportLocation;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.TeleportFlashDriveSlot;
 import huntyboy102.moremod.fx.ReplicatorParticle;
 import huntyboy102.moremod.init.MatterOverdriveCapabilities;
@@ -87,9 +87,9 @@ public class TileEntityMachineTransporter extends MOTileEntityMachineMatter impl
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		super.RegisterSlots(inventory);
-		usbSlotID = inventory.AddSlot(new TeleportFlashDriveSlot(true));
+	protected void RegisterSlots(CustomInventory customInventory) {
+		super.RegisterSlots(customInventory);
+		usbSlotID = customInventory.AddSlot(new TeleportFlashDriveSlot(true));
 	}
 
 	@Override

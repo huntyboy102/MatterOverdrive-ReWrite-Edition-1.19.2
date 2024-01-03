@@ -1,10 +1,10 @@
 
 package huntyboy102.moremod.blocks.includes;
 
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.api.IMOTileEntity;
 import huntyboy102.moremod.api.wrench.IDismantleable;
-import huntyboy102.moremod.data.Inventory;
 import huntyboy102.moremod.data.inventory.Slot;
 import huntyboy102.moremod.handler.ConfigurationHandler;
 import huntyboy102.moremod.util.*;
@@ -66,9 +66,9 @@ public abstract class MOBlockMachine<TE extends BlockEntity> extends MOBlockCont
 	@Override
 	public void breakBlock(LevelAccessor worldIn, BlockPos pos, BlockState state) {
 		// drops inventory
-		Inventory inventory = getInventory(worldIn, pos);
-		if (inventory != null) {
-			MatterHelper.DropInventory(worldIn, inventory, pos);
+		CustomInventory customInventory = getInventory(worldIn, pos);
+		if (customInventory != null) {
+			MatterHelper.DropInventory(worldIn, customInventory, pos);
 		}
 
 		super.breakBlock(worldIn, pos, state);
@@ -119,14 +119,14 @@ public abstract class MOBlockMachine<TE extends BlockEntity> extends MOBlockCont
 	public ArrayList<ItemStack> dismantleBlock(Player player, LevelAccessor world, BlockPos pos, boolean returnDrops) {
 		ArrayList<ItemStack> items = new ArrayList<>();
 		ItemStack blockItem = getNBTDrop(world, pos, (IMOTileEntity) world.getBlockEntity(pos));
-		Inventory inventory = getInventory(world, pos);
+		CustomInventory customInventory = getInventory(world, pos);
 		items.add(blockItem);
 
 		// remove any items from the machine inventory so that breakBlock doesn't
 		// duplicate the items
-		if (inventory != null) {
-			for (int i1 = 0; i1 < inventory.getSizeInventory(); ++i1) {
-				Slot slot = inventory.getSlot(i1);
+		if (customInventory != null) {
+			for (int i1 = 0; i1 < customInventory.getSizeInventory(); ++i1) {
+				Slot slot = customInventory.getSlot(i1);
 				ItemStack itemstack = slot.getItem();
 
 				if (!itemstack.isEmpty()) {
@@ -154,7 +154,7 @@ public abstract class MOBlockMachine<TE extends BlockEntity> extends MOBlockCont
 		return items;
 	}
 
-	protected Inventory getInventory(LevelAccessor world, BlockPos pos) {
+	protected CustomInventory getInventory(LevelAccessor world, BlockPos pos) {
 		if (world.getTileEntity(pos) instanceof MOTileEntityMachine) {
 			MOTileEntityMachine machine = (MOTileEntityMachine) world.getTileEntity(pos);
 			return machine.getInventoryContainer();

@@ -11,10 +11,15 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import huntyboy102.moremod.data.CustomInventory;
+import huntyboy102.moremod.data.TileEntityCustomInventory;
 import huntyboy102.moremod.items.SecurityProtocol;
 import huntyboy102.moremod.machines.components.ComponentConfigs;
 import huntyboy102.moremod.machines.configs.ConfigPropertyStringList;
 import huntyboy102.moremod.machines.events.MachineEvent;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.Level;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
@@ -31,8 +36,6 @@ import huntyboy102.moremod.api.machines.IUpgradeHandler;
 import huntyboy102.moremod.blocks.includes.MOBlock;
 import huntyboy102.moremod.blocks.includes.MOBlockMachine;
 import huntyboy102.moremod.client.sound.MachineSound;
-import huntyboy102.moremod.data.Inventory;
-import huntyboy102.moremod.data.TileEntityInventory;
 import huntyboy102.moremod.data.inventory.UpgradeSlot;
 import huntyboy102.moremod.fx.VentParticle;
 import huntyboy102.moremod.network.packet.server.PacketSendMachineNBT;
@@ -83,7 +86,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			.addUpgradeMinimum(UpgradeTypes.Speed, 0.1);
 
 	protected final List<IMachineWatcher> watchers;
-	protected final Inventory inventory;
+	protected final CustomInventory customInventory;
 	protected final IItemHandler inventoryHandler;
 	protected final IItemHandler[] sidedWrappers = new IItemHandler[EnumFacing.VALUES.length];
 	protected final List<IMachineComponent> components;
@@ -104,18 +107,18 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	public MOTileEntityMachine(int upgradeCount) {
 		components = new ArrayList<>();
 		upgrade_slots = new int[upgradeCount];
-		inventory = new TileEntityInventory(this, "");
+		customInventory = new TileEntityCustomInventory(this, "");
 		for (EnumFacing facing : EnumFacing.VALUES)
 			sidedWrappers[facing.ordinal()] = new SidedInvWrapper(this, facing);
 		inventoryHandler = new InvWrapper(this);
 		registerComponents();
-		RegisterSlots(inventory);
+		RegisterSlots(customInventory);
 		watchers = new ArrayList<>();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return inventory.isEmpty();
+		return customInventory.isEmpty();
 	}
 
 	@Override
@@ -160,12 +163,12 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		});
 	}
 
-	protected void RegisterSlots(Inventory inventory) {
+	protected void RegisterSlots(CustomInventory customInventory) {
 		for (int i = 0; i < upgrade_slots.length; i++) {
-			upgrade_slots[i] = inventory.AddSlot(new UpgradeSlot(false, this));
+			upgrade_slots[i] = customInventory.AddSlot(new UpgradeSlot(false, this));
 		}
 		for (IMachineComponent component : components) {
-			component.registerSlots(inventory);
+			component.registerSlots(customInventory);
 		}
 	}
 
@@ -178,6 +181,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 				0));
 		addComponent(configs);
 	}
+
+	protected abstract void RegisterSlots(net.minecraft.world.entity.player.Inventory inventory);
 
 	public abstract SoundEvent getSound();
 
@@ -261,7 +266,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			}
 		}
 		if (categories.contains(MachineNBTCategory.INVENTORY)) {
-			inventory.readFromNBT(nbt);
+			customInventory.readFromNBT(nbt);
 		}
 		for (IMachineComponent component : components) {
 			component.readFromNBT(nbt, categories);
@@ -282,7 +287,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			}
 		}
 		if (categories.contains(MachineNBTCategory.INVENTORY)) {
-			inventory.writeToNBT(nbt, toDisk);
+			customInventory.writeToNBT(nbt, toDisk);
 		}
 		for (IMachineComponent component : components) {
 			component.writeToNBT(nbt, categories, toDisk);
@@ -300,7 +305,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		NBTTagCompound machineTag = new NBTTagCompound();
 		NBTTagList itemTagList = new NBTTagList();
 		for (int i = 0; i < getSizeInventory(); ++i) {
-			if (inventory.getSlot(i).keepOnDismantle() && inventory.getStackInSlot(i) != null) {
+			if (customInventory.getSlot(i).keepOnDismantle() && customInventory.getStackInSlot(i) != null) {
 				NBTTagCompound itemTag = new NBTTagCompound();
 				itemTag.setByte("Slot", (byte) i);
 				getStackInSlot(i).writeToNBT(itemTag);
@@ -328,7 +333,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			for (int i = 0; i < itemTagList.tagCount(); ++i) {
 				NBTTagCompound itemTag = itemTagList.getCompoundTagAt(i);
 				byte b0 = itemTag.getByte("Slot");
-				inventory.setInventorySlotContents(b0, new ItemStack(itemTag));
+				customInventory.setInventorySlotContents(b0, new ItemStack(itemTag));
 			}
 			readCustomNBT(machineTag, EnumSet.of(MachineNBTCategory.CONFIGS, MachineNBTCategory.DATA));
 			if (machineTag.hasKey("Owner", 8)) {
@@ -393,6 +398,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			manageSound();
 		}
 	}
+
+	public abstract boolean isUsableByPlayer(Player player);
 
 	protected abstract void onMachineEvent(MachineEvent event);
 
@@ -484,6 +491,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		}
 	}
 
+	public abstract boolean shouldRenderInPass(int pass);
+
 	@Override
 	@Nonnull
 	public ItemStack getStackInSlot(int slot) {
@@ -539,6 +548,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		}
 	}
 
+	public abstract void setInventorySlotContents(int slot, ItemStack itemStack);
+
 	@Override
 	public boolean isUsableByPlayer(EntityPlayer player) {
 		if (hasOwner()) {
@@ -577,11 +588,11 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	public IInventory getInventory() {
-		return inventory;
+		return customInventory;
 	}
 
-	public Inventory getInventoryContainer() {
-		return inventory;
+	public CustomInventory getInventoryContainer() {
+		return customInventory;
 	}
 
 	@Override
@@ -619,9 +630,9 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 
 		// check to see if the machine is affected by this type of Update
 		if (isAffectedByUpgrade(type)) {
-			for (int i = 0; i < inventory.getSizeInventory(); i++) {
-				if (inventory.getSlot(i) instanceof UpgradeSlot) {
-					ItemStack upgradeItem = inventory.getStackInSlot(i);
+			for (int i = 0; i < customInventory.getSizeInventory(); i++) {
+				if (customInventory.getSlot(i) instanceof UpgradeSlot) {
+					ItemStack upgradeItem = customInventory.getStackInSlot(i);
 					if (!upgradeItem.isEmpty() && MatterHelper.isUpgrade(upgradeItem)) {
 						Map<UpgradeTypes, Double> upgrades = ((IUpgrade) upgradeItem.getItem())
 								.getUpgrades(upgradeItem);
@@ -815,4 +826,6 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		}
 		return super.getCapability(capability, facing);
 	}
+
+    public abstract int[] getSlotsForFace(Direction side);
 }

@@ -2,7 +2,7 @@
 package huntyboy102.moremod.container;
 
 import huntyboy102.moremod.container.slot.SlotInventory;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.Slot;
 import huntyboy102.moremod.data.inventory.UpgradeSlot;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
@@ -82,25 +82,25 @@ public class ContainerMachine<T extends MOTileEntityMachine> extends MOBaseConta
 		return true;
 	}
 
-	public void addUpgradeSlots(Inventory inventory) {
-		addUpgradeSlots(inventory, 0, 0);
+	public void addUpgradeSlots(CustomInventory customInventory) {
+		addUpgradeSlots(customInventory, 0, 0);
 	}
 
-	public void addUpgradeSlots(Inventory inventory, int x, int y) {
+	public void addUpgradeSlots(CustomInventory customInventory, int x, int y) {
 		int upgradeSlotIndex = 0;
 
-		for (int i = 0; i < inventory.getSizeInventory(); i++) {
-			if (inventory.getSlot(i) instanceof UpgradeSlot) {
-				addSlotToContainer(new SlotInventory(inventory, inventory.getSlot(i), x + (upgradeSlotIndex % 5) * 24,
+		for (int i = 0; i < customInventory.getSizeInventory(); i++) {
+			if (customInventory.getSlot(i) instanceof UpgradeSlot) {
+				addSlotToContainer(new SlotInventory(customInventory, customInventory.getSlot(i), x + (upgradeSlotIndex % 5) * 24,
 						y + (upgradeSlotIndex / 5) * 24));
 				upgradeSlotIndex++;
 			}
 		}
 	}
 
-	public void addAllSlotsFromInventory(Inventory inventory) {
-		for (Slot slot : inventory.getSlots()) {
-			addSlotToContainer(new SlotInventory(inventory, inventory.getSlot(slot.getId()), 0, 0));
+	public void addAllSlotsFromInventory(CustomInventory customInventory) {
+		for (Slot slot : customInventory.getSlots()) {
+			addSlotToContainer(new SlotInventory(customInventory, customInventory.getSlot(slot.getId()), 0, 0));
 		}
 	}
 

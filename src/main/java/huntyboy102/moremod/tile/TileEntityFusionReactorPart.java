@@ -9,10 +9,10 @@ import huntyboy102.moremod.machines.fusionReactorController.TileEntityMachineFus
 import huntyboy102.moremod.multiblock.IMultiBlockTile;
 import huntyboy102.moremod.multiblock.IMultiBlockTileStructure;
 import huntyboy102.moremod.multiblock.MultiBlockTileStructureMachine;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -91,12 +91,12 @@ public class TileEntityFusionReactorPart extends MOTileEntityMachineMatter imple
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 
 	}
 
@@ -105,8 +105,8 @@ public class TileEntityFusionReactorPart extends MOTileEntityMachineMatter imple
 		super.update();
 		if (getBlockType() instanceof BlockFusionReactorIO) {
 			if (structure != null && fusionReactorController != null) {
-				for (EnumFacing side : EnumFacing.VALUES) {
-					TileEntity tile = world.getTileEntity(getPos().offset(side));
+				for (Direction side : Direction.values()) {
+					BlockEntity tile = level.getBlockEntity(getBlockPos().offset(side));
 					if (tile == null || (tile instanceof IMultiBlockTile
 							&& structure.containsMultiBlockTile((IMultiBlockTile) tile)))
 						continue;
@@ -123,7 +123,7 @@ public class TileEntityFusionReactorPart extends MOTileEntityMachineMatter imple
 	}
 
 	@Override
-	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
+	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable Direction facing) {
 		if (capability == CapabilityEnergy.ENERGY)
 			return fusionReactorController != null;
 		return super.hasCapability(capability, facing);
@@ -131,14 +131,14 @@ public class TileEntityFusionReactorPart extends MOTileEntityMachineMatter imple
 
 	@Nonnull
 	@Override
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
+	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
 		if (fusionReactorController != null && capability == CapabilityEnergy.ENERGY)
 			return (T) fusionReactorController.energyStorage;
 		return super.getCapability(capability, facing);
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 }

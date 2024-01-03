@@ -7,7 +7,7 @@ import huntyboy102.moremod.api.matter_network.IMatterNetworkClient;
 import huntyboy102.moremod.api.matter_network.IMatterNetworkConnection;
 import huntyboy102.moremod.api.network.IMatterNetworkDispatcher;
 import huntyboy102.moremod.api.transport.IGridNode;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.MatterSlot;
 import huntyboy102.moremod.data.transport.MatterNetwork;
 import huntyboy102.moremod.init.MatterOverdriveSounds;
@@ -56,9 +56,9 @@ public class TileEntityMachineMatterAnalyzer extends MOTileEntityMachineEnergy
 	}
 
 	@Override
-	public void RegisterSlots(Inventory inventory) {
-		input_slot = inventory.AddSlot(new MatterSlot(true));
-		super.RegisterSlots(inventory);
+	public void RegisterSlots(CustomInventory customInventory) {
+		input_slot = customInventory.AddSlot(new MatterSlot(true));
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override

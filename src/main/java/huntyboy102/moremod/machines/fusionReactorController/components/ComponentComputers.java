@@ -2,7 +2,7 @@
 package huntyboy102.moremod.machines.fusionReactorController.components;
 
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.init.MatterOverdriveCapabilities;
 import huntyboy102.moremod.machines.MachineComponentAbstract;
 import huntyboy102.moremod.machines.MachineNBTCategory;
@@ -140,7 +140,7 @@ public class ComponentComputers extends MachineComponentAbstract<TileEntityMachi
 	}
 
 	@Override
-	public void registerSlots(Inventory inventory) {
+	public void registerSlots(CustomInventory customInventory) {
 
 	}
 

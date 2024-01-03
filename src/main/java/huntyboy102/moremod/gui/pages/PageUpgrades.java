@@ -1,6 +1,7 @@
 
 package huntyboy102.moremod.gui.pages;
 
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.gui.element.ElementBaseGroup;
 import huntyboy102.moremod.gui.element.ElementInventorySlot;
 import huntyboy102.moremod.api.inventory.IUpgrade;
@@ -9,7 +10,6 @@ import huntyboy102.moremod.api.machines.IUpgradeHandler;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.container.slot.MOSlot;
 import huntyboy102.moremod.container.slot.SlotInventory;
-import huntyboy102.moremod.data.Inventory;
 import huntyboy102.moremod.data.inventory.UpgradeSlot;
 import huntyboy102.moremod.gui.MOGuiMachine;
 import huntyboy102.moremod.util.MOStringHelper;
@@ -99,7 +99,7 @@ public class PageUpgrades extends ElementBaseGroup {
 		RenderUtils.DrawMultilineInfo(infos, 76, 78, 100, 300, new Color(255, 255, 255).getColor());
 	}
 
-	public void AddUpgradeSlots(Container container, Inventory inventory) {
+	public void AddUpgradeSlots(Container container, CustomInventory customInventory) {
 		int upgradeSlotIndex = 0;
 		int upgradeCount = 0;
 		for (int i = 0; i < container.inventorySlots.size(); i++) {
@@ -113,7 +113,7 @@ public class PageUpgrades extends ElementBaseGroup {
 					&& ((SlotInventory) container.getSlot(i)).getSlot() instanceof UpgradeSlot) {
 				ElementInventorySlot slotElement = new ElementInventorySlot(gui,
 						(MOSlot) container.inventorySlots.get(i), 22, 22, "big");
-				slotElement.setIcon(inventory.getSlot(container.inventorySlots.get(i).getSlotIndex()).getHoloIcon());
+				slotElement.setIcon(customInventory.getSlot(container.inventorySlots.get(i).getSlotIndex()).getHoloIcon());
 				int xStart = 12 + sizeX / 2 - MathHelper.clamp(upgradeCount * 24, 0, 5 * 24) / 2;
 				slotElement.setPosition(xStart + (upgradeSlotIndex % 5) * 24, 52 + (upgradeSlotIndex / 5) * 24);
 				this.addElement(slotElement);

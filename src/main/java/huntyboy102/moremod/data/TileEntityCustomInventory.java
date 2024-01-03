@@ -8,19 +8,19 @@ import net.minecraft.tileentity.TileEntity;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class TileEntityInventory extends Inventory {
+public class TileEntityCustomInventory extends CustomInventory {
 	final TileEntity entity;
 
-	public TileEntityInventory(TileEntity entity, String name) {
+	public TileEntityCustomInventory(TileEntity entity, String name) {
 		this(entity, name, new ArrayList<>());
 	}
 
-	public TileEntityInventory(TileEntity entity, String name, Collection<Slot> slots) {
+	public TileEntityCustomInventory(TileEntity entity, String name, Collection<Slot> slots) {
 		this(entity, name, slots, null);
 	}
 
-	public TileEntityInventory(TileEntity entity, String name, Collection<Slot> slots,
-			IUsableCondition usableCondition) {
+	public TileEntityCustomInventory(TileEntity entity, String name, Collection<Slot> slots,
+									 IUsableCondition usableCondition) {
 		super(name, slots, usableCondition);
 		this.entity = entity;
 	}

@@ -337,8 +337,8 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 
 	@Override
 	public boolean isCharging() {
-		return !this.inventory.getStackInSlot(energySlotID).isEmpty()
-				&& MOEnergyHelper.isEnergyContainerItem(this.inventory.getStackInSlot(energySlotID));
+		return !this.customInventory.getStackInSlot(energySlotID).isEmpty()
+				&& MOEnergyHelper.isEnergyContainerItem(this.customInventory.getStackInSlot(energySlotID));
 	}
 
 	@Override
@@ -346,7 +346,7 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 		if (isCharging()) {
 			if (!this.world.isRemote) {
 				int maxExtracted = Math.min((int) energyStorage.getOutputRate(), energyStorage.getEnergyStored());
-				int extracted = MOEnergyHelper.insertEnergyIntoContainer(this.inventory.getStackInSlot(energySlotID),
+				int extracted = MOEnergyHelper.insertEnergyIntoContainer(this.customInventory.getStackInSlot(energySlotID),
 						maxExtracted, false);
 				energyStorage.modifyEnergyStored(extracted);
 			}

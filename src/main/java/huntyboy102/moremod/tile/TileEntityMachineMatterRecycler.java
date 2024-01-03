@@ -8,16 +8,16 @@ import huntyboy102.moremod.blocks.BlockMatterRecycler;
 import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.RemoveOnlySlot;
 import huntyboy102.moremod.data.inventory.SlotRecycler;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 
@@ -41,10 +41,10 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
-		INPUT_SLOT_ID = inventory.AddSlot(new SlotRecycler(true));
-		OUTPUT_SLOT_ID = inventory.AddSlot(new RemoveOnlySlot(false));
-		super.RegisterSlots(inventory);
+	protected void RegisterSlots(CustomInventory customInventory) {
+		INPUT_SLOT_ID = customInventory.AddSlot(new SlotRecycler(true));
+		OUTPUT_SLOT_ID = customInventory.AddSlot(new RemoveOnlySlot(false));
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			this.recycleTime = nbt.getShort("RecycleTime");
@@ -66,20 +66,20 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+	public boolean shouldRefresh(Level world, BlockPos pos, BlockState oldState, BlockState newState) {
 		return (oldState.getBlock() != newState.getBlock());
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setShort("RecycleTime", (short) this.recycleTime);
+			nbt.putShort("RecycleTime", (short) this.recycleTime);
 		}
 	}
 
 	public void manageRecycle() {
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			if (this.isRecycling()) {
 				if (this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick()) {
 					this.recycleTime++;
@@ -92,7 +92,7 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 				}
 			}
 
-			BlockMatterRecycler.setState(isRecycling(), getWorld(), this.getPos());
+			BlockMatterRecycler.setState(isRecycling(), getLevel(), this.getBlockPos());
 
 			this.markDirty();
 		}
@@ -192,17 +192,17 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[] { INPUT_SLOT_ID, OUTPUT_SLOT_ID };
 	}
 
 	@Override
-	public boolean canInsertItem(int slot, ItemStack item, EnumFacing side) {
+	public boolean canInsertItem(int slot, ItemStack item, Direction side) {
 		return slot != OUTPUT_SLOT_ID && super.canInsertItem(slot, item, side);
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack item, EnumFacing side) {
+	public boolean canExtractItem(int slot, ItemStack item, Direction side) {
 		return slot == OUTPUT_SLOT_ID;
 	}
 

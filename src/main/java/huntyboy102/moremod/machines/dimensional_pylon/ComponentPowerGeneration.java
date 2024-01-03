@@ -7,7 +7,7 @@ import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.matter.IMatterHandler;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.client.render.RenderParticlesHandler;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.fx.Lightning;
 import huntyboy102.moremod.init.MatterOverdriveCapabilities;
 import huntyboy102.moremod.init.MatterOverdriveSounds;
@@ -65,7 +65,7 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 	}
 
 	@Override
-	public void registerSlots(Inventory inventory) {
+	public void registerSlots(CustomInventory customInventory) {
 
 	}
 

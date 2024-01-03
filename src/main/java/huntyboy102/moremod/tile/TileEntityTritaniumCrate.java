@@ -3,35 +3,32 @@ package huntyboy102.moremod.tile;
 
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.util.MOStringHelper;
-import huntyboy102.moremod.data.TileEntityInventory;
+import huntyboy102.moremod.data.TileEntityCustomInventory;
 import huntyboy102.moremod.data.inventory.CrateSlot;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.ContainerChest;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.IInteractionObject;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.world.Clearable;
+import net.minecraft.world.Nameable;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
 
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
 
-public class TileEntityTritaniumCrate extends MOTileEntity implements IInventory, IInteractionObject {
-	final TileEntityInventory inventory;
+public class TileEntityTritaniumCrate extends MOTileEntity implements Container, Nameable, Clearable {
+	final TileEntityCustomInventory inventory;
 
 	public TileEntityTritaniumCrate() {
-		inventory = new TileEntityInventory(this, MOStringHelper.translateToLocal("container.tritanium_crate"));
+		inventory = new TileEntityCustomInventory(this, MOStringHelper.translateToLocal("container.tritanium_crate"));
 
 		for (int i = 0; i < 54; i++) {
 			CrateSlot slot = new CrateSlot(false);
@@ -49,67 +46,67 @@ public class TileEntityTritaniumCrate extends MOTileEntity implements IInventory
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		if (categories.contains(MachineNBTCategory.INVENTORY) && toDisk) {
 			inventory.writeToNBT(nbt, true);
 		}
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		if (categories.contains(MachineNBTCategory.INVENTORY)) {
 			inventory.readFromNBT(nbt);
 		}
 	}
 
 	@Override
-	protected void onAwake(Side side) {
+	protected void onAwake(Dist side) {
 
 	}
 
 	@Override
-	public void onAdded(World world, BlockPos pos, IBlockState state) {
+	public void onAdded(Level world, BlockPos pos, BlockState state) {
 
 	}
 
 	@Override
-	public void onPlaced(World world, EntityLivingBase entityLiving) {
+	public void onPlaced(Level world, LivingEntity entityLiving) {
 
 	}
 
 	@Override
-	public void onDestroyed(World worldIn, BlockPos pos, IBlockState state) {
+	public void onDestroyed(Level worldIn, BlockPos pos, BlockState state) {
 
 	}
 
 	@Override
-	public void onNeighborBlockChange(IBlockAccess world, BlockPos pos, IBlockState state, Block neighborBlock) {
+	public void onNeighborBlockChange(LevelAccessor world, BlockPos pos, BlockState state, Block neighborBlock) {
 
 	}
 
 	@Override
 	public void writeToDropItem(ItemStack itemStack) {
-		if (!itemStack.hasTagCompound()) {
-			itemStack.setTagCompound(new NBTTagCompound());
+		if (!itemStack.hasTag()) {
+			itemStack.setTag(new CompoundTag());
 		}
 
-		inventory.writeToNBT(itemStack.getTagCompound(), true);
+		inventory.writeToNBT(itemStack.getTag(), true);
 	}
 
 	@Override
 	public void readFromPlaceItem(ItemStack itemStack) {
-		if (itemStack.hasTagCompound()) {
-			inventory.readFromNBT(itemStack.getTagCompound());
+		if (itemStack.hasTag()) {
+			inventory.readFromNBT(itemStack.getTag());
 		}
 	}
 
-	public TileEntityInventory getInventory() {
+	public TileEntityCustomInventory getInventory() {
 		return inventory;
 	}
 
 	@Override
 	public int getSizeInventory() {
-		return inventory.getSizeInventory();
+		return inventory.getContainerSize();
 	}
 
 	@Override
@@ -174,17 +171,17 @@ public class TileEntityTritaniumCrate extends MOTileEntity implements IInventory
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer p_70300_1_) {
+	public boolean isUsableByPlayer(Player p_70300_1_) {
 		return true;
 	}
 
 	@Override
-	public void openInventory(EntityPlayer entityPlayer) {
+	public void openInventory(Player entityPlayer) {
 		inventory.openInventory(entityPlayer);
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer entityPlayer) {
+	public void closeInventory(Player entityPlayer) {
 		inventory.closeInventory(entityPlayer);
 	}
 
@@ -194,7 +191,7 @@ public class TileEntityTritaniumCrate extends MOTileEntity implements IInventory
 	}
 
 	@Override
-	public Container createContainer(InventoryPlayer playerInventory, EntityPlayer playerIn) {
+	public Container createContainer(Inventory playerInventory, Player playerIn) {
 		return new ContainerChest(playerInventory, getInventory(), playerIn);
 	}
 
@@ -203,11 +200,11 @@ public class TileEntityTritaniumCrate extends MOTileEntity implements IInventory
 		return "minecraft:chest";
 	}
 
-	public void readInv(NBTTagCompound nbt) {
-		NBTTagList invList = nbt.getTagList("inventory", 10);
+	public void readInv(CompoundTag nbt) {
+		ListTag invList = nbt.getList("inventory", 10);
 
-		for (int i = 0; i < invList.tagCount(); i++) {
-			NBTTagCompound itemTag = invList.getCompoundTagAt(i);
+		for (int i = 0; i < invList.size(); i++) {
+			CompoundTag itemTag = invList.getCompound(i);
 
 			int slot = itemTag.getByte("Slot");
 
@@ -217,28 +214,28 @@ public class TileEntityTritaniumCrate extends MOTileEntity implements IInventory
 		}
 	}
 
-	public void writeInv(NBTTagCompound nbt, EntityPlayer player) {
+	public void writeInv(CompoundTag nbt, Player player) {
 		boolean write = false;
 
-		NBTTagList invList = new NBTTagList();
+		ListTag invList = new ListTag();
 
 		for (int i = 0; i < inventory.getSlots().size(); i++) {
 			if (inventory.getStackInSlot(i).isEmpty()) {
 				continue;
 			}
 
-			NBTTagCompound itemTag = new NBTTagCompound();
+			CompoundTag itemTag = new CompoundTag();
 
-			itemTag.setByte("Slot", (byte) i);
+			itemTag.putByte("Slot", (byte) i);
 
-			player.sendMessage(
+			player.sendSystemMessage(
 					new TextComponentString("Writing out item: " + inventory.getStackInSlot(i).getDisplayName()));
 
 			inventory.getStackInSlot(i).writeToNBT(itemTag);
 
-			invList.appendTag(itemTag);
+			invList.addTag(itemTag);
 		}
 
-		nbt.setTag("inventory", invList);
+		nbt.put("inventory", invList);
 	}
 }

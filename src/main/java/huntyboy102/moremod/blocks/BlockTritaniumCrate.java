@@ -2,10 +2,10 @@ package huntyboy102.moremod.blocks;
 
 import huntyboy102.moremod.blocks.includes.MOBlock;
 import huntyboy102.moremod.blocks.includes.MOBlockMachine;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.util.MOBlockHelper;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.wrench.IDismantleable;
-import huntyboy102.moremod.data.Inventory;
 import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.tile.TileEntityTritaniumCrate;
 import net.minecraft.block.material.Material;
@@ -110,7 +110,7 @@ public class BlockTritaniumCrate extends MOBlockMachine<TileEntityTritaniumCrate
 	}
 
 	@Override
-	protected Inventory getInventory(World world, BlockPos pos) {
+	protected CustomInventory getInventory(World world, BlockPos pos) {
 		if (world.getTileEntity(pos) instanceof TileEntityTritaniumCrate) {
 			TileEntityTritaniumCrate machine = (TileEntityTritaniumCrate) world.getTileEntity(pos);
 			return machine.getInventory();

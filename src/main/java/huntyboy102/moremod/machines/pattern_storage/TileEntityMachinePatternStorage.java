@@ -13,7 +13,7 @@ import huntyboy102.moremod.api.network.IMatterNetworkDispatcher;
 import huntyboy102.moremod.api.transport.IGridNode;
 import huntyboy102.moremod.blocks.BlockPatternStorage;
 import huntyboy102.moremod.blocks.includes.MOBlock;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.inventory.DatabaseSlot;
 import huntyboy102.moremod.data.inventory.PatternStorageSlot;
 import huntyboy102.moremod.data.matter_network.ItemPattern;
@@ -88,15 +88,15 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
+	protected void RegisterSlots(CustomInventory customInventory) {
 		pattern_storage_slots = new int[6];
-		input_slot = inventory.AddSlot(new DatabaseSlot(true));
+		input_slot = customInventory.AddSlot(new DatabaseSlot(true));
 
 		for (int i = 0; i < pattern_storage_slots.length; i++) {
-			pattern_storage_slots[i] = inventory.AddSlot(new PatternStorageSlot(false, this, i));
+			pattern_storage_slots[i] = customInventory.AddSlot(new PatternStorageSlot(false, this, i));
 		}
 
-		super.RegisterSlots(inventory);
+		super.RegisterSlots(customInventory);
 	}
 
 	@Override
@@ -111,8 +111,8 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	protected void manageLinking() {
-		if (MatterHelper.isMatterScanner(inventory.getStackInSlot(input_slot))) {
-			MatterScanner.link(world, getPos(), inventory.getStackInSlot(input_slot));
+		if (MatterHelper.isMatterScanner(customInventory.getStackInSlot(input_slot))) {
+			MatterScanner.link(world, getPos(), customInventory.getStackInSlot(input_slot));
 		}
 	}
 
@@ -168,7 +168,7 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	@Override
 	public boolean hasItem(ItemStack item) {
 		for (int slotID : pattern_storage_slots) {
-			ItemStack storageStack = inventory.getStackInSlot(slotID);
+			ItemStack storageStack = customInventory.getStackInSlot(slotID);
 			if (MatterHelper.isMatterPatternStorage(storageStack)) {
 				IMatterPatternStorage storage = (IMatterPatternStorage) storageStack.getItem();
 				for (int i = 0; i < storage.getCapacity(storageStack); i++) {
@@ -194,8 +194,8 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 		}
 
 		for (int p = 0; p < pattern_storage_slots.length; p++) {
-			if (MatterHelper.isMatterPatternStorage(inventory.getStackInSlot(pattern_storage_slots[p]))) {
-				ItemStack storageStack = inventory.getStackInSlot(pattern_storage_slots[p]);
+			if (MatterHelper.isMatterPatternStorage(customInventory.getStackInSlot(pattern_storage_slots[p]))) {
+				ItemStack storageStack = customInventory.getStackInSlot(pattern_storage_slots[p]);
 				IMatterPatternStorage storage = (IMatterPatternStorage) storageStack.getItem();
 				for (int i = 0; i < storage.getCapacity(storageStack); i++) {
 					ItemPattern pattern = storage.getPatternAt(storageStack, i);
@@ -228,9 +228,9 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 		}
 
 		for (int s = 0; s < pattern_storage_slots.length; s++) {
-			if (!inventory.getStackInSlot(pattern_storage_slots[s]).isEmpty()) {
-				ItemStack storageStack = inventory.getStackInSlot(pattern_storage_slots[s]);
-				IMatterPatternStorage storage = (IMatterPatternStorage) inventory
+			if (!customInventory.getStackInSlot(pattern_storage_slots[s]).isEmpty()) {
+				ItemStack storageStack = customInventory.getStackInSlot(pattern_storage_slots[s]);
+				IMatterPatternStorage storage = (IMatterPatternStorage) customInventory
 						.getStackInSlot(pattern_storage_slots[s]).getItem();
 				for (int i = 0; i < storage.getCapacity(storageStack); i++) {
 					ItemPattern pattern = storage.getPatternAt(storageStack, i);
@@ -262,8 +262,8 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	@Override
 	public ItemPattern getPattern(ItemStack item) {
 		for (int slotId : pattern_storage_slots) {
-			if (MatterHelper.isMatterPatternStorage(inventory.getStackInSlot(slotId))) {
-				ItemPattern hasItem = MatterDatabaseHelper.getPatternFromStorage(inventory.getStackInSlot(slotId),
+			if (MatterHelper.isMatterPatternStorage(customInventory.getStackInSlot(slotId))) {
+				ItemPattern hasItem = MatterDatabaseHelper.getPatternFromStorage(customInventory.getStackInSlot(slotId),
 						item);
 				if (hasItem != null) {
 					return hasItem;
@@ -276,9 +276,9 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	@Override
 	public ItemPattern getPattern(ItemPattern item) {
 		for (int slotId : pattern_storage_slots) {
-			if (MatterHelper.isMatterPatternStorage(inventory.getStackInSlot(slotId))) {
-				IMatterPatternStorage storage = (IMatterPatternStorage) inventory.getStackInSlot(slotId).getItem();
-				ItemStack storageStack = inventory.getStackInSlot(slotId);
+			if (MatterHelper.isMatterPatternStorage(customInventory.getStackInSlot(slotId))) {
+				IMatterPatternStorage storage = (IMatterPatternStorage) customInventory.getStackInSlot(slotId).getItem();
+				ItemStack storageStack = customInventory.getStackInSlot(slotId);
 				for (int i = 0; i < storage.getCapacity(storageStack); i++) {
 					ItemPattern pattern = storage.getPatternAt(storageStack, i);
 					if (pattern != null && pattern.equals(item)) {
@@ -308,7 +308,7 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 
 	@Override
 	public ItemStack getPatternStorage(int slot) {
-		ItemStack storageStack = inventory.getStackInSlot(pattern_storage_slots[slot]);
+		ItemStack storageStack = customInventory.getStackInSlot(pattern_storage_slots[slot]);
 		if (!storageStack.isEmpty() && storageStack.getItem() instanceof IMatterPatternStorage) {
 			return storageStack;
 		}

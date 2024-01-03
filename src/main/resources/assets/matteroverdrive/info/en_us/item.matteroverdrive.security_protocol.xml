@@ -25,7 +25,7 @@
             Once a machine is secured, it can only be destroyed or accessed by the owner and anybody else who has the access protocol.</text>
         <text class="matter-text">To create a security protocol you have to get a blank one and click it while sneaking. This will cycle trough all the security protocol types.</text>
         <text class="matter-text">$itemName (Claim) - can claim new machines.</text>
-        <text class="matter-text">$itemName (Access) - allows access to owned machines to anybody who has it in their inventory.</text>
+        <text class="matter-text">$itemName (Access) - allows access to owned machines to anybody who has it in their customInventory.</text>
         <text class="matter-text">$itemName (Remove) - removes a claim to an owned machine. The machine must be own by the same person who created the protocol.</text>
     </page>
 </entry>

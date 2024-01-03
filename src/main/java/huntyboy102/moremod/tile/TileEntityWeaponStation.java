@@ -6,17 +6,17 @@ import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.util.WeaponHelper;
 import huntyboy102.moremod.Reference;
-import huntyboy102.moremod.data.Inventory;
+import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.ItemInventoryWrapper;
 import huntyboy102.moremod.data.inventory.ModuleSlot;
 import huntyboy102.moremod.data.inventory.WeaponSlot;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 
@@ -29,35 +29,35 @@ public class TileEntityWeaponStation extends MOTileEntityMachine {
 	public int OTHER_MODULE_ONE;
 	public int OTHER_MODULE_TWO;
 
-	private IInventory itemInventory;
+	private CustomInventory itemCustomInventory;
 
 	public TileEntityWeaponStation() {
 		super(0);
 	}
 
 	@Override
-	protected void RegisterSlots(Inventory inventory) {
+	protected void RegisterSlots(CustomInventory customInventory) {
 		WeaponSlot weaponSlot = (WeaponSlot) new WeaponSlot(true).setSendToClient(true);
-		BATTERY_MODULE = inventory.AddSlot(new ModuleSlot(false, Reference.MODULE_BATTERY, weaponSlot));
-		COLOR_MODULE = inventory.AddSlot(new ModuleSlot(false, Reference.MODULE_COLOR, weaponSlot));
-		BARREL_MODULE = inventory.AddSlot(new ModuleSlot(false, Reference.MODULE_BARREL, weaponSlot));
-		SIGHTS_MODULE = inventory.AddSlot(new ModuleSlot(false, Reference.MODULE_SIGHTS, weaponSlot));
-		OTHER_MODULE_ONE = inventory.AddSlot(new ModuleSlot(false, Reference.MODULE_OTHER, weaponSlot));
-		OTHER_MODULE_TWO = inventory.AddSlot(new ModuleSlot(false, Reference.MODULE_OTHER, weaponSlot));
-		INPUT_SLOT = inventory.AddSlot(weaponSlot);
-		super.RegisterSlots(inventory);
+		BATTERY_MODULE = customInventory.AddSlot(new ModuleSlot(false, Reference.MODULE_BATTERY, weaponSlot));
+		COLOR_MODULE = customInventory.AddSlot(new ModuleSlot(false, Reference.MODULE_COLOR, weaponSlot));
+		BARREL_MODULE = customInventory.AddSlot(new ModuleSlot(false, Reference.MODULE_BARREL, weaponSlot));
+		SIGHTS_MODULE = customInventory.AddSlot(new ModuleSlot(false, Reference.MODULE_SIGHTS, weaponSlot));
+		OTHER_MODULE_ONE = customInventory.AddSlot(new ModuleSlot(false, Reference.MODULE_OTHER, weaponSlot));
+		OTHER_MODULE_TWO = customInventory.AddSlot(new ModuleSlot(false, Reference.MODULE_OTHER, weaponSlot));
+		INPUT_SLOT = customInventory.AddSlot(weaponSlot);
+		super.RegisterSlots(customInventory);
 	}
 
-	public IInventory getActiveInventory() {
-		if (itemInventory == null && !inventory.getSlot(INPUT_SLOT).getItem().isEmpty()
-				&& WeaponHelper.isWeapon(inventory.getSlot(INPUT_SLOT).getItem())) {
-			itemInventory = new ItemInventoryWrapper(inventory.getSlot(INPUT_SLOT).getItem(), 6);
+	public MenuProvider getActiveInventory() {
+		if (itemCustomInventory == null && !customInventory.getSlot(INPUT_SLOT).getItem().isEmpty()
+				&& WeaponHelper.isWeapon(customInventory.getSlot(INPUT_SLOT).getItem())) {
+			itemCustomInventory = new ItemInventoryWrapper(customInventory.getSlot(INPUT_SLOT).getItem(), 6);
 		}
-		if (inventory.getSlot(INPUT_SLOT).getItem().isEmpty()
-				|| !WeaponHelper.isWeapon(inventory.getSlot(INPUT_SLOT).getItem())) {
-			itemInventory = null;
+		if (customInventory.getSlot(INPUT_SLOT).getItem().isEmpty()
+				|| !WeaponHelper.isWeapon(customInventory.getSlot(INPUT_SLOT).getItem())) {
+			itemCustomInventory = null;
 		}
-		return itemInventory == null ? inventory : itemInventory;
+		return itemCustomInventory == null ? customInventory : itemCustomInventory;
 	}
 
 	@Override
@@ -127,10 +127,10 @@ public class TileEntityWeaponStation extends MOTileEntityMachine {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getRenderBoundingBox() {
-		return new AxisAlignedBB(getPos().getX(), getPos().getY(), getPos().getZ(), getPos().getX() + 1,
-				getPos().getY() + 2, getPos().getZ() + 1);
+	@OnlyIn(Dist.CLIENT)
+	public AABB getRenderBoundingBox() {
+		return new AABB(getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), getBlockPos().getX() + 1,
+				getBlockPos().getY() + 2, getBlockPos().getZ() + 1);
 	}
 
 	@Override
@@ -139,7 +139,7 @@ public class TileEntityWeaponStation extends MOTileEntityMachine {
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 

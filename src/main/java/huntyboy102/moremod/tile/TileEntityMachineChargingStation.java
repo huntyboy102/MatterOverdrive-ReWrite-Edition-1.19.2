@@ -7,14 +7,14 @@ import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.machines.IUpgradeHandler;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.machines.events.MachineEvent;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class TileEntityMachineChargingStation extends MOTileEntityMachineEnergy {
 
@@ -39,12 +39,12 @@ public class TileEntityMachineChargingStation extends MOTileEntityMachineEnergy 
 	}
 
 	private void manageAndroidCharging() {
-		if (!world.isRemote && getEnergyStorage().getEnergyStored() > 0) {
+		if (!level.isClientSide && getEnergyStorage().getEnergyStored() > 0) {
 			int range = getRange();
-			AxisAlignedBB radius = new AxisAlignedBB(getPos().add(-range, -range, -range),
-					getPos().add(range, range, range));
-			List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, radius);
-			for (EntityPlayer player : players) {
+			AABB radius = new AABB(getBlockPos().offset(-range, -range, -range),
+					getBlockPos().offset(range, range, range));
+			List<Player> players = level.getEntitiesWithinAABB(Player.class, radius);
+			for (Player player : players) {
 				if (MOPlayerCapabilityProvider.GetAndroidCapability(player).isAndroid()) {
 					int required = getRequiredEnergy(player, range);
 					int max = Math.min(getEnergyStorage().getEnergyStored(), getMaxCharging());
@@ -65,9 +65,9 @@ public class TileEntityMachineChargingStation extends MOTileEntityMachineEnergy 
 		return (int) (ENERGY_TRANSFER / getUpgradeMultiply(UpgradeTypes.PowerUsage));
 	}
 
-	private int getRequiredEnergy(EntityPlayer player, int maxRange) {
-		return (int) (ENERGY_TRANSFER * (1.0D - MathHelper
-				.clamp((new Vec3d(player.posX, player.posY, player.posZ).subtract(new Vec3d(getPos())).length()
+	private int getRequiredEnergy(Player player, int maxRange) {
+		return (int) (ENERGY_TRANSFER * (1.0D - Mth
+				.clamp((new Vec3(player.getX(), player.getY(), player.getZ()).subtract(new Vec3(getBlockPos())).length()
 						/ (double) maxRange), 0, 1)));
 	}
 
@@ -102,7 +102,7 @@ public class TileEntityMachineChargingStation extends MOTileEntityMachineEnergy 
 				|| type.equals(UpgradeTypes.PowerUsage);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public double getMaxRenderDistanceSquared() {
 		return 8192.0D;
 	}
@@ -112,7 +112,7 @@ public class TileEntityMachineChargingStation extends MOTileEntityMachineEnergy 
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 

@@ -11,18 +11,20 @@ import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.TimeTracker;
 import huntyboy102.moremod.fx.ShockwaveParticle;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.EnumSet;
 
-public class TileEntityMachineSpacetimeAccelerator extends MOTileEntityMachineMatter {
+public class TileEntityMachineSpacetimeAccelerator extends MOTileEntityMachineMatter implements Tickable {
 	private static final IUpgradeHandler upgradeHandler = new UpgradeHandlerGeneric(0.05, Double.MAX_VALUE)
 			.addUpgradeMinimum(UpgradeTypes.Speed, 0.2).addUpgradeMaximum(UpgradeTypes.Range, 6);
 	private static EnumSet<UpgradeTypes> upgradeTypes = EnumSet.of(UpgradeTypes.PowerStorage, UpgradeTypes.PowerUsage,
@@ -52,18 +54,20 @@ public class TileEntityMachineSpacetimeAccelerator extends MOTileEntityMachineMa
 	public void update() {
 		super.update();
 		if (isActive()) {
-			if (!world.isRemote) {
+			if (!level.isClientSide) {
 				energyStorage.modifyEnergyStored(-getEnergyUsage());
 				UpdateClientPower();
-				if (timeTracker.hasDelayPassed(world, getSpeed())) {
+				if (timeTracker.hasDelayPassed(level, getSpeed())) {
 					manageAccelerations();
 					manageUpgrades();
 				}
 			} else {
-				if (timeTracker.hasDelayPassed(world, Math.max(getSpeed(), 20))) {
+				if (timeTracker.hasDelayPassed(level, Math.max(getSpeed(), 20))) {
 					boolean showWaveParticle = true;
-					if (getBlockType() instanceof BlockSpacetimeAccelerator) {
-						showWaveParticle = ((BlockSpacetimeAccelerator) getBlockType()).showWave;
+					BlockState blockState = getBlockState();
+					Block block = blockState.getBlock();
+					if (block instanceof BlockSpacetimeAccelerator) {
+						showWaveParticle = ((BlockSpacetimeAccelerator) block).showWave;
 					}
 					if (showWaveParticle) {
 						spawnShockwave();
@@ -78,10 +82,11 @@ public class TileEntityMachineSpacetimeAccelerator extends MOTileEntityMachineMa
 			updateClientMatter();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void spawnShockwave() {
 		float range = getRadius();
-		ShockwaveParticle particle = new ShockwaveParticle(world, pos.getX() + 0.5, pos.getY() + 0.2, pos.getZ() + 0.5,
+		ShockwaveParticle particle = new ShockwaveParticle(level, getBlockPos().getX() + 0.5,
+				getBlockPos().getY() + 0.2, getBlockPos().getZ() + 0.5,
 				range);
 		particle.setColorRGBA(new Color(51, 78, 120));
 		ClientProxy.renderHandler.getRenderParticlesHandler().addEffect(particle,
@@ -95,15 +100,17 @@ public class TileEntityMachineSpacetimeAccelerator extends MOTileEntityMachineMa
 			matterStorage.modifyMatterStored(-(int) matterUseCache);
 			matterUseCache -= (int) matterUseCache;
 		}
+
 		for (int x = -radius; x < radius; x++) {
 			for (int z = -radius; z < radius; z++) {
-				BlockPos pos = getPos().add(x, 0, z);
-				IBlockState blockState = world.getBlockState(pos);
-				blockState.getBlock().randomTick(world, pos, blockState, random);
-				TileEntity tileEntity = world.getTileEntity(pos);
-				if (tileEntity != null && tileEntity instanceof ITickable
+				BlockPos pos = getBlockPos().offset(x, 0, z);
+				BlockState blockState = level.getBlockState(pos);
+				blockState.getBlock().randomTick(blockState, (ServerLevel)level, pos, random);
+
+				BlockEntity tileEntity = level.getBlockEntity(pos);
+				if (tileEntity != null && tileEntity instanceof Tickable
 						&& !(tileEntity instanceof TileEntityMachineSpacetimeAccelerator)) {
-					((ITickable) tileEntity).update();
+					((Tickable) tileEntity).tick();
 				}
 			}
 		}
@@ -152,7 +159,7 @@ public class TileEntityMachineSpacetimeAccelerator extends MOTileEntityMachineMa
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 
