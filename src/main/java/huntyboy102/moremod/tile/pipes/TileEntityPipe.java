@@ -38,7 +38,7 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
     @Override
     public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
         if (categories.contains(MachineNBTCategory.DATA)) {
-            setConnections(nbt.putInt("connections");, false);
+            setConnections(nbt.putInt("connections"), false);
             needsUpdate = false;
             if (level != null)
                 level.markBlockRangeForRenderUpdate(pos, pos);
@@ -55,12 +55,12 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
         UPDATING_POS.clear();
 
         if (!awoken) {
-            onAwake(level.isRemote ? Dist.CLIENT : Dist.DEDICATED_SERVER);
+            onAwake(level.isClientSide ? Dist.CLIENT : Dist.DEDICATED_SERVER);
             awoken = true;
         }
     }
 
-    public abstract boolean canConnectToPipe(TileEntity entity, Direction direction);
+    public abstract boolean canConnectToPipe(BlockEntity entity, Direction direction);
 
     public abstract void onAdded(Level world, BlockPos pos, BlockState state);
 
@@ -75,7 +75,7 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
     public void updateSides(boolean notify) {
         int connections = 0;
 
-        for (Direction direction : Direction.VALUES) {
+        for (Direction direction : Direction.values()) {
             BlockEntity t = this.level.getBlockEntity(getBlockPos().offset(direction));
 
             if (canConnectToPipe(t, direction)) {
@@ -106,10 +106,10 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
         if (notify) {
             UPDATING_POS.add(getBlockPos());
             level.markBlockRangeForRenderUpdate(pos, pos);
-            for (Direction facing : Direction.VALUES) {
+            for (Direction facing : Direction.values()) {
                 if (isConnectedFromSide(facing)) {
                     if (!UPDATING_POS.contains(getBlockPos().offset(facing)))
-                        level.neighborChanged(getBlockPos().offset(facing), getBlockType(), getBlockPos());
+                        level.neighborChanged(getBlockPos().offset(facing), getBlockState(), getBlockPos());
                 }
             }
             markDirty();
@@ -125,8 +125,6 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
         return MOMathHelper.getBoolean(connections, enumFacing.ordinal());
     }
 
-    public abstract boolean canConnectToPipe(BlockEntity entity, Direction direction);
-
     public void queueUpdate() {
         needsUpdate = true;
     }
@@ -137,7 +135,7 @@ public abstract class TileEntityPipe extends MOTileEntity implements ITickable {
 
     @OnlyIn(Dist.CLIENT)
     public AABB getRenderBoundingBox() {
-        return new AABB(getBlockPos(), getBlockPos().add(1, 1, 1));
+        return new AABB(getBlockPos(), getBlockPos().offset(1, 1, 1));
     }
 
     protected abstract void onAwake(Dist side);

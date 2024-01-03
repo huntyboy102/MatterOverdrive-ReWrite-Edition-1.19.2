@@ -50,7 +50,7 @@ public class TileEntityMatterPipe extends TileEntityPipe implements IFluidPipe {
     public void update() {
         super.update();
         needsUpdate = true;
-        if (!level.isRemote) {
+        if (!level.isClientSide) {
             manageTransfer();
             manageNetwork();
         }
