@@ -27,15 +27,22 @@ import huntyboy102.moremod.util.MOLog;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.TimeTracker;
 import huntyboy102.moremod.util.math.MOMathHelper;
+import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.Tag;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
-import org.apache.logging.log4j.Level;
 import org.joml.Vector3f;
-import org.lwjgl.util.vector.Vector3f;
 
 import huntyboy102.moremod.fx.GravitationalAnomalyParticle;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.BlockLiquid;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -51,7 +58,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.core.BlockPos;
@@ -67,7 +73,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class TileEntityGravitationalAnomaly extends MOTileEntity
-		implements IScannable, IMOTickable, IGravitationalAnomaly, ITickable {
+		implements IScannable, IMOTickable, IGravitationalAnomaly, Tickable {
 	public static final float MAX_VOLUME = 0.5f;
 	public static final int BLOCK_DESTORY_DELAY = 6;
 	public static final int MAX_BLOCKS_PER_HARVEST = 6;
@@ -161,39 +167,39 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 
 		double rangeSq = getMaxRange() + 1;
 		rangeSq *= rangeSq;
-		Vec3d blockPos = new Vec3d(getPos());
+		Vec3 blockPos = new Vec3(getBlockPos());
 		blockPos.add(0.5, 0.5, 0.5);
-		Vec3d entityPos = Minecraft.getMinecraft().player.getPositionVector();
+		Vec3 entityPos = Minecraft.getInstance().getPositionVector();
 
 		double distanceSq = entityPos.squareDistanceTo(blockPos);
 		if (distanceSq < rangeSq) {
-			if ((!Minecraft.getMinecraft().player.inventory.armorItemInSlot(2).isEmpty()
-					&& Minecraft.getMinecraft().player.inventory.armorItemInSlot(2)
+			if ((!Minecraft.getInstance().player.inventory.armorItemInSlot(2).isEmpty()
+					&& Minecraft.getInstance().player.inventory.armorItemInSlot(2)
 							.getItem() instanceof SpacetimeEqualizer)
-					|| Minecraft.getMinecraft().player.capabilities.isCreativeMode
-					|| Minecraft.getMinecraft().player.isSpectator()
-					|| MOPlayerCapabilityProvider.GetAndroidCapability(Minecraft.getMinecraft().player)
+					|| Minecraft.getInstance().player.capabilities.isCreativeMode
+					|| Minecraft.getInstance().player.isSpectator()
+					|| MOPlayerCapabilityProvider.GetAndroidCapability(Minecraft.getInstance().player)
 							.isUnlocked(OverdriveBioticStats.equalizer, 0))
 				return;
 
 			double acceleration = getAcceleration(distanceSq);
-			Vec3d dir = blockPos.subtract(entityPos).normalize();
-			Minecraft.getMinecraft().player.addVelocity(dir.x * acceleration, dir.y * acceleration,
+			Vec3 dir = blockPos.subtract(entityPos).normalize();
+			Minecraft.getInstance().player.addVelocity(dir.x * acceleration, dir.y * acceleration,
 					dir.z * acceleration);
-			Minecraft.getMinecraft().player.velocityChanged = true;
+			Minecraft.getInstance().player.velocityChanged = true;
 		}
 	}
 
-	public void manageEntityGravitation(World world, float ticks) {
+	public void manageEntityGravitation(Level world, float ticks) {
 		if (!GRAVITATION) {
 			return;
 		}
 
 		double range = getMaxRange() + 1;
-		AxisAlignedBB bb = new AxisAlignedBB(getPos().getX() - range, getPos().getY() - range, getPos().getZ() - range,
-				getPos().getX() + range, getPos().getY() + range, getPos().getZ() + range);
+		AABB bb = new AABB(getBlockPos().getX() - range, getBlockPos().getY() - range, getBlockPos().getZ() - range,
+				getBlockPos().getX() + range, getBlockPos().getY() + range, getBlockPos().getZ() + range);
 		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, bb);
-		Vec3d blockPos = new Vec3d(getPos()).add(0.5, 0.5, 0.5);
+		Vec3 blockPos = new Vec3(getBlockPos()).add(0.5, 0.5, 0.5);
 
 		for (Object entityObject : entities) {
 			if (entityObject instanceof Entity) {
@@ -203,14 +209,14 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 						continue;
 					}
 				}
-				Vec3d entityPos = entity.getPositionVector();
+				Vec3 entityPos = entity.getPositionVector();
 
 				// pos.y += entity.getEyeHeight();
 				double distanceSq = entityPos.squareDistanceTo(blockPos);
 				double acceleration = getAcceleration(distanceSq);
 				double eventHorizon = getEventHorizon();
-				Vec3d dir = blockPos.subtract(entityPos).normalize();
-				dir = new Vec3d(dir.x * acceleration, dir.y * acceleration, dir.z * acceleration);
+				Vec3 dir = blockPos.subtract(entityPos).normalize();
+				dir = new Vec3(dir.x * acceleration, dir.y * acceleration, dir.z * acceleration);
 				if (intersectsAnomaly(entityPos, dir, blockPos, eventHorizon)) {
 					consume(entity);
 				}
@@ -234,11 +240,11 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 		}
 	}
 
-	boolean intersectsAnomaly(Vec3d origin, Vec3d dir, Vec3d anomaly, double radius) {
+	boolean intersectsAnomaly(Vec3 origin, Vec3 dir, Vec3 anomaly, double radius) {
 		if (origin.distanceTo(anomaly) <= radius) {
 			return true;
 		} else {
-			Vec3d intersectDir = origin.subtract(anomaly);
+			Vec3 intersectDir = origin.subtract(anomaly);
 			double c = intersectDir.length();
 			double v = intersectDir.dotProduct(dir);
 			double d = radius * radius - (c * c - v * v);
@@ -247,7 +253,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void stopSounds() {
 		if (sound != null) {
 			sound.stopPlaying();
@@ -256,21 +262,21 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void playSounds() {
 		if (sound == null) {
-			sound = new GravitationalAnomalySound(MatterOverdriveSounds.windy, SoundCategory.BLOCKS, getPos(), 0.2f,
+			sound = new GravitationalAnomalySound(MatterOverdriveSounds.windy, SoundCategory.BLOCKS, getBlockPos(), 0.2f,
 					getMaxRange());
 			FMLClientHandler.instance().getClient().getSoundHandler().playSound(sound);
 		} else if (!FMLClientHandler.instance().getClient().getSoundHandler().isSoundPlaying(sound)) {
 			stopSounds();
-			sound = new GravitationalAnomalySound(MatterOverdriveSounds.windy, SoundCategory.BLOCKS, getPos(), 0.2f,
+			sound = new GravitationalAnomalySound(MatterOverdriveSounds.windy, SoundCategory.BLOCKS, getBlockPos(), 0.2f,
 					getMaxRange());
 			FMLClientHandler.instance().getClient().getSoundHandler().playSound(sound);
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void manageSound() {
 		if (sound == null) {
 			playSounds();
@@ -281,22 +287,22 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	}
 
 	@Override
-	public void onAdded(World world, BlockPos pos, BlockState state) {
+	public void onAdded(Level world, BlockPos pos, BlockState state) {
 
 	}
 
 	@Override
-	public void onPlaced(World world, LivingEntity entityLiving) {
+	public void onPlaced(Level world, LivingEntity entityLiving) {
 
 	}
 
 	@Override
-	public void onDestroyed(World worldIn, BlockPos pos, BlockState state) {
+	public void onDestroyed(Level worldIn, BlockPos pos, BlockState state) {
 
 	}
 
 	@Override
-	public void onNeighborBlockChange(IBlockAccess world, BlockPos pos, BlockState state, Block neighborBlock) {
+	public void onNeighborBlockChange(LevelAccessor world, BlockPos pos, BlockState state, Block neighborBlock) {
 
 	}
 
@@ -311,19 +317,19 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	}
 
 	@Override
-	public void onScan(World world, double x, double y, double z, Player player, ItemStack scanner) {
+	public void onScan(Level world, double x, double y, double z, Player player, ItemStack scanner) {
 
 	}
 
 	public void onChunkUnload() {
 		super.onChunkUnload();
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			stopSounds();
 		}
 	}
 
 	@Override
-	protected void onAwake(Side side) {
+	protected void onAwake(Dist side) {
 
 	}
 
@@ -332,7 +338,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	public SPacketUpdateTileEntity getUpdatePacket() {
 		CompoundTag syncData = new CompoundTag();
 		writeCustomNBT(syncData, MachineNBTCategory.ALL_OPTS, false);
-		return new SPacketUpdateTileEntity(getPos(), 1, syncData);
+		return new SPacketUpdateTileEntity(getBlockPos(), 1, syncData);
 	}
 
 	@Override
@@ -346,7 +352,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			stopSounds();
 		}
 	}
@@ -356,15 +362,15 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 			((IGravityEntity) entity).onEntityConsumed(this);
 		}
 		if (pre) {
-			MinecraftForge.EVENT_BUS.post(new MOEventGravitationalAnomalyConsume.Pre(entity, getPos()));
+			MinecraftForge.EVENT_BUS.post(new MOEventGravitationalAnomalyConsume.Pre(entity, getBlockPos()));
 		} else {
-			MinecraftForge.EVENT_BUS.post(new MOEventGravitationalAnomalyConsume.Post(entity, getPos()));
+			MinecraftForge.EVENT_BUS.post(new MOEventGravitationalAnomalyConsume.Post(entity, getBlockPos()));
 		}
 
 		return true;
 	}
 
-	public void manageBlockDestory(World world) {
+	public void manageBlockDestory(Level world) {
 		if (!BLOCK_DESTRUCTION) {
 			return;
 		}
@@ -378,18 +384,19 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 		float hardness;
 		BlockState blockState;
 
-		blocks = new PriorityQueue<>(1, new BlockComparitor(getPos()));
+		blocks = new PriorityQueue<>(1, new BlockComparitor(getBlockPos()));
 
 		if (blockDestoryTimer.hasDelayPassed(world, BLOCK_DESTORY_DELAY)) {
 			for (int x = -range; x < range; x++) {
 				for (int y = -range; y < range; y++) {
 					for (int z = -range; z < range; z++) {
-						blockPos = new BlockPos(getPos().getX() + x, getPos().getY() + y, getPos().getZ() + z);
+						blockPos = new BlockPos(getBlockPos().getX() + x, getBlockPos().getY() + y, getBlockPos().getZ() + z);
 						blockState = world.getBlockState(blockPos);
-						distance = Math.sqrt(blockPos.distanceSq(getPos()));
-						hardness = blockState.getBlockHardness(world, blockPos);
+						distance = Math.sqrt(blockPos.distSqr(getBlockPos()));
+						hardness = blockState.getDestroySpeed(world, blockPos);
+
 						if (blockState.getBlock() instanceof IFluidBlock
-								|| blockState.getBlock() instanceof BlockLiquid) {
+								|| blockState.getBlock() instanceof LiquidBlock) {
 							hardness = 1;
 						}
 
@@ -416,7 +423,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 				}
 				if (solidCount < MAX_BLOCKS_PER_HARVEST) {
 					try {
-						distance = Math.sqrt(position.distanceSq(getPos()));
+						distance = Math.sqrt(position.distSqr(getBlockPos()));
 						float strength = getBreakStrength((float) distance, range);
 						if (breakBlock(world, position, strength, eventHorizon, range)) {
 							solidCount++;
@@ -442,7 +449,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 				consumedFlag |= consumeFallingBlock((FallingBlockEntity) entity);
 			} else if (entity instanceof LivingEntity) {
 				consumedFlag |= consumeLivingEntity((LivingEntity) entity,
-						getBreakStrength((float) entity.getDistance(getPos().getX(), getPos().getY(), getPos().getZ()),
+						getBreakStrength((float) entity.getDistance(getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ()),
 								(float) getMaxRange()));
 			}
 
@@ -464,7 +471,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 			}
 
 			entityItem.setDead();
-			world.removeEntity(entityItem);
+			level.removeEntity(entityItem);
 
 			if (entityItem.getItem().getItem() == Items.NETHER_STAR) {
 				collapse();
@@ -483,8 +490,8 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	}
 
 	private boolean consumeFallingBlock(FallingBlockEntity fallingBlock) {
-		ItemStack itemStack = new ItemStack(fallingBlock.getBlock().getBlock(), 1,
-				fallingBlock.getBlock().getBlock().damageDropped(fallingBlock.getBlock()));
+		ItemStack itemStack = new ItemStack(fallingBlock.getBlockState().getBlock(), 1,
+				fallingBlock.getBlockState().getBlock().damageDropped(fallingBlock.getBlockState()));
 		if (!itemStack.isEmpty()) {
 			try {
 				mass = Math.addExact(mass,
@@ -495,7 +502,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 			}
 
 			fallingBlock.setDead();
-			world.removeEntity(fallingBlock);
+			level.removeEntity(fallingBlock);
 			return true;
 		}
 		return false;
@@ -511,7 +518,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 
 		if (entity.getHealth() <= strength && !(entity instanceof Player)) {
 			entity.setDead();
-			world.removeEntity(entity);
+			level.removeEntity(entity);
 		}
 
 		DamageSource damageSource = new DamageSource("blackHole");
@@ -519,14 +526,14 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 		return true;
 	}
 
-	public boolean breakBlock(World world, BlockPos pos, float strength, double eventHorizon, int range) {
+	public boolean breakBlock(Level world, BlockPos pos, float strength, double eventHorizon, int range) {
 		BlockState blockState = world.getBlockState(pos);
 		if (blockState.getBlock().isAir(blockState, world, pos)) {
 			return true;
 		}
 
-		float hardness = blockState.getBlockHardness(world, pos);
-		double distance = Math.sqrt(pos.distanceSq(getPos()));
+		float hardness = blockState.getDestroySpeed(world, pos);
+		double distance = Math.sqrt(pos.distSqr(getBlockPos()));
 		if (distance <= range && hardness >= 0 && (distance < eventHorizon || hardness < strength)) {
 			if (BLOCK_ENTETIES) {
 
@@ -554,17 +561,18 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 
 				if (blockState.getBlock().canSilkHarvest(world, pos, blockState, null)) {
 					matter += MatterHelper.getMatterAmountFromItem(
-							blockState.getBlock().getPickBlock(blockState, null, world, pos, null));
+							blockState.getBlock().asItem());
 				} else {
 					for (ItemStack stack : blockState.getBlock().getDrops(world, pos, blockState, 0)) {
 						matter += MatterHelper.getMatterAmountFromItem(stack);
 					}
 				}
 
-				world.playBroadcastSound(2001, pos, Block.getIdFromBlock(blockState.getBlock()));
+				world.playSound(null, pos, blockState.getBlock().getSoundType(blockState, world, pos, null).getBreakSound(),
+						SoundSource.BLOCKS, 1.0F, 1.0F);
 
-				List<ItemEntity> result = world.getEntitiesWithinAABB(ItemEntity.class,
-						new AxisAlignedBB(pos.getX() - 2, pos.getY() - 2, pos.getZ() - 2, pos.getX() + 3,
+				List<ItemEntity> result = world.getEntitiesOfClass(ItemEntity.class,
+						new AABB(pos.getX() - 2, pos.getY() - 2, pos.getZ() - 2, pos.getX() + 3,
 								pos.getY() + 3, pos.getZ() + 3));
 				for (ItemEntity entityItem : result) {
 					consumeItemEntity(entityItem);
@@ -577,7 +585,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 					return false;
 				}
 
-				world.setBlockToAir(pos);
+				world.removeBlock(pos, false);
 				return true;
 			}
 		}
@@ -587,28 +595,28 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 
 	public boolean cleanLiquids(BlockState blockState, BlockPos pos) {
 		if (blockState.getBlock() instanceof IFluidBlock && FORGE_FLUIDS) {
-			if (((IFluidBlock) blockState.getBlock()).canDrain(world, pos)) {
+			if (((IFluidBlock) blockState.getBlock()).canDrain(level, pos)) {
 				if (FALLING_BLOCKS) {
-					FallingBlockEntity fallingBlock = new FallingBlockEntity(world, pos.getX() + 0.5, pos.getY() + 0.5,
+					FallingBlockEntity fallingBlock = new FallingBlockEntity(level, pos.getX() + 0.5, pos.getY() + 0.5,
 							pos.getZ() + 0.5, blockState);
 					// fallingBlock.field_145812_b = 1;
-					fallingBlock.noClip = true;
-					world.spawnEntity(fallingBlock);
+					fallingBlock.noPhysics = true;
+					level.addFreshEntity(fallingBlock);
 				}
 
-				((IFluidBlock) blockState.getBlock()).drain(world, pos, true);
+				((IFluidBlock) blockState.getBlock()).drain(level, pos, true);
 				return true;
 			}
 
-		} else if (blockState.getBlock() instanceof BlockLiquid && VANILLA_FLUIDS) {
-			BlockState state = world.getBlockState(pos);
-			if (world.setBlockState(pos, Blocks.AIR.getDefaultState(), 2)) {
+		} else if (blockState.getBlock() instanceof LiquidBlock && VANILLA_FLUIDS) {
+			BlockState state = level.getBlockState(pos);
+			if (level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2)) {
 				if (FALLING_BLOCKS) {
-					FallingBlockEntity fallingBlock = new FallingBlockEntity(world, pos.getX() + 0.5, pos.getY() + 0.5,
+					FallingBlockEntity fallingBlock = new FallingBlockEntity(level, pos.getX() + 0.5, pos.getY() + 0.5,
 							pos.getZ() + 0.5, state);
 					// fallingBlock.field_145812_b = 1;
-					fallingBlock.noClip = true;
-					world.spawnEntity(fallingBlock);
+					fallingBlock.noPhysics = true;
+					level.addFreshEntity(fallingBlock);
 				}
 				return true;
 			}
@@ -619,8 +627,9 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 
 	public boolean cleanFlowingLiquids(BlockState block, BlockPos pos) {
 		if (VANILLA_FLUIDS) {
-			if (block == Blocks.FLOWING_WATER || block == Blocks.FLOWING_LAVA) {
-				return world.setBlockState(pos, Blocks.AIR.getDefaultState(), 2);
+			if (block.getFluidState().getType() == Fluids.FLOWING_WATER || block.getFluidState().getType() == Fluids.FLOWING_LAVA) {
+				level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+				return true;
 			}
 		}
 		return false;
@@ -628,13 +637,13 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 
 	// TODO: Rewrite explosion to be more.. explosion
 	public void collapse() {
-		world.setBlockToAir(getPos());
-		world.createExplosion(null, getPos().getX(), getPos().getY(), getPos().getZ(),
-				(float) getRealMassUnsuppressed(), true);
+		level.destroyBlock(getBlockPos(), true);
+		level.explode(null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
+				(float) getRealMassUnsuppressed(), true, Explosion.BlockInteraction.BREAK);
 	}
 
 	@Override
-	public void addInfo(World world, double x, double y, double z, List<String> infos) {
+	public void addInfo(Level world, double x, double y, double z, List<String> infos) {
 		DecimalFormat format = new DecimalFormat("#.##");
 		infos.add("Mass: " + mass);
 		infos.add("Range: " + format.format(getMaxRange()));
@@ -670,16 +679,16 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 	@Override
 	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setLong("Mass", mass);
-			nbt.setFloat("Suppression", suppression);
+			nbt.putLong("Mass", mass);
+			nbt.putFloat("Suppression", suppression);
 			if (toDisk && this.supressors != null && this.supressors.size() > 0) {
 				ListTag suppressors = new ListTag();
 				for (AnomalySuppressor s : this.supressors) {
 					CompoundTag suppressorTag = new CompoundTag();
 					s.writeToNBT(suppressorTag);
-					suppressors.appendTag(suppressorTag);
+					suppressors.add(suppressorTag);
 				}
-				nbt.setTag("suppressors", suppressors);
+				nbt.put("suppressors", suppressors);
 			}
 		}
 	}
@@ -690,21 +699,21 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 			this.supressors.clear();
 			mass = nbt.getLong("Mass");
 			suppression = nbt.getFloat("Suppression");
-			ListTag suppressors = nbt.getTagList("suppressors", Constants.NBT.TAG_COMPOUND);
+			ListTag suppressors = nbt.getList("suppressors", Tag.TAG_COMPOUND);
 			for (int i = 0; i < supressors.size(); i++) {
-				CompoundTag suppressorTag = suppressors.getCompoundTagAt(i);
+				CompoundTag suppressorTag = suppressors.getCompound(i);
 				AnomalySuppressor s = new AnomalySuppressor(suppressorTag);
 				this.supressors.add(s);
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public double getMaxRenderDistanceSquared() {
 		return Math.max(Math.pow(getMaxRange(), 3), 2048);
 	}
 
-	public Block getBlock(World world, BlockPos blockPos) {
+	public Block getBlock(Level world, BlockPos blockPos) {
 		return world.getBlockState(blockPos).getBlock();
 	}
 
@@ -756,8 +765,10 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity
 
 		@Override
 		public int compare(BlockPos o1, BlockPos o2) {
-			return Double.compare(o1.distanceSq(pos.getX(), pos.getY(), pos.getZ()),
-					o2.distanceSq(pos.getX(), pos.getY(), pos.getZ()));
+			Vec3i posVec = new Vec3i(pos.getX(), pos.getY(), pos.getZ());
+			double dist1 = o1.distSqr(posVec);
+			double dist2 = o2.distSqr(posVec);
+			return Double.compare(dist1, dist2);
 		}
 	}
 
