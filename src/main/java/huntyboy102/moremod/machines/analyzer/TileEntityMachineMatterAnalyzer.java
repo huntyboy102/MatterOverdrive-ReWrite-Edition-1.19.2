@@ -15,18 +15,18 @@ import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.matter_network.MatterNetworkTaskQueue;
 import huntyboy102.moremod.matter_network.components.MatterNetworkComponentClient;
 import huntyboy102.moremod.tile.MOTileEntityMachineEnergy;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
 import java.util.EnumSet;
 
 public class TileEntityMachineMatterAnalyzer extends MOTileEntityMachineEnergy
-		implements ISidedInventory, IMatterNetworkClient, IMatterNetworkConnection, IMatterNetworkDispatcher {
+		implements IItemHandlerModifiable, IMatterNetworkClient, IMatterNetworkConnection, IMatterNetworkDispatcher {
 	public static final int ENERGY_CAPACITY = 512000;
 	public static final int ENERGY_TRANSFER = 512000;
 	private static final EnumSet<UpgradeTypes> upgradeTypes = EnumSet.of(UpgradeTypes.PowerUsage,
@@ -47,11 +47,11 @@ public class TileEntityMachineMatterAnalyzer extends MOTileEntityMachineEnergy
 
 	@Override
 	public BlockPos getPosition() {
-		return getPos();
+		return getBlockPos();
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+	public boolean shouldRefresh(Level world, BlockPos pos, BlockState oldState, BlockState newState) {
 		return (oldState.getBlock() != newState.getBlock());
 	}
 
@@ -78,13 +78,13 @@ public class TileEntityMachineMatterAnalyzer extends MOTileEntityMachineEnergy
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack item, EnumFacing side) {
+	public boolean canExtractItem(int slot, ItemStack item, Direction side) {
 		return true;
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
-		if (side == EnumFacing.UP) {
+	public int[] getSlotsForFace(Direction side) {
+		if (side == Direction.UP) {
 			return new int[] { input_slot };
 		} else {
 			return new int[] { input_slot };
@@ -92,27 +92,27 @@ public class TileEntityMachineMatterAnalyzer extends MOTileEntityMachineEnergy
 	}
 
 	@Override
-	public boolean canConnectFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean canConnectFromSide(BlockState blockState, Direction side) {
 		// Allow ANY connection to connect.
 		return true;
 
 		// Only allow rear connections to connect.
-//        EnumFacing facing = blockState.getValue(MOBlock.PROPERTY_DIRECTION);
+//        Direction facing = blockState.getValue(MOBlock.PROPERTY_DIRECTION);
 //        return facing.getOpposite() == side;
 	}
 
 	@Override
 	public BlockPos getNodePos() {
-		return getPos();
+		return getBlockPos();
 	}
 
 	@Override
-	public boolean establishConnectionFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean establishConnectionFromSide(BlockState blockState, Direction side) {
 		return canConnectFromSide(blockState, side);
 	}
 
 	@Override
-	public void breakConnection(IBlockState blockState, EnumFacing side) {
+	public void breakConnection(BlockState blockState, Direction side) {
 
 	}
 
@@ -127,12 +127,12 @@ public class TileEntityMachineMatterAnalyzer extends MOTileEntityMachineEnergy
 	}
 
 	@Override
-	public World getNodeWorld() {
-		return getWorld();
+	public Level getNodeWorld() {
+		return getLevel();
 	}
 
 	@Override
-	public boolean canConnectToNetworkNode(IBlockState blockState, IGridNode toNode, EnumFacing direction) {
+	public boolean canConnectToNetworkNode(BlockState blockState, IGridNode toNode, Direction direction) {
 		return networkComponent.canConnectToNetworkNode(blockState, toNode, direction);
 	}
 

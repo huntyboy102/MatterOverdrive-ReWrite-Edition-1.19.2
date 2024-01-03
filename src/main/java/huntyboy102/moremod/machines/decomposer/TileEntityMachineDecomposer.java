@@ -1,6 +1,6 @@
 package huntyboy102.moremod.machines.decomposer;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.blocks.BlockDecomposer;
 import huntyboy102.moremod.data.CustomInventory;
@@ -13,15 +13,14 @@ import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.tile.MOTileEntityMachineMatter;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.TimeTracker;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.EnumSet;
 import java.util.Random;
@@ -67,8 +66,8 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 
 	@Override
 	public void update() {
-		if (worldTickLast != getWorld().getTotalWorldTime()) {
-			worldTickLast = getWorld().getTotalWorldTime();
+		if (worldTickLast != getLevel().getGameTime()) {
+			worldTickLast = getLevel().getGameTime();
 			super.update();
 			this.manageDecompose();
 			this.manageExtract();
@@ -100,11 +99,11 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	}
 
 	private void manageExtract() {
-		if (!world.isRemote) {
-			if (time.hasDelayPassed(world, MATTER_EXTRACT_SPEED)) {
-				for (EnumFacing dir : EnumFacing.VALUES) {
-					TileEntity e = world.getTileEntity(getPos().offset(dir));
-					EnumFacing opposite = dir.getOpposite();
+		if (!level.isClientSide) {
+			if (time.hasDelayPassed(level, MATTER_EXTRACT_SPEED)) {
+				for (Direction dir : Direction.values()) {
+					BlockEntity e = level.getBlockEntity(getBlockPos().offset(dir));
+					Direction opposite = dir.getOpposite();
 					if (e != null && !(e instanceof TileEntityMachineDecomposer) && e.hasCapability(MatterOverdriveCapabilities.MATTER_HANDLER, opposite)) {
 						int received = e.getCapability(MatterOverdriveCapabilities.MATTER_HANDLER, opposite)
 								.receiveMatter(matterStorage.getFluidAmount(), false);
@@ -119,12 +118,12 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+	public boolean shouldRefresh(Level world, BlockPos pos, BlockState oldState, BlockState newState) {
 		return (oldState.getBlock() != newState.getBlock());
 	}
 
 	protected void manageDecompose() {
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			if (this.isDecomposing()) {
 				if (this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick()) {
 					this.decomposeTime++;
@@ -136,7 +135,7 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 					}
 				}
 			}
-			BlockDecomposer.setState(isDecomposing(), this.getWorld(), this.getPos());
+			BlockDecomposer.setState(isDecomposing(), this.getLevel(), this.getBlockPos());
 			this.markDirty();
 		}
 
@@ -187,8 +186,8 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 		if (stack.isEmpty()) {
 			return true;
 		} else {
-			if (stack.getItem() == MatterOverdrive.ITEMS.matter_dust) {
-				if (stack.getItemDamage() == matter && stack.getCount() < stack.getMaxStackSize()) {
+			if (stack.getItem() == MatterOverdriveRewriteEdition.ITEMS.matter_dust) {
+				if (stack.getDamageValue() == matter && stack.getCount() < stack.getMaxStackSize()) {
 					return true;
 				}
 			}
@@ -202,13 +201,13 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 		int matter = MatterHelper.getMatterAmountFromItem(getStackInSlot(INPUT_SLOT_ID));
 
 		if (!stack.isEmpty()) {
-			if (stack.getItem() == MatterOverdrive.ITEMS.matter_dust && stack.getItemDamage() == matter
+			if (stack.getItem() == MatterOverdriveRewriteEdition.ITEMS.matter_dust && stack.getDamageValue() == matter
 					&& stack.getCount() < stack.getMaxStackSize()) {
 				stack.grow(1);
 			}
 		} else {
-			stack = new ItemStack(MatterOverdrive.ITEMS.matter_dust);
-			MatterOverdrive.ITEMS.matter_dust.setMatter(stack, matter);
+			stack = new ItemStack(MatterOverdriveRewriteEdition.ITEMS.matter_dust);
+			MatterOverdriveRewriteEdition.ITEMS.matter_dust.setMatter(stack, matter);
 			setInventorySlotContents(OUTPUT_SLOT_ID, stack);
 		}
 	}
@@ -231,7 +230,7 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			this.decomposeTime = nbt.getShort("DecomposeTime");
@@ -239,10 +238,10 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setShort("DecomposeTime", (short) this.decomposeTime);
+			nbt.putShort("DecomposeTime", (short) this.decomposeTime);
 		}
 	}
 
@@ -252,12 +251,12 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[] { INPUT_SLOT_ID, OUTPUT_SLOT_ID };
 	}
 
 	@Override
-	public boolean canExtractItem(int index, ItemStack stack, EnumFacing direction) {
+	public boolean canExtractItem(int index, ItemStack stack, Direction direction) {
 		return index == OUTPUT_SLOT_ID;
 	}
 

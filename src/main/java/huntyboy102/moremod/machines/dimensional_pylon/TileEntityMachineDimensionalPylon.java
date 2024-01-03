@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.machines.dimensional_pylon;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.multiblock.MultiblockFormEvent;
@@ -22,27 +22,28 @@ import huntyboy102.moremod.util.MOLog;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.RenderUtils;
 import huntyboy102.moremod.util.TileUtils;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.internal.FMLNetworkHandler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -107,32 +108,32 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 
 	public float getDimensionalValue() {
 		if (mainBlock != null) {
-			return MatterOverdrive.MO_WORLD.getDimensionalRifts().getValueAt(mainBlock);
+			return MatterOverdriveRewriteEdition.MO_WORLD.getDimensionalRifts().getValueAt(mainBlock);
 		}
-		return MatterOverdrive.MO_WORLD.getDimensionalRifts().getValueAt(getPos());
+		return MatterOverdriveRewriteEdition.MO_WORLD.getDimensionalRifts().getValueAt(getBlockPos());
 	}
 
 	@Override
 	public void update() {
 		super.update();
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			manageLightningClientLightning();
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void manageLightningClientLightning() {
 		if (isActive()) {
 			Color color = RenderUtils.lerp(Reference.COLOR_MATTER.multiplyWithoutAlpha(0.5f), Reference.COLOR_HOLO_RED,
 					(float) charge / (float) MAX_CHARGE);
-			if (getWorld().getWorldTime() % 2 == 0) {
+			if (getLevel().getDayTime() % 2 == 0) {
 				float dimValue = getDimensionalValue();
 				if (random.nextInt(10) < dimValue) {
-					double y = getPos().getY() + 0.5 + random.nextDouble() * 2;
-					double dirX = MathHelper.clamp(random.nextGaussian(), -1, 1) * 0.1;
-					double dirZ = MathHelper.clamp(random.nextGaussian(), -1, 1) * 0.1;
-					LightningCircle lightning = new LightningCircle(getWorld(), getPos().getX() - dirX, y,
-							getPos().getZ() - dirZ, 0.03f, 1, 0.3f, 0.2f);
+					double y = getBlockPos().getY() + 0.5 + random.nextDouble() * 2;
+					double dirX = Mth.clamp(random.nextGaussian(), -1, 1) * 0.1;
+					double dirZ = Mth.clamp(random.nextGaussian(), -1, 1) * 0.1;
+					LightningCircle lightning = new LightningCircle(getLevel(), getBlockPos().getX() - dirX, y,
+							getBlockPos().getZ() - dirZ, 0.03f, 1, 0.3f, 0.2f);
 					lightning.setColorRGBA(color);
 					ClientProxy.renderHandler.getRenderParticlesHandler().addEffect(lightning,
 							RenderParticlesHandler.Blending.LinesAdditive);
@@ -142,8 +143,8 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 	}
 
 	public void addCharge(int charge) {
-		if (mainBlock != null && !mainBlock.equals(getPos())) {
-			TileEntity tileEntity = world.getTileEntity(mainBlock);
+		if (mainBlock != null && !mainBlock.equals(getBlockPos())) {
+			BlockEntity tileEntity = level.getBlockEntity(mainBlock);
 			if (tileEntity != null && tileEntity instanceof TileEntityMachineDimensionalPylon) {
 				((TileEntityMachineDimensionalPylon) tileEntity).addCharge(charge);
 			}
@@ -154,8 +155,8 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 	}
 
 	public int removeCharge(int charge) {
-		if (mainBlock != null && !mainBlock.equals(getPos())) {
-			TileEntity tileEntity = world.getTileEntity(mainBlock);
+		if (mainBlock != null && !mainBlock.equals(getBlockPos())) {
+			BlockEntity tileEntity = level.getBlockEntity(mainBlock);
 			if (tileEntity != null && tileEntity instanceof TileEntityMachineDimensionalPylon) {
 				return ((TileEntityMachineDimensionalPylon) tileEntity).removeCharge(charge);
 			}
@@ -171,30 +172,30 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+	public boolean shouldRefresh(Level world, BlockPos pos, BlockState oldState, BlockState newSate) {
 		return oldState.getBlock() != newSate.getBlock();
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			if (mainBlock != null && toDisk) {
-				nbt.setLong("mainBlock", mainBlock.toLong());
+				nbt.putLong("mainBlock", mainBlock.asLong());
 			}
 
-			nbt.setShort("charge", (short) charge);
+			nbt.putShort("charge", (short) charge);
 		}
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			if (nbt.hasKey("mainBlock")) {
-				mainBlock = BlockPos.fromLong(nbt.getLong("mainBlock"));
+			if (nbt.hasUUID("mainBlock")) {
+				mainBlock = BlockPos.of(nbt.getLong("mainBlock"));
 			}
-			if (nbt.hasKey("charge")) {
+			if (nbt.hasUUID("charge")) {
 				charge = nbt.getShort("charge");
 			}
 		}
@@ -202,8 +203,8 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 
 	@Override
 	public boolean isActive() {
-		if (isPartOfStructure() && !mainBlock.equals(getPos())) {
-			TileEntity tileEntity = world.getTileEntity(mainBlock);
+		if (isPartOfStructure() && !mainBlock.equals(getBlockPos())) {
+			BlockEntity tileEntity = level.getBlockEntity(mainBlock);
 			if (tileEntity != null && tileEntity instanceof TileEntityMachineDimensionalPylon) {
 				return ((TileEntityMachineDimensionalPylon) tileEntity).isActive();
 			}
@@ -212,9 +213,9 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 	}
 
 //	@Override
-//	public boolean canFill(EnumFacing from, Fluid fluid)
+//	public boolean canFill(Direction from, Fluid fluid)
 //	{
-//		if (from == EnumFacing.DOWN)
+//		if (from == Direction.DOWN)
 //		{
 //			return fluid instanceof FluidMatterPlasma;
 //		}
@@ -222,9 +223,9 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 //	}
 //
 //	@Override
-//	public boolean canDrain(EnumFacing from, Fluid fluid)
+//	public boolean canDrain(Direction from, Fluid fluid)
 //	{
-//		if (from == EnumFacing.DOWN)
+//		if (from == Direction.DOWN)
 //		{
 //			return fluid instanceof FluidMatterPlasma;
 //		}
@@ -232,13 +233,13 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 //	}
 
 	@Override
-	public boolean canExtractItem(int index, ItemStack stack, EnumFacing direction) {
-		return direction.equals(EnumFacing.DOWN);
+	public boolean canExtractItem(int index, ItemStack stack, Direction direction) {
+		return direction.equals(Direction.DOWN);
 	}
 
 	@Override
-	public boolean canInsertItem(int index, ItemStack itemStackIn, EnumFacing direction) {
-		if (direction.equals(EnumFacing.DOWN)) {
+	public boolean canInsertItem(int index, ItemStack itemStackIn, Direction direction) {
+		if (direction.equals(Direction.DOWN)) {
 			return isItemValidForSlot(index, itemStackIn);
 		}
 		return false;
@@ -249,20 +250,20 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 		if (event instanceof MachineEvent.Destroyed) {
 			if (children != null) {
 				invalidateChildren();
-			} else if (mainBlock != null && !mainBlock.equals(getPos())) {
-				TileEntity tileEntity = world.getTileEntity(mainBlock);
+			} else if (mainBlock != null && !mainBlock.equals(getBlockPos())) {
+				BlockEntity tileEntity = level.getBlockEntity(mainBlock);
 				if (tileEntity instanceof TileEntityMachineDimensionalPylon) {
-					((TileEntityMachineDimensionalPylon) tileEntity).removeChild(getPos());
+					((TileEntityMachineDimensionalPylon) tileEntity).removeChild(getBlockPos());
 				}
 			}
 		} else if (event instanceof MachineEvent.Awake) {
 			if (mainBlock != null) {
 				components.clear();
-				TileEntity tileEntity = world.getTileEntity(mainBlock);
+				BlockEntity tileEntity = level.getBlockEntity(mainBlock);
 				if (tileEntity instanceof TileEntityMachineDimensionalPylon) {
 					if (tileEntity != this) {
 						TileEntityMachineDimensionalPylon tileEntityDimensionalPylon = (TileEntityMachineDimensionalPylon) tileEntity;
-						tileEntityDimensionalPylon.addChild(getPos());
+						tileEntityDimensionalPylon.addChild(getBlockPos());
 						this.matterStorage = tileEntityDimensionalPylon.matterStorage;
 						this.energyStorage = (MachineEnergyStorage<MOTileEntityMachineEnergy>) tileEntityDimensionalPylon
 								.getEnergyStorage();
@@ -270,7 +271,7 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 						registerPylonComponents();
 					}
 				} else {
-					world.setBlockState(getPos(), world.getBlockState(getPos()).withProperty(BlockPylon.TYPE,
+					level.setBlockAndUpdate(getBlockPos(), level.getBlockState(getBlockPos()).setValue(BlockPylon.TYPE,
 							BlockPylon.MultiblockType.NORMAL));
 					removeMainBlock();
 				}
@@ -299,25 +300,25 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 	public void invalidateChildren() {
 		if (children != null) {
 			for (BlockPos pos : children) {
-				IBlockState state = world.getBlockState(pos);
-				TileEntity tileEntity = world.getTileEntity(pos);
-				world.setBlockState(pos, state.withProperty(BlockPylon.TYPE, BlockPylon.MultiblockType.NORMAL));
+				BlockState state = level.getBlockState(pos);
+				BlockEntity tileEntity = level.getBlockEntity(pos);
+				level.setBlockAndUpdate(pos, state.setValue(BlockPylon.TYPE, BlockPylon.MultiblockType.NORMAL));
 				if (tileEntity instanceof TileEntityMachineDimensionalPylon) {
 					((TileEntityMachineDimensionalPylon) tileEntity).removeMainBlock();
 				}
 			}
 		}
 
-		IBlockState state = world.getBlockState(getPos());
+		BlockState state = level.getBlockState(getBlockPos());
 		if (state.getBlock() instanceof BlockPylon) {
-			this.world.setBlockState(getPos(), state.withProperty(BlockPylon.TYPE, BlockPylon.MultiblockType.NORMAL));
+			this.level.setBlockAndUpdate(getBlockPos(), state.setValue(BlockPylon.TYPE, BlockPylon.MultiblockType.NORMAL));
 		}
 		children = null;
 		removeMainBlock();
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 
@@ -326,7 +327,7 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 		return upgradeTypes.contains(type);
 	}
 
-	public boolean onWrenchHit(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side,
+	public boolean onWrenchHit(ItemStack stack, Player player, Level world, BlockPos pos, Direction side,
 			float hitX, float hitY, float hitZ) {
 		if (mainBlock == null) {
 			return tryFormStructure(world, stack, player, pos);
@@ -334,60 +335,60 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 		return false;
 	}
 
-	public boolean openMultiBlockGui(World world, EntityPlayer entityPlayer) {
+	public boolean openMultiBlockGui(Level world, Player entityPlayer) {
 		if (mainBlock != null) {
-			TileEntity mainPylon = world.getTileEntity(mainBlock);
+			BlockEntity mainPylon = world.getBlockEntity(mainBlock);
 			if (mainPylon instanceof TileEntityMachineDimensionalPylon) {
 				if (((MOTileEntityMachine) mainPylon).isUsableByPlayer(entityPlayer)) {
-					FMLNetworkHandler.openGui(entityPlayer, MatterOverdrive.INSTANCE, -1, world, mainBlock.getX(),
+					FMLNetworkHandler.openGui(entityPlayer, MatterOverdriveRewriteEdition.INSTANCE, -1, world, mainBlock.getX(),
 							mainBlock.getY(), mainBlock.getZ());
 					return true;
 				} else {
-					TextComponentString message = new TextComponentString(TextFormatting.GOLD + "[Matter Overdrive] "
-							+ TextFormatting.RED + MOStringHelper.translateToLocal("alert.no_rights").replace("$0",
+					TextComponentString message = new TextComponentString(ChatFormatting.GOLD + "[Matter Overdrive] "
+							+ ChatFormatting.RED + MOStringHelper.translateToLocal("alert.no_rights").replace("$0",
 									((MOTileEntityMachine) mainPylon).getDisplayName().toString()));
-					message.setStyle(new Style().setColor(TextFormatting.RED));
-					entityPlayer.sendMessage(message);
+					message.setStyle(new Style().setColor(ChatFormatting.RED));
+					entityPlayer.sendSystemMessage(message);
 				}
 			}
 		}
 		return false;
 	}
 
-	public boolean tryFormStructure(World world, ItemStack stack, EntityPlayer player, BlockPos pos) {
-		if (world.isRemote) {
+	public boolean tryFormStructure(Level world, ItemStack stack, Player player, BlockPos pos) {
+		if (world.isClientSide) {
 			return false;
 		}
 
-		AxisAlignedBB bounds = new AxisAlignedBB(pos, pos);
+		AABB bounds = new AABB(pos, pos);
 
 		for (int i = 0; i < 1; i++) {
 			// min
-			if (isBlockConsumable(world, new BlockPos(bounds.minX, bounds.minY, bounds.minZ).add(-1, 0, 0))) {
-				bounds = bounds.expand(-1, 0, 0);
+			if (isBlockConsumable(world, new BlockPos(bounds.minX, bounds.minY, bounds.minZ).offset(-1, 0, 0))) {
+				bounds = bounds.expandTowards(-1, 0, 0);
 			}
 
-			if (isBlockConsumable(world, new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ).add(1, 0, 0))) {
-				bounds = bounds.expand(1, 0, 0);
+			if (isBlockConsumable(world, new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ).offset(1, 0, 0))) {
+				bounds = bounds.expandTowards(1, 0, 0);
 			}
 		}
 
 		for (int i = 0; i < 1; i++) {
-			if (isBlockConsumable(world, new BlockPos(bounds.minX, bounds.minY, bounds.minZ).add(0, 0, -1))) {
-				bounds = bounds.expand(0, 0, -1);
+			if (isBlockConsumable(world, new BlockPos(bounds.minX, bounds.minY, bounds.minZ).offset(0, 0, -1))) {
+				bounds = bounds.expandTowards(0, 0, -1);
 			}
-			if (isBlockConsumable(world, new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ).add(0, 0, 1))) {
-				bounds = bounds.expand(0, 0, 1);
+			if (isBlockConsumable(world, new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ).offset(0, 0, 1))) {
+				bounds = bounds.expandTowards(0, 0, 1);
 			}
 		}
 
 		for (int i = 0; i < 2; i++) {
 
-			if (isBlockConsumable(world, new BlockPos(bounds.minX, bounds.minY, bounds.minZ).add(0, -1, 0))) {
-				bounds = bounds.expand(0, -1, 0);
+			if (isBlockConsumable(world, new BlockPos(bounds.minX, bounds.minY, bounds.minZ).offset(0, -1, 0))) {
+				bounds = bounds.expandTowards(0, -1, 0);
 			}
-			if (isBlockConsumable(world, new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ).add(0, 1, 0))) {
-				bounds = bounds.expand(0, 1, 0);
+			if (isBlockConsumable(world, new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ).offset(0, 1, 0))) {
+				bounds = bounds.expandTowards(0, 1, 0);
 			}
 		}
 
@@ -427,15 +428,15 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 				return false;
 			final BlockPos finalMainBlock = mainBlock;
 			for (BlockPos p : positions) {
-				IBlockState pylonBlockstate = world.getBlockState(p);
-				world.setBlockState(p, pylonBlockstate.withProperty(BlockPylon.TYPE, BlockPylon.MultiblockType.DUMMY));
+				BlockState pylonBlockstate = world.getBlockState(p);
+				world.setBlockAndUpdate(p, pylonBlockstate.setValue(BlockPylon.TYPE, BlockPylon.MultiblockType.DUMMY));
 				TileUtils.getTileEntity(world, p, TileEntityMachineDimensionalPylon.class).ifPresent(pylon -> {
 					pylon.setMainBlock(finalMainBlock);
 				});
 			}
-			IBlockState pylonBlockstate = world.getBlockState(mainBlock);
-			world.setBlockState(mainBlock,
-					pylonBlockstate.withProperty(BlockPylon.TYPE, BlockPylon.MultiblockType.MAIN));
+			BlockState pylonBlockstate = world.getBlockState(mainBlock);
+			world.setBlockAndUpdate(mainBlock,
+					pylonBlockstate.setValue(BlockPylon.TYPE, BlockPylon.MultiblockType.MAIN));
 			TileUtils.getTileEntity(world, mainBlock, TileEntityMachineDimensionalPylon.class).ifPresent(pylon -> {
 				pylon.children = positions;
 				pylon.setMainBlock(finalMainBlock);
@@ -459,8 +460,8 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 		components.clear();
 	}
 
-	private boolean isBlockConsumable(World world, BlockPos pos) {
-		TileEntity tileEntity = world.getTileEntity(pos);
+	private boolean isBlockConsumable(Level world, BlockPos pos) {
+		BlockEntity tileEntity = world.getBlockEntity(pos);
 		if (tileEntity instanceof TileEntityMachineDimensionalPylon) {
 			return !((TileEntityMachineDimensionalPylon) tileEntity).isPartOfStructure();
 		}
@@ -494,8 +495,8 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 	}
 
 	@Override
-	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
-		if ((facing == null || facing == EnumFacing.DOWN) && (capability == MatterOverdriveCapabilities.MATTER_HANDLER
+	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable Direction facing) {
+		if ((facing == null || facing == Direction.DOWN) && (capability == MatterOverdriveCapabilities.MATTER_HANDLER
 				|| capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)) {
 			return true;
 		}
@@ -505,8 +506,8 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 	@Nonnull
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
-		if ((facing == null || facing == EnumFacing.DOWN) && (capability == MatterOverdriveCapabilities.MATTER_HANDLER
+	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
+		if ((facing == null || facing == Direction.DOWN) && (capability == MatterOverdriveCapabilities.MATTER_HANDLER
 				|| capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)) {
 			return (T) matterStorage;
 		}

@@ -25,7 +25,7 @@ public class ComponentMatterNetworkAnalyzer extends MatterNetworkComponentClient
 	@Override
 	public void update() {
 		super.update();
-		if (!getNodeWorld().isRemote) {
+		if (!getNodeWorld().isClientSide) {
 			if (taskSearchTimer.hasDelayPassed(getNodeWorld(), TASK_SEARH_DELAY)) {
 				manageTaskSearch();
 			}

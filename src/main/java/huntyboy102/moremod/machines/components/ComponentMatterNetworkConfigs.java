@@ -9,8 +9,7 @@ import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.MachineComponentAbstract;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.EnumSet;
 
@@ -23,19 +22,19 @@ public class ComponentMatterNetworkConfigs extends MachineComponentAbstract<MOTi
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readFromNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		if (categories.contains(MachineNBTCategory.CONFIGS)) {
-			if (nbt.hasKey("DestinationFilter", Constants.NBT.TAG_STRING)) {
+			if (nbt.hasUUID("DestinationFilter")) {
 				destinationFilter = nbt.getString("DestinationFilter");
 			}
 		}
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeToNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		if (categories.contains(MachineNBTCategory.CONFIGS)) {
 			if (destinationFilter != null) {
-				nbt.setString("DestinationFilter", destinationFilter);
+				nbt.putString("DestinationFilter", destinationFilter);
 			}
 		}
 	}
@@ -60,7 +59,7 @@ public class ComponentMatterNetworkConfigs extends MachineComponentAbstract<MOTi
 
 	}
 
-	public NBTTagCompound getFilter() {
+	public CompoundTag getFilter() {
 		if (machine.getStackInSlot(destinationFilterSlot) != null
 				&& machine.getStackInSlot(destinationFilterSlot).getItem() instanceof IMatterNetworkFilter) {
 			return ((IMatterNetworkFilter) machine.getStackInSlot(destinationFilterSlot).getItem())
