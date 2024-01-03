@@ -11,7 +11,7 @@ import huntyboy102.moremod.api.network.MatterNetworkTask;
 import huntyboy102.moremod.container.matter_network.ITaskQueueWatcher;
 import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.matter_network.MatterNetworkTaskQueue;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.EnumSet;
 
@@ -27,20 +27,20 @@ public class TaskQueueComponent<T extends MatterNetworkTask, M extends MOTileEnt
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readFromNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			if (nbt.hasKey("tasks")) {
-				taskQueue.readFromNBT(nbt.getCompoundTag("tasks"));
+			if (nbt.hasUUID("tasks")) {
+				taskQueue.readFromNBT(nbt.getCompound("tasks"));
 			}
 		}
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeToNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		if (categories.contains(MachineNBTCategory.DATA) && toDisk) {
-			NBTTagCompound taskQueueTag = new NBTTagCompound();
+			CompoundTag taskQueueTag = new CompoundTag();
 			taskQueue.writeToNBT(taskQueueTag);
-			nbt.setTag("tasks", taskQueueTag);
+			nbt.put("tasks", taskQueueTag);
 		}
 	}
 

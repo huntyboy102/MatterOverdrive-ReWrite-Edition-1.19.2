@@ -5,25 +5,26 @@ import huntyboy102.moremod.machines.IMachineComponent;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.matter_network.IMatterNetworkComponent;
 import huntyboy102.moremod.api.matter_network.IMatterNetworkConnection;
 import huntyboy102.moremod.api.transport.IGridNode;
 import huntyboy102.moremod.data.CustomInventory;
 import huntyboy102.moremod.data.transport.MatterNetwork;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.EnumSet;
 
 public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine & IMatterNetworkConnection>
-		implements IMachineComponent, IMatterNetworkConnection, ITickable, IMatterNetworkComponent {
+		implements IMachineComponent, IMatterNetworkConnection, Tickable, IMatterNetworkComponent {
 	// protected static final PacketHandlerBasicConnections
 	// BASIC_CONNECTIONS_HANDLER = new PacketHandlerBasicConnections();
 	// protected final List<AbstractMatterNetworkPacketHandler> handlers;
@@ -59,10 +60,10 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 	 * (AbstractMatterNetworkPacketHandler handler : handlers) {
 	 * handler.processPacket(packet,new
 	 * AbstractMatterNetworkPacketHandler.Context(getworld(),rootClient)); } }
-	 * 
+	 *
 	 * public int onNetworkTick(World world, TickEvent.Phase phase) { if (phase ==
 	 * TickEvent.Phase.END) { manageTopPacket(); } return 0; }
-	 * 
+	 *
 	 * @Override public boolean canPreform(MatterNetworkPacket packet) { if
 	 * (packet.getFilter() != null) { NBTTagList connectionsList =
 	 * packet.getFilter().getTagList(IMatterNetworkFilter.CONNECTIONS_TAG,
@@ -84,32 +85,32 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 	}
 
 	@Override
-	public World getNodeWorld() {
-		return rootClient.getWorld();
+	public Level getNodeWorld() {
+		return rootClient.getLevel();
 	}
 
 	@Override
-	public boolean canConnectToNetworkNode(IBlockState blockState, IGridNode toNode, EnumFacing direction) {
+	public boolean canConnectToNetworkNode(BlockState blockState, IGridNode toNode, Direction direction) {
 		return canConnectFromSide(blockState, direction);
 	}
 
 	@Override
 	public BlockPos getNodePos() {
-		return rootClient.getPos();
+		return rootClient.getBlockPos();
 	}
 
 	@Override
-	public boolean canConnectFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean canConnectFromSide(BlockState blockState, Direction side) {
 		return rootClient.canConnectFromSide(blockState, side);
 	}
 
 	@Override
-	public boolean establishConnectionFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean establishConnectionFromSide(BlockState blockState, Direction side) {
 		return rootClient.canConnectFromSide(blockState, side);
 	}
 
 	@Override
-	public void breakConnection(IBlockState blockState, EnumFacing side) {
+	public void breakConnection(BlockState blockState, Direction side) {
 
 	}
 	/*
@@ -122,7 +123,7 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 	 */
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readFromNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		/*
 		 * if (categories.contains(MachineNBTCategory.DATA)) {
 		 * packetQueue.readFromNBT(nbt); }
@@ -130,7 +131,7 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeToNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		/*
 		 * if (categories.contains(MachineNBTCategory.DATA) && toDisk) {
 		 * packetQueue.writeToNBT(nbt); }
@@ -144,7 +145,7 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 
 	@Override
 	public void update() {
-		if (!getNodeWorld().isRemote) {
+		if (!getNodeWorld().isClientSide) {
 			manageNetwork();
 		}
 	}
@@ -152,17 +153,17 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 	protected void manageNetwork() {
 		if (matterNetwork == null) {
 			if (!tryConnectToNeighborNetworks(getNodeWorld())) {
-				MatterNetwork network = MatterOverdrive.MATTER_NETWORK_HANDLER.getNetwork(rootClient);
+				MatterNetwork network = MatterOverdriveRewriteEdition.MATTER_NETWORK_HANDLER.getNetwork(rootClient);
 				network.addNode(rootClient);
 			}
 		}
 	}
 
-	protected boolean tryConnectToNeighborNetworks(World world) {
+	protected boolean tryConnectToNeighborNetworks(Level world) {
 		boolean hasConnected = false;
-		for (EnumFacing side : EnumFacing.VALUES) {
+		for (Direction side : Direction.values()) {
 			if (rootClient.canConnectFromSide(world.getBlockState(getNodePos()), side)) {
-				TileEntity neighborEntity = world.getTileEntity(getNodePos().offset(side));
+				BlockEntity neighborEntity = world.getBlockEntity(getNodePos().offset(side));
 				if (neighborEntity instanceof IMatterNetworkConnection && canConnectToNetworkNode(
 						world.getBlockState(getNodePos()), (IMatterNetworkConnection) neighborEntity, side)) {
 					if (((IMatterNetworkConnection) neighborEntity).getNetwork() != null
@@ -202,10 +203,10 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 			if (matterNetwork != null) {
 				matterNetwork.onNodeDestroy(event.state, rootClient);
 			}
-			for (EnumFacing enumFacing : EnumFacing.VALUES) {
+			for (Direction enumFacing : Direction.values()) {
 				if (canConnectFromSide(event.state, enumFacing)) {
-					TileEntity tileEntityNeignbor = event.world.getTileEntity(event.pos.offset(enumFacing));
-					IBlockState neighborState = event.world.getBlockState(event.pos.offset(enumFacing));
+					BlockEntity tileEntityNeignbor = event.world.getBlockEntity(event.pos.offset(enumFacing));
+					BlockState neighborState = event.world.getBlockState(event.pos.offset(enumFacing));
 					if (tileEntityNeignbor instanceof IMatterNetworkConnection) {
 						((IMatterNetworkConnection) tileEntityNeignbor).breakConnection(neighborState,
 								enumFacing.getOpposite());
@@ -217,9 +218,9 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 
 	protected void onAdded(MachineEvent.Added event) {
 		if (!event.world.isRemote) {
-			for (EnumFacing enumFacing : EnumFacing.VALUES) {
-				TileEntity tileEntityNeignbor = event.world.getTileEntity(event.pos.offset(enumFacing));
-				IBlockState neighborState = event.world.getBlockState(event.pos.offset(enumFacing));
+			for (Direction enumFacing : Direction.values()) {
+				BlockEntity tileEntityNeignbor = event.world.getBlockEntity(event.pos.offset(enumFacing));
+				BlockState neighborState = event.world.getBlockState(event.pos.offset(enumFacing));
 				if (canConnectFromSide(event.state, enumFacing)
 						&& tileEntityNeignbor instanceof IMatterNetworkConnection) {
 					if (((IMatterNetworkConnection) tileEntityNeignbor).establishConnectionFromSide(neighborState,
@@ -232,8 +233,8 @@ public abstract class MatterNetworkComponentClient<T extends MOTileEntityMachine
 	}
 
 	protected void onUnload(MachineEvent.Unload event) {
-		if (!getNodeWorld().isRemote) {
-			IBlockState blockState = getNodeWorld().getBlockState(getNodePos());
+		if (!getNodeWorld().isClientSide) {
+			BlockState blockState = getNodeWorld().getBlockState(getNodePos());
 			if (matterNetwork != null) {
 				matterNetwork.onNodeDestroy(blockState, rootClient);
 			}
