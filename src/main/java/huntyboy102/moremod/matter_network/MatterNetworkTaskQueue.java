@@ -5,9 +5,9 @@ import huntyboy102.moremod.util.MOLog;
 import io.netty.buffer.ByteBuf;
 import huntyboy102.moremod.api.network.MatterNetworkTask;
 import huntyboy102.moremod.api.network.MatterNetworkTaskState;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.FriendlyByteBuf;
 import org.apache.logging.log4j.Level;
 
 import java.util.ArrayList;
@@ -110,24 +110,24 @@ public class MatterNetworkTaskQueue<T extends MatterNetworkTask> {
 		return capacity - elements.size();
 	}
 
-	public void readFromNBT(NBTTagCompound tagCompound) {
+	public void readFromNBT(CompoundTag tagCompound) {
 		if (tagCompound == null) {
 			return;
 		}
 
 		elements.clear();
-		NBTTagList tagList = tagCompound.getTagList(name, 10);
-		for (int i = 0; i < tagList.tagCount(); i++) {
+		ListTag tagList = tagCompound.getList(name, 10);
+		for (int i = 0; i < tagList.size(); i++) {
 			try {
-				T element = (T) getElementClassFromNBT(tagList.getCompoundTagAt(i)).newInstance();
-				readElementFromNBT(tagList.getCompoundTagAt(i), element);
+				T element = (T) getElementClassFromNBT(tagList.getCompound(i)).newInstance();
+				readElementFromNBT(tagList.getCompound(i), element);
 				elements.add(element);
 			} catch (InstantiationException e) {
 				MOLog.log(Level.ERROR, e, "There was a problem while loading a packet of type %s",
-						getElementClassFromNBT(tagList.getCompoundTagAt(i)));
+						getElementClassFromNBT(tagList.getCompound(i)));
 			} catch (IllegalAccessException e) {
 				MOLog.log(Level.ERROR, e, "There was a problem while loading a packet of type %s",
-						getElementClassFromNBT(tagList.getCompoundTagAt(i)));
+						getElementClassFromNBT(tagList.getCompound(i)));
 			}
 		}
 	}
@@ -147,28 +147,28 @@ public class MatterNetworkTaskQueue<T extends MatterNetworkTask> {
 		}
 	}
 
-	protected void readElementFromNBT(NBTTagCompound tagCompound, MatterNetworkTask element) {
+	protected void readElementFromNBT(CompoundTag tagCompound, MatterNetworkTask element) {
 		element.readFromNBT(tagCompound);
 	}
 
-	protected void writeElementToNBT(NBTTagCompound tagCompound, MatterNetworkTask element) {
+	protected void writeElementToNBT(CompoundTag tagCompound, MatterNetworkTask element) {
 		element.writeToNBT(tagCompound);
-		tagCompound.setInteger("Type", MatterNetworkRegistry.getTaskID(element.getClass()));
+		tagCompound.putInt("Type", MatterNetworkRegistry.getTaskID(element.getClass()));
 	}
 
-	protected void readElementFromBuffer(ByteBuf byteBuf, T element) {
-		element.readFromNBT(ByteBufUtils.readTag(byteBuf));
+	protected void readElementFromBuffer(FriendlyByteBuf friendlyByteBuf, T element) {
+		element.readFromNBT(friendlyByteBuf.readNbt());
 	}
 
-	protected void writeElementToBuffer(ByteBuf byteBuf, T element) {
-		NBTTagCompound tagCompound = new NBTTagCompound();
-		byteBuf.writeInt(MatterNetworkRegistry.getTaskID(element.getClass()));
+	protected void writeElementToBuffer(FriendlyByteBuf friendlyByteBuf, T element) {
+		CompoundTag tagCompound = new CompoundTag();
+		friendlyByteBuf.writeInt(MatterNetworkRegistry.getTaskID(element.getClass()));
 		element.writeToNBT(tagCompound);
-		ByteBufUtils.writeTag(byteBuf, tagCompound);
+		friendlyByteBuf.writeNbt(tagCompound);
 	}
 
-	protected Class<?> getElementClassFromNBT(NBTTagCompound tagCompound) {
-		return MatterNetworkRegistry.getTaskClass(tagCompound.getInteger("Type"));
+	protected Class<?> getElementClassFromNBT(CompoundTag tagCompound) {
+		return MatterNetworkRegistry.getTaskClass(tagCompound.getInt("Type"));
 	}
 
 	protected Class<?> getElementClassFromBuffer(ByteBuf byteBuf) {
@@ -183,14 +183,14 @@ public class MatterNetworkTaskQueue<T extends MatterNetworkTask> {
 		elements.clear();
 	}
 
-	public void writeToNBT(NBTTagCompound tagCompound) {
-		NBTTagList taskList = new NBTTagList();
+	public void writeToNBT(CompoundTag tagCompound) {
+		ListTag taskList = new ListTag();
 		for (T element : elements) {
-			NBTTagCompound taskNBT = new NBTTagCompound();
+			CompoundTag taskNBT = new CompoundTag();
 			writeElementToNBT(taskNBT, element);
-			taskList.appendTag(taskNBT);
+			taskList.add(taskNBT);
 		}
-		tagCompound.setTag(name, taskList);
+		tagCompound.put(name, taskList);
 	}
 
 	public void writeToBuffer(ByteBuf byteBuf) {

@@ -5,8 +5,8 @@ import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.api.network.MatterNetworkTask;
 import huntyboy102.moremod.data.matter_network.ItemPattern;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 
 public class MatterNetworkTaskReplicatePattern extends MatterNetworkTask {
 	ItemPattern pattern;
@@ -33,36 +33,36 @@ public class MatterNetworkTaskReplicatePattern extends MatterNetworkTask {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound compound) {
+	public void readFromNBT(CompoundTag compound) {
 		super.readFromNBT(compound);
 		if (compound != null) {
-			pattern.readFromNBT(compound.getCompoundTag("Pattern"));
+			pattern.readFromNBT(compound.getCompound("Pattern"));
 			amount = compound.getShort("amount");
 		}
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound compound) {
+	public void writeToNBT(CompoundTag compound) {
 		super.writeToNBT(compound);
-		compound.setShort("amount", (short) amount);
+		compound.putShort("amount", (short) amount);
 		if (compound != null) {
-			NBTTagCompound tagCompound = new NBTTagCompound();
+			CompoundTag tagCompound = new CompoundTag();
 			pattern.writeToNBT(tagCompound);
-			compound.setTag("Pattern", tagCompound);
+			compound.put("Pattern", tagCompound);
 		}
 	}
 
 	@Override
 	public String getName() {
 		return String.format("[%s] %s", amount,
-				MOStringHelper.translateToLocal(pattern.getItem().getTranslationKey() + ".name"));
+				MOStringHelper.translateToLocal(pattern.getItem() + ".name"));
 	}
 
 	public ItemPattern getPattern() {
 		return pattern;
 	}
 
-	public boolean isValid(World world) {
+	public boolean isValid(Level world) {
 		if (!super.isValid(world)) {
 			return false;
 		}
