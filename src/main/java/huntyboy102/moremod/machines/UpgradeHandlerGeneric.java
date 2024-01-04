@@ -3,7 +3,7 @@ package huntyboy102.moremod.machines;
 
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.machines.IUpgradeHandler;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +44,6 @@ public class UpgradeHandlerGeneric implements IUpgradeHandler {
 		if (max.containsKey(type)) {
 			multiply = Math.min(multiply, max.get(type));
 		}
-		return MathHelper.clamp(multiply, totalMinimum, totamMaximum);
+		return Mth.clamp(multiply, totalMinimum, totamMaximum);
 	}
 }

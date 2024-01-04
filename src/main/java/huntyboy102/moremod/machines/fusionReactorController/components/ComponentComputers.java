@@ -8,7 +8,7 @@ import huntyboy102.moremod.machines.MachineComponentAbstract;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.machines.fusionReactorController.TileEntityMachineFusionReactorController;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.EnumSet;
 
@@ -130,12 +130,12 @@ public class ComponentComputers extends MachineComponentAbstract<TileEntityMachi
 	 */
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readFromNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeToNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 
 	}
 

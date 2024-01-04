@@ -17,19 +17,23 @@ import huntyboy102.moremod.items.SecurityProtocol;
 import huntyboy102.moremod.machines.components.ComponentConfigs;
 import huntyboy102.moremod.machines.configs.ConfigPropertyStringList;
 import huntyboy102.moremod.machines.events.MachineEvent;
+import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.items.wrapper.SidedInvWrapper;
+import net.minecraftforge.network.NetworkHooks;
 import org.apache.logging.log4j.Level;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.IMOTileEntity;
 import huntyboy102.moremod.api.IUpgradeable;
-import matteroverdrive.api.container.IMachineWatcher;
+import huntyboy102.moremod.api.container.IMachineWatcher;
 import huntyboy102.moremod.api.inventory.IUpgrade;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.machines.IUpgradeHandler;
@@ -44,42 +48,30 @@ import huntyboy102.moremod.util.MOLog;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.math.MOMathHelper;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.Container;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
-import net.minecraftforge.items.wrapper.SidedInvWrapper;
 
 /**
  * @autor Simeon
  * @since 3/11/2015
  */
 public abstract class MOTileEntityMachine extends MOTileEntity
-		implements IMOTileEntity, ISidedInventory, IUpgradeable, ITickable {
+		implements IMOTileEntity, IUpgradeable, Tickable {
 	// TODO: do something with this hell inventory v1.0.0
 	protected static final Random random = new Random();
 	protected static final UpgradeHandlerGeneric basicUpgradeHandler = new UpgradeHandlerGeneric(0.05, Double.MAX_VALUE)
@@ -88,10 +80,10 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	protected final List<IMachineWatcher> watchers;
 	protected final CustomInventory customInventory;
 	protected final IItemHandler inventoryHandler;
-	protected final IItemHandler[] sidedWrappers = new IItemHandler[EnumFacing.VALUES.length];
+	protected final IItemHandler[] sidedWrappers = new IItemHandler[Direction.values().length];
 	protected final List<IMachineComponent> components;
 	private final int[] upgrade_slots;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected MachineSound sound;
 	protected boolean redstoneState;
 	protected boolean redstoneStateDirty = true;
@@ -108,7 +100,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		components = new ArrayList<>();
 		upgrade_slots = new int[upgradeCount];
 		customInventory = new TileEntityCustomInventory(this, "");
-		for (EnumFacing facing : EnumFacing.VALUES)
+		for (Direction facing : Direction.values())
 			sidedWrappers[facing.ordinal()] = new SidedInvWrapper(this, facing);
 		inventoryHandler = new InvWrapper(this);
 		registerComponents();
@@ -125,14 +117,14 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	public void update() {
 		if (!awoken) {
 			awoken = true;
-			onAwake(world.isRemote ? Side.CLIENT : Side.SERVER);
+			onAwake(level.isClientSide ? Dist.CLIENT : Dist.DEDICATED_SERVER);
 		}
 
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			manageSound();
 
 			if (forceClientUpdate) {
-				world.notifyNeighborsOfStateChange(getPos(), blockType, false);
+				level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
 				forceClientUpdate = false;
 			}
 			return;
@@ -153,10 +145,10 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			lastActive = isActive();
 		}
 
-		components.stream().filter(component -> component instanceof ITickable).forEach(component -> {
+		components.stream().filter(component -> component instanceof Tickable).forEach(component -> {
 			// System.out.println("Components stream" + component);
 			try {
-				((ITickable) component).update();
+				((Tickable) component).tick();
 			} catch (Exception e) {
 				MOLog.log(Level.FATAL, e, "There was a problem while ticking %s component %s", this, component);
 			}
@@ -201,23 +193,23 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		return true;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected void manageSound() {
 		float soundVolume = soundVolume();
 
 		if (hasSound() && soundVolume > 0) {
-			if (isActive() && !isInvalid()) {
+			if (isActive()) {
 				if (sound == null) {
 					float soundMultiply = 1;
-					if (getBlockType() instanceof MOBlockMachine) {
-						soundMultiply = ((MOBlockMachine<?>) getBlockType()).volume;
+					if (getBlockState().getBlock() instanceof MOBlockMachine) {
+						soundMultiply = ((MOBlockMachine<?>) getBlockState().getBlock()).volume;
 					}
 					if (soundMultiply > 0) {
-						sound = new MachineSound(getSound(), SoundCategory.BLOCKS, getPos(),
+						sound = new MachineSound(getSound(), SoundSource.BLOCKS, getBlockPos(),
 								soundVolume() * soundMultiply, 1);
-						FMLClientHandler.instance().getClient().getSoundHandler().playSound(sound);
+						Minecraft.getInstance().getSoundManager().play(sound);
 					}
-				} else if (FMLClientHandler.instance().getClient().getSoundHandler().isSoundPlaying(sound)) {
+				} else if (Minecraft.getInstance().getSoundManager().isActive(sound)) {
 					sound.setVolume(soundVolume());
 				} else {
 					sound = null;
@@ -230,11 +222,11 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	void stopSound() {
 		if (sound != null) {
 			sound.stopPlaying();
-			FMLClientHandler.instance().getClient().getSoundHandler().stopSound(sound);
+			Minecraft.getInstance().getSoundManager().stop(sound);
 			sound = null;
 		}
 	}
@@ -243,7 +235,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	public void onChunkUnload() {
 		super.onChunkUnload();
 
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			stopSound();
 		}
 
@@ -253,11 +245,11 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			redstoneState = nbt.getBoolean("redstoneState");
 			activeState = nbt.getBoolean("activeState");
-			if (nbt.hasKey("Owner", 8) && !nbt.getString("Owner").isEmpty()) {
+			if (nbt.hasUUID("Owner") && !nbt.getString("Owner").isEmpty()) {
 				try {
 					owner = UUID.fromString(nbt.getString("Owner"));
 				} catch (Exception e) {
@@ -274,15 +266,15 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setBoolean("redstoneState", redstoneState);
-			nbt.setBoolean("activeState", activeState);
+			nbt.putBoolean("redstoneState", redstoneState);
+			nbt.putBoolean("activeState", activeState);
 			if (toDisk) {
 				if (owner != null) {
-					nbt.setString("Owner", owner.toString());
-				} else if (nbt.hasKey("Owner", 6)) {
-					nbt.removeTag("Owner");
+					nbt.putString("Owner", owner.toString());
+				} else if (nbt.hasUUID("Owner")) {
+					nbt.remove("Owner");
 				}
 			}
 		}
@@ -298,45 +290,45 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	public void writeToDropItem(ItemStack itemStack) {
 		boolean saveTagFlag = false;
 
-		if (!itemStack.hasTagCompound()) {
-			itemStack.setTagCompound(new NBTTagCompound());
+		if (!itemStack.hasTag()) {
+			itemStack.setTag(new CompoundTag());
 		}
 
-		NBTTagCompound machineTag = new NBTTagCompound();
-		NBTTagList itemTagList = new NBTTagList();
+		CompoundTag machineTag = new CompoundTag();
+		ListTag itemTagList = new ListTag();
 		for (int i = 0; i < getSizeInventory(); ++i) {
 			if (customInventory.getSlot(i).keepOnDismantle() && customInventory.getStackInSlot(i) != null) {
-				NBTTagCompound itemTag = new NBTTagCompound();
-				itemTag.setByte("Slot", (byte) i);
-				getStackInSlot(i).writeToNBT(itemTag);
-				itemTagList.appendTag(itemTag);
+				CompoundTag itemTag = new CompoundTag();
+				itemTag.putByte("Slot", (byte) i);
+				getStackInSlot(i).save(itemTag);
+				itemTagList.add(itemTag);
 				saveTagFlag = true;
 			}
 		}
 		if (saveTagFlag) {
-			machineTag.setTag("Items", itemTagList);
+			machineTag.put("Items", itemTagList);
 		}
 
 		writeCustomNBT(machineTag, EnumSet.of(MachineNBTCategory.CONFIGS, MachineNBTCategory.DATA), true);
 		if (hasOwner()) {
-			machineTag.setString("Owner", owner.toString());
+			machineTag.putString("Owner", owner.toString());
 		}
 
-		itemStack.getTagCompound().setTag("Machine", machineTag);
+		itemStack.getTag().put("Machine", machineTag);
 	}
 
 	@Override
 	public void readFromPlaceItem(ItemStack itemStack) {
-		if (itemStack.hasTagCompound()) {
-			NBTTagCompound machineTag = itemStack.getTagCompound().getCompoundTag("Machine");
-			NBTTagList itemTagList = machineTag.getTagList("Items", 10);
-			for (int i = 0; i < itemTagList.tagCount(); ++i) {
-				NBTTagCompound itemTag = itemTagList.getCompoundTagAt(i);
+		if (itemStack.hasTag()) {
+			CompoundTag machineTag = itemStack.getTag().getCompound("Machine");
+			ListTag itemTagList = machineTag.getList("Items", 10);
+			for (int i = 0; i < itemTagList.size(); ++i) {
+				CompoundTag itemTag = itemTagList.getCompound(i);
 				byte b0 = itemTag.getByte("Slot");
 				customInventory.setInventorySlotContents(b0, new ItemStack(itemTag));
 			}
 			readCustomNBT(machineTag, EnumSet.of(MachineNBTCategory.CONFIGS, MachineNBTCategory.DATA));
-			if (machineTag.hasKey("Owner", 8)) {
+			if (machineTag.hasUUID("Owner")) {
 				try {
 					this.owner = UUID.fromString(machineTag.getString("Owner"));
 				} catch (Exception e) {
@@ -348,16 +340,16 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 
 	@Nullable
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound syncData = new NBTTagCompound();
+	public ClientboundBlockEntityDataPacket getUpdatePacket() {
+		CompoundTag syncData = new CompoundTag();
 		writeCustomNBT(syncData, MachineNBTCategory.ALL_OPTS, false);
-		return new SPacketUpdateTileEntity(getPos(), 1, syncData);
+		return new ClientboundBlockEntityDataPacket(getBlockPos(), 1, syncData);
 	}
 
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+	public void onDataPacket(NetworkHooks net, ClientboundBlockEntityDataPacket pkt) {
 		// System.out.println("Receiving Packet From Server");
-		NBTTagCompound syncData = pkt.getNbtCompound();
+		CompoundTag syncData = pkt.getTag();
 		if (syncData != null) {
 			readCustomNBT(syncData, MachineNBTCategory.ALL_OPTS);
 		}
@@ -367,8 +359,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		if (redstoneStateDirty) {
 			boolean flag = redstoneState;
 			redstoneState = false; // Set this to false so that falling-edge can be detected as well
-			for (int i = 0; i < EnumFacing.VALUES.length; i++) {
-				if (getWorld().getRedstonePower(getPos(), EnumFacing.VALUES[i]) > 0) {
+			for (int i = 0; i < Direction.values().length; i++) {
+				if (getLevel().getSignal(getBlockPos().relative(Direction.values()[i]), Direction.values()[i]) > 0) {
 					redstoneState = true; // If any side is powered, we can exit here.
 					break; // Changed to 'break' so that redstoneStateDirty and forceClientUpdate are still
 							// set properly
@@ -385,7 +377,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	protected void manageClientSync() {
 		if (forceClientUpdate) {
 			forceClientUpdate = false;
-			MatterOverdrive.NETWORK.sendToAllAround(
+			MatterOverdriveRewriteEdition.NETWORK.sendToAllAround(
 					new PacketSendMachineNBT(MachineNBTCategory.ALL_OPTS, this, false, false), this, 64);
 			markDirty();
 		}
@@ -394,12 +386,10 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			manageSound();
 		}
 	}
-
-	public abstract boolean isUsableByPlayer(Player player);
 
 	protected abstract void onMachineEvent(MachineEvent event);
 
@@ -410,7 +400,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	@Override
-	public void onNeighborBlockChange(IBlockAccess world, BlockPos pos, IBlockState state, Block neighborBlock) {
+	public void onNeighborBlockChange(LevelAccessor world, BlockPos pos, BlockState state, Block neighborBlock) {
 		MachineEvent event = new MachineEvent.NeighborChange(world, pos, state, neighborBlock);
 		onMachineEvent(event);
 		onMachineEventCompoments(event);
@@ -419,21 +409,21 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	@Override
-	public void onDestroyed(World worldIn, BlockPos pos, IBlockState state) {
+	public void onDestroyed(Level worldIn, BlockPos pos, BlockState state) {
 		MachineEvent event = new MachineEvent.Destroyed(worldIn, pos, state);
 		onMachineEvent(event);
 		onMachineEventCompoments(event);
 	}
 
 	@Override
-	public void onPlaced(World world, EntityLivingBase entityLiving) {
+	public void onPlaced(Level world, LivingEntity entityLiving) {
 		MachineEvent event = new MachineEvent.Placed(world, entityLiving);
 		onMachineEvent(event);
 		onMachineEventCompoments(event);
 	}
 
 	@Override
-	public void onAdded(World world, BlockPos pos, IBlockState state) {
+	public void onAdded(Level world, BlockPos pos, BlockState state) {
 		MachineEvent event = new MachineEvent.Added(world, pos, state);
 		onMachineEvent(event);
 		onMachineEventCompoments(event);
@@ -446,13 +436,13 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	@Override
-	protected void onAwake(Side side) {
+	protected void onAwake(Dist side) {
 		MachineEvent machineEvent = new MachineEvent.Awake(side);
 		onMachineEvent(machineEvent);
 		onMachineEventCompoments(machineEvent);
 	}
 
-	public void onContainerOpen(Side side) {
+	public void onContainerOpen(Dist side) {
 		MachineEvent event = new MachineEvent.OpenContainer(side);
 		onMachineEvent(event);
 		onMachineEventCompoments(event);
@@ -485,7 +475,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	@Override
 	public int getSizeInventory() {
 		if (getInventory() != null) {
-			return getInventory().getSizeInventory();
+			return getInventory().getContainerSize();
 		} else {
 			return 0;
 		}
@@ -497,7 +487,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	@Nonnull
 	public ItemStack getStackInSlot(int slot) {
 		if (getInventory() != null) {
-			return getInventory().getStackInSlot(slot);
+			return getInventory().getItem(slot);
 		} else {
 			return ItemStack.EMPTY;
 		}
@@ -506,7 +496,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	@Override
 	public ItemStack decrStackSize(int slot, int size) {
 		if (getInventory() != null) {
-			return getInventory().decrStackSize(slot, size);
+			return getInventory().removeItem(slot, size);
 		} else {
 			return ItemStack.EMPTY;
 		}
@@ -515,7 +505,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	@Override
 	public ItemStack removeStackFromSlot(int index) {
 		if (getInventory() != null) {
-			return getInventory().removeStackFromSlot(index);
+			return getInventory().getItem(index);
 		} else {
 			return ItemStack.EMPTY;
 		}
@@ -524,7 +514,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack itemStack) {
 		if (getInventory() != null) {
-			getInventory().setInventorySlotContents(slot, itemStack);
+			getInventory().setItem(slot, itemStack);
 		}
 	}
 
@@ -542,25 +532,23 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	@Override
 	public int getInventoryStackLimit() {
 		if (getInventory() != null) {
-			return getInventory().getInventoryStackLimit();
+			return getInventory().getMaxStackSize();
 		} else {
 			return 0;
 		}
 	}
 
-	public abstract void setInventorySlotContents(int slot, ItemStack itemStack);
-
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean isUsableByPlayer(Player player) {
 		if (hasOwner()) {
-			if (player.getGameProfile().getId().equals(owner) || player.capabilities.isCreativeMode) {
+			if (player.getGameProfile().getId().equals(owner) || player.getAbilities().instabuild) {
 				return true;
 			} else {
-				for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-					ItemStack itemStack = player.inventory.getStackInSlot(i);
+				for (int i = 0; i < player.inventoryMenu.getSize(); i++) {
+					ItemStack itemStack = player.inventoryMenu.getStackInSlot(i);
 					if (!itemStack.isEmpty() && itemStack.getItem() instanceof SecurityProtocol) {
-						if (itemStack.hasTagCompound() && itemStack.getItemDamage() == 2
-								&& UUID.fromString(itemStack.getTagCompound().getString("Owner")).equals(owner)) {
+						if (itemStack.hasTag() && itemStack.getDamageValue() == 2
+								&& UUID.fromString(itemStack.getTag().getString("Owner")).equals(owner)) {
 							return true;
 						}
 					}
@@ -574,20 +562,20 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	@Override
-	public void openInventory(EntityPlayer player) {
+	public void openInventory(Player player) {
 		if (getInventory() != null) {
 			getInventory().openInventory(player);
 		}
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer player) {
+	public void closeInventory(Player player) {
 		if (getInventory() != null) {
 			getInventory().closeInventory(player);
 		}
 	}
 
-	public IInventory getInventory() {
+	public Container getInventory() {
 		return customInventory;
 	}
 
@@ -620,7 +608,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		forceClientUpdate = true;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void sendConfigsToServer(boolean forceUpdate) {
 		sendNBTToServer(EnumSet.of(MachineNBTCategory.CONFIGS), forceUpdate, true);
 	}
@@ -652,51 +640,52 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		return multiply;
 	}
 
-	@SideOnly(Side.CLIENT)
-	public void SpawnVentParticles(float speed, EnumFacing side, int count) {
+	@OnlyIn(Dist.CLIENT)
+	public void SpawnVentParticles(float speed, Direction side, int count) {
 		for (int i = 0; i < count; i++) {
 			Matrix4f rotation = new Matrix4f();
 			Vector3f offset = new Vector3f();
 
-			if (side == EnumFacing.UP) {
+			if (side == Direction.UP) {
 				rotation.rotate((float) Math.PI / 2f, new Vector3f(0, 0, 1));
 				offset = new Vector3f(0.5f, 0.7f, 0.5f);
-			} else if (side == EnumFacing.WEST) {
+			} else if (side == Direction.WEST) {
 				rotation.rotate((float) Math.PI / 2f, new Vector3f(0, 0, 1));
 				offset = new Vector3f(-0.2f, 0.5f, 0.5f);
-			} else if (side == EnumFacing.EAST) {
+			} else if (side == Direction.EAST) {
 				rotation.rotate((float) Math.PI / 2f, new Vector3f(0, 0, -1));
 				offset = new Vector3f(1.2f, 0.5f, 0.5f);
-			} else if (side == EnumFacing.SOUTH) {
+			} else if (side == Direction.SOUTH) {
 				rotation.rotate((float) Math.PI / 2f, new Vector3f(1, 0, 0));
 				offset = new Vector3f(0.5f, 0.5f, 1.2f);
-			} else if (side == EnumFacing.NORTH) {
+			} else if (side == Direction.NORTH) {
 				rotation.rotate((float) Math.PI / 2f, new Vector3f(-1, 0, 0));
 				offset = new Vector3f(0.5f, 0.5f, -0.2f);
 			}
 			Vector3f circle = MOMathHelper.randomCirclePoint(random.nextFloat(), random);
-			circle.scale(0.4f);
+			circle.set(0.4f);
 			Vector4f circleTransformed = new Vector4f(circle.x, circle.y, circle.z, 1);
 			Matrix4f.transform(rotation, circleTransformed, circleTransformed);
 
 			float scale = 3f;
 
-			VentParticle ventParticle = new VentParticle(this.world,
-					this.getPos().getX() + offset.x + circleTransformed.x,
-					this.getPos().getY() + offset.y + circleTransformed.y,
-					this.getPos().getZ() + offset.z + circleTransformed.z, side.getDirectionVec().getX() * speed,
+			VentParticle ventParticle = new VentParticle(this.level,
+					this.getBlockPos().getX() + offset.x + circleTransformed.x,
+					this.getBlockPos().getY() + offset.y + circleTransformed.y,
+					this.getBlockPos().getZ() + offset.z + circleTransformed.z, side.getDirectionVec().getX() * speed,
 					side.getDirectionVec().getY() * speed, side.getDirectionVec().getZ() * speed, scale);
 			ventParticle.setAlphaF(0.05f);
-			Minecraft.getMinecraft().effectRenderer.addEffect(ventParticle);
+			Minecraft.getInstance().effectRenderer.addEffect(ventParticle);
 		}
 	}
 
 	public <T extends MOBlock> T getBlockType(Class<T> type) {
-		if (this.blockType == null) {
-			this.blockType = this.world.getBlockState(getPos()).getBlock();
+		Block block = this.getBlockState().getBlock();
+		if (block == null) {
+			this.getBlockState().getBlock() = this.level.getBlockState(getBlockPos()).getBlock();
 		}
-		if (type.isInstance(this.blockType)) {
-			return type.cast(this.blockType);
+		if (type.isInstance(this.getBlockState().getBlock())) {
+			return type.cast(this.getBlockState().getBlock());
 		}
 		return null;
 	}
@@ -716,8 +705,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	public boolean claim(ItemStack security_protocol) {
 		try {
 			if (owner == null) {
-				if (security_protocol.hasTagCompound() && security_protocol.getTagCompound().hasKey("Owner", 8)) {
-					owner = UUID.fromString(security_protocol.getTagCompound().getString("Owner"));
+				if (security_protocol.hasTag() && security_protocol.getTag().hasUUID("Owner")) {
+					owner = UUID.fromString(security_protocol.getTag().getString("Owner"));
 					forceSync();
 					return true;
 				}
@@ -731,8 +720,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	public boolean unclaim(ItemStack security_protocol) {
 		try {
 			if (owner != null) {
-				if (security_protocol.hasTagCompound() && security_protocol.getTagCompound().hasKey("Owner", 8)
-						&& owner.equals(UUID.fromString(security_protocol.getTagCompound().getString("Owner")))) {
+				if (security_protocol.hasTag() && security_protocol.getTag().hasKey("Owner", 8)
+						&& owner.equals(UUID.fromString(security_protocol.getTag().getString("Owner")))) {
 					owner = null;
 					forceSync();
 					return true;
@@ -798,12 +787,12 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	@Override
-	public boolean canInsertItem(int index, ItemStack itemStackIn, EnumFacing direction) {
+	public boolean canInsertItem(int index, ItemStack itemStackIn, Direction direction) {
 		return isItemValidForSlot(index, itemStackIn);
 	}
 
 	@Override
-	public boolean canExtractItem(int index, ItemStack stack, EnumFacing direction) {
+	public boolean canExtractItem(int index, ItemStack stack, Direction direction) {
 		return false;
 	}
 
@@ -812,13 +801,13 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	}
 
 	@Override
-	public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {
+	public boolean hasCapability(Capability<?> capability, @Nullable Direction facing) {
 		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
 	}
 
 	@Nullable
 	@Override
-	public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing) {
+	public <T> T getCapability(Capability<T> capability, @Nullable Direction facing) {
 		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 			if (facing == null)
 				return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventoryHandler);

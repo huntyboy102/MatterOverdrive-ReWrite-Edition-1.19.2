@@ -5,10 +5,10 @@ import huntyboy102.moremod.matter_network.components.TaskQueueComponent;
 import huntyboy102.moremod.matter_network.events.MatterNetworkEventReplicate;
 import huntyboy102.moremod.matter_network.tasks.MatterNetworkTaskReplicatePattern;
 import huntyboy102.moremod.util.TimeTracker;
-import net.minecraft.util.ITickable;
+import net.minecraft.client.renderer.texture.Tickable;
 
 public class ComponentTaskProcessingPatternMonitor extends
-		TaskQueueComponent<MatterNetworkTaskReplicatePattern, TileEntityMachinePatternMonitor> implements ITickable {
+		TaskQueueComponent<MatterNetworkTaskReplicatePattern, TileEntityMachinePatternMonitor> implements Tickable {
 	public static final int REPLICATION_SEARCH_TIME = 40;
 	private final TimeTracker patternSendTimeTracker;
 
@@ -26,7 +26,7 @@ public class ComponentTaskProcessingPatternMonitor extends
 
 	@Override
 	public void update() {
-		if (!getWorld().isRemote) {
+		if (!getWorld().isClientSide) {
 			MatterNetworkTaskReplicatePattern replicatePattern = getTaskQueue().peek();
 			if (replicatePattern != null) {
 				if (patternSendTimeTracker.hasDelayPassed(getWorld(), REPLICATION_SEARCH_TIME)) {

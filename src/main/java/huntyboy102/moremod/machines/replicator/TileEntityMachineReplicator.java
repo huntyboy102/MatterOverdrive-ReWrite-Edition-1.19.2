@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.machines.replicator;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.matter_network.IMatterNetworkClient;
 import huntyboy102.moremod.api.matter_network.IMatterNetworkConnection;
@@ -22,27 +22,28 @@ import huntyboy102.moremod.matter_network.MatterNetworkTaskQueue;
 import huntyboy102.moremod.matter_network.components.MatterNetworkComponentClient;
 import huntyboy102.moremod.tile.MOTileEntityMachineMatter;
 import huntyboy102.moremod.util.math.MOMathHelper;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.MobEffects;
-import net.minecraft.item.ItemStack;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Vector3f;
 import org.lwjgl.util.vector.Vector3f;
 
 import java.util.EnumSet;
 import java.util.List;
 
-import static huntyboy102.moremod.util.MOBlockHelper.getLeftSide;
+import static huntyboy102.moremod.util.MOBlockHelper.getLeftDist;
 
 public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 		implements IMatterNetworkClient, IMatterNetworkConnection, IMatterNetworkDispatcher {
@@ -58,9 +59,9 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 	public int SECOND_OUTPUT_SLOT_ID = 1;
 	public int DATABASE_SLOT_ID = 2;
 	public int SHIELDING_SLOT_ID = 3;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private boolean isPlayingReplicateAnimation;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private int replicateAnimationCounter;
 
 	private ComponentMatterNetworkReplicator networkComponent;
@@ -81,11 +82,11 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 
 	@Override
 	public BlockPos getPosition() {
-		return getPos();
+		return getBlockPos();
 	}
 
 	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+	public boolean shouldRefresh(Level world, BlockPos pos, BlockState oldState, BlockState newState) {
 		return (oldState.getBlock() != newState.getBlock());
 	}
 
@@ -112,7 +113,7 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 	public void update() {
 		super.update();
 		manageUpgrades();
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			manageSpawnParticles();
 		}
 	}
@@ -122,12 +123,12 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 			updateClientMatter();
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void beginSpawnParticles() {
 		replicateAnimationCounter = REPLICATION_ANIMATION_TIME;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void manageSpawnParticles() {
 		if (replicateAnimationCounter > 0) {
 			isPlayingReplicateAnimation = true;
@@ -144,9 +145,9 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 		if (isActive()) {
 			if (getBlockType(BlockReplicator.class).hasVentParticles) {
 				SpawnVentParticles(0.05f,
-						getLeftSide(getWorld().getBlockState(getPos()).getValue(MOBlock.PROPERTY_DIRECTION)), 1);
+						getLeftDist(getLevel().getBlockState(getBlockPos()).getValue(MOBlock.PROPERTY_DIRECTION)), 1);
 				SpawnVentParticles(0.05f,
-						getLeftSide(getWorld().getBlockState(getPos()).getValue(MOBlock.PROPERTY_DIRECTION)), 1);
+						getLeftDist(getLevel().getBlockState(getBlockPos()).getValue(MOBlock.PROPERTY_DIRECTION)), 1);
 			}
 		}
 	}
@@ -157,7 +158,7 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 			return true;
 		} else {
 			if (getStackInSlot(OUTPUT_SLOT_ID).isStackable()
-					&& getStackInSlot(OUTPUT_SLOT_ID).getItemDamage() == item.getItemDamage()
+					&& getStackInSlot(OUTPUT_SLOT_ID).getDamageValue() == item.getDamageValue()
 					&& getStackInSlot(OUTPUT_SLOT_ID).getItem() == item.getItem()) {
 				int newStackSize = getStackInSlot(OUTPUT_SLOT_ID).getCount() + 1;
 
@@ -175,8 +176,8 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 		ItemStack stack = getStackInSlot(SECOND_OUTPUT_SLOT_ID);
 
 		if (stack.isEmpty()) {
-			stack = new ItemStack(MatterOverdrive.ITEMS.matter_dust);
-			MatterOverdrive.ITEMS.matter_dust.setMatter(stack, amount);
+			stack = new ItemStack(MatterOverdriveRewriteEdition.ITEMS.matter_dust);
+			MatterOverdriveRewriteEdition.ITEMS.matter_dust.setMatter(stack, amount);
 			setInventorySlotContents(SECOND_OUTPUT_SLOT_ID, stack);
 			return true;
 		} else {
@@ -188,7 +189,7 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 		return false;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void SpawnReplicateParticles(int startTime) {
 		double time = (double) (startTime) / (double) (REPLICATION_ANIMATION_TIME);
 		double gravity = MOMathHelper.easeIn(time, 0.02, 0.2, 1);
@@ -198,19 +199,19 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 		for (int i = 0; i < count; i++) {
 			float speed = 0.05f;
 
-			Vector3f pos = MOMathHelper.randomSpherePoint(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D,
-					this.getPos().getZ() + 0.5D, new Vec3d(0.5, 0.5, 0.5), this.world.rand);
+			Vector3f pos = MOMathHelper.randomSpherePoint(this.getBlockPos().getX() + 0.5D, this.getBlockPos().getY() + 0.5D,
+					this.getBlockPos().getZ() + 0.5D, new Vec3(0.5, 0.5, 0.5), this.level.random);
 			Vector3f dir = new Vector3f(random.nextFloat() * 2 - 1, (random.nextFloat() * 2 - 1) * 0.05f,
 					random.nextFloat() * 2 - 1);
-			dir.scale(speed);
-			ReplicatorParticle replicatorParticle = new ReplicatorParticle(this.world, pos.getX(), pos.getY(),
-					pos.getZ(), dir.getX(), dir.getY(), dir.getZ());
-			replicatorParticle.setCenter(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D,
-					this.getPos().getZ() + 0.5D);
+			dir.set(speed);
+			ReplicatorParticle replicatorParticle = new ReplicatorParticle(this.level, pos.x(), pos.y(),
+					pos.z(), dir.x(), dir.y(), dir.z());
+			replicatorParticle.setCenter(this.getBlockPos().getX() + 0.5D, this.getBlockPos().getY() + 0.5D,
+					this.getBlockPos().getZ() + 0.5D);
 
 			replicatorParticle.setParticleAge(age);
 			replicatorParticle.setPointGravityScale(gravity);
-			Minecraft.getMinecraft().effectRenderer.addEffect(replicatorParticle);
+			Minecraft.getInstance().effectRenderer.addEffect(replicatorParticle);
 		}
 	}
 
@@ -226,31 +227,31 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 			return; // has full shielding
 		}
 
-		AxisAlignedBB bb = new AxisAlignedBB(getPos().add(-RADIATION_RANGE, -RADIATION_RANGE, -RADIATION_RANGE),
-				getPos().add(RADIATION_RANGE, RADIATION_RANGE, RADIATION_RANGE));
-		List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, bb);
+		AABB bb = new AABB(getBlockPos().offset(-RADIATION_RANGE, -RADIATION_RANGE, -RADIATION_RANGE),
+				getBlockPos().offset(RADIATION_RANGE, RADIATION_RANGE, RADIATION_RANGE));
+		List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, bb);
 		for (Object e : entities) {
-			if (e instanceof EntityLivingBase) {
-				EntityLivingBase l = (EntityLivingBase) e;
+			if (e instanceof LivingEntity) {
+				LivingEntity l = (LivingEntity) e;
 
-				double distance = Math.sqrt(getPos().distanceSq(l.getPosition())) / RADIATION_RANGE;
-				distance = MathHelper.clamp(distance, 0, 1);
+				double distance = Math.sqrt(getBlockPos().distSqr(l.getPosition())) / RADIATION_RANGE;
+				distance = Mth.clamp(distance, 0, 1);
 				distance = 1.0 - distance;
 				distance *= 5 - shielding;
 
-				PotionEffect[] effects = new PotionEffect[3];
+				MobEffectInstance[] effects = new MobEffectInstance[3];
 				// confusion
-				effects[0] = new PotionEffect(MobEffects.NAUSEA, (int) Math.round(Math.pow(5, distance)), 0);
+				effects[0] = new MobEffectInstance(MobEffects.CONFUSION, (int) Math.round(Math.pow(5, distance)), 0);
 				// weakness
-				effects[0] = new PotionEffect(MobEffects.WEAKNESS, (int) Math.round(Math.pow(10, distance)), 0);
+				effects[0] = new MobEffectInstance(MobEffects.WEAKNESS, (int) Math.round(Math.pow(10, distance)), 0);
 				// hunger
-				effects[1] = new PotionEffect(MobEffects.HUNGER, (int) Math.round(Math.pow(12, distance)), 0);
+				effects[1] = new MobEffectInstance(MobEffects.HUNGER, (int) Math.round(Math.pow(12, distance)), 0);
 				// poison
-				effects[2] = new PotionEffect(MobEffects.POISON, (int) Math.round(Math.pow(5, distance)), 0);
+				effects[2] = new MobEffectInstance(MobEffects.POISON, (int) Math.round(Math.pow(5, distance)), 0);
 
-				for (PotionEffect effect : effects) {
+				for (MobEffectInstance effect : effects) {
 					if (effect.getDuration() > 0) {
-						l.addPotionEffect(effect);
+						l.addEffect(effect);
 					}
 				}
 			}
@@ -259,8 +260,8 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 
 	boolean canReplicateIntoOutput(ItemStack itemStack) {
 		return !itemStack.isEmpty() && (getStackInSlot(OUTPUT_SLOT_ID).isEmpty() || itemStack
-				.isItemEqual(getStackInSlot(OUTPUT_SLOT_ID))
-				&& ItemStack.areItemStackTagsEqual(itemStack, getStackInSlot(OUTPUT_SLOT_ID))
+				.sameItem(getStackInSlot(OUTPUT_SLOT_ID))
+				&& ItemStack.isSameItemSameTags(itemStack, getStackInSlot(OUTPUT_SLOT_ID))
 				&& getStackInSlot(OUTPUT_SLOT_ID).getCount() < getStackInSlot(OUTPUT_SLOT_ID).getMaxStackSize());
 	}
 
@@ -270,7 +271,7 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 		if (stack.isEmpty()) {
 			return true;
 		} else {
-			if (stack.getItem() == MatterOverdrive.ITEMS.matter_dust && stack.getItemDamage() == matter
+			if (stack.getItem() == MatterOverdriveRewriteEdition.ITEMS.matter_dust && stack.getDamageValue() == matter
 					&& stack.getCount() < stack.getMaxStackSize()) {
 				return true;
 			}
@@ -284,12 +285,12 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[] { OUTPUT_SLOT_ID, SECOND_OUTPUT_SLOT_ID };
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack item, EnumFacing side) {
+	public boolean canExtractItem(int slot, ItemStack item, Direction side) {
 		return true;
 	}
 
@@ -301,7 +302,7 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 	}
 
 	@Override
-	public boolean canConnectFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean canConnectFromDist(BlockState blockState, Direction side) {
 		// Allow connections from any side.
 		return true;
 
@@ -310,16 +311,16 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 
 	@Override
 	public BlockPos getNodePos() {
-		return getPos();
+		return getBlockPos();
 	}
 
 	@Override
-	public boolean establishConnectionFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean establishConnectionFromDist(BlockState blockState, Direction side) {
 		return networkComponent.establishConnectionFromSide(blockState, side);
 	}
 
 	@Override
-	public void breakConnection(IBlockState blockState, EnumFacing side) {
+	public void breakConnection(BlockState blockState, Direction side) {
 		networkComponent.breakConnection(blockState, side);
 	}
 
@@ -334,12 +335,12 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 	}
 
 	@Override
-	public World getNodeWorld() {
-		return getWorld();
+	public Level getNodeWorld() {
+		return getLevel();
 	}
 
 	@Override
-	public boolean canConnectToNetworkNode(IBlockState blockState, IGridNode toNode, EnumFacing direction) {
+	public boolean canConnectToNetworkNode(BlockState blockState, IGridNode toNode, Direction direction) {
 		return networkComponent.canConnectToNetworkNode(blockState, toNode, direction);
 	}
 
@@ -359,7 +360,7 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 	 */
 	private int getShielding() {
 		if (getStackInSlot(SHIELDING_SLOT_ID) != null
-				&& getStackInSlot(SHIELDING_SLOT_ID).getItem() == MatterOverdrive.ITEMS.tritanium_plate) {
+				&& getStackInSlot(SHIELDING_SLOT_ID).getItem() == MatterOverdriveRewriteEdition.ITEMS.tritanium_plate) {
 			return getStackInSlot(SHIELDING_SLOT_ID).getCount();
 		}
 		return 0;

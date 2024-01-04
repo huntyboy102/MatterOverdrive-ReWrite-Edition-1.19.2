@@ -15,12 +15,12 @@ import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.components.ComponentMatterNetworkConfigs;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.matter_network.MatterNetworkTaskQueue;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -39,7 +39,7 @@ public class TileEntityMachinePatternMonitor extends MOTileEntityMachine
 
 	@Override
 	public BlockPos getPosition() {
-		return getPos();
+		return getBlockPos();
 	}
 
 	@Override
@@ -64,17 +64,17 @@ public class TileEntityMachinePatternMonitor extends MOTileEntityMachine
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 	}
 
 	@Override
-	public boolean canConnectFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean canConnectFromSide(BlockState blockState, Direction side) {
 		return true;
 	}
 
@@ -84,12 +84,12 @@ public class TileEntityMachinePatternMonitor extends MOTileEntityMachine
 	}
 
 	@Override
-	public boolean establishConnectionFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean establishConnectionFromSide(BlockState blockState, Direction side) {
 		return networkComponent.establishConnectionFromSide(blockState, side);
 	}
 
 	@Override
-	public void breakConnection(IBlockState blockState, EnumFacing side) {
+	public void breakConnection(BlockState blockState, Direction side) {
 		networkComponent.breakConnection(blockState, side);
 	}
 
@@ -104,12 +104,12 @@ public class TileEntityMachinePatternMonitor extends MOTileEntityMachine
 	}
 
 	@Override
-	public World getNodeWorld() {
-		return getWorld();
+	public Level getNodeWorld() {
+		return getLevel();
 	}
 
 	@Override
-	public boolean canConnectToNetworkNode(IBlockState blockState, IGridNode toNode, EnumFacing direction) {
+	public boolean canConnectToNetworkNode(BlockState blockState, IGridNode toNode, Direction direction) {
 		return networkComponent.canConnectToNetworkNode(blockState, toNode, direction);
 	}
 
@@ -150,7 +150,7 @@ public class TileEntityMachinePatternMonitor extends MOTileEntityMachine
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 
