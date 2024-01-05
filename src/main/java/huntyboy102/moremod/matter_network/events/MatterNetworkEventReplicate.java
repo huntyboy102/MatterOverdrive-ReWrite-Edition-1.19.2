@@ -3,7 +3,7 @@ package huntyboy102.moremod.matter_network.events;
 
 import huntyboy102.moremod.data.matter_network.IMatterNetworkEvent;
 import huntyboy102.moremod.data.matter_network.ItemPattern;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class MatterNetworkEventReplicate implements IMatterNetworkEvent {
 	public final ItemPattern pattern;

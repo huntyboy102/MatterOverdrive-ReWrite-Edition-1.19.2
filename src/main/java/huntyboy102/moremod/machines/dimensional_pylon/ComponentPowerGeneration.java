@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.machines.dimensional_pylon;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.matter.IMatterHandler;
@@ -15,31 +15,31 @@ import huntyboy102.moremod.machines.MachineComponentAbstract;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import huntyboy102.moremod.network.packet.client.PacketSpawnParticle;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.EntityCreeper;
-import net.minecraft.entity.passive.EntityPig;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.ITickable;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 
 public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntityMachineDimensionalPylon>
-		implements ITickable {
+		implements Tickable {
 	public static int CHARGE_DECREASE_ON_HIT = 16;
 	public static int CHARGE_INCREASE_RATE = 64;
 	public static int CHARGE_ENERGY_INCREASE = 128;
@@ -55,12 +55,12 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readFromNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeToNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 
 	}
 
@@ -71,7 +71,7 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 
 	@Override
 	public void update() {
-		if (!getWorld().isRemote) {
+		if (!getWorld().isClientSide) {
 			manageServerLightning();
 			manageCharge();
 			managePowerGeneration();
@@ -82,7 +82,7 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 		float dimValue = machine.getDimensionalValue();
 		float chargePercent = (float) machine.charge / (float) TileEntityMachineDimensionalPylon.MAX_CHARGE;
 		energyGenPerTick = (int) (dimValue * MAX_POWER_GEN_PER_TICK) + (int) (CHARGE_ENERGY_INCREASE * chargePercent);
-		matterDrainPerSec = MathHelper.ceil(dimValue * 20) + (int) (CHARGE_MATTER_INCREASE * chargePercent);
+		matterDrainPerSec = Mth.ceil(dimValue * 20) + (int) (CHARGE_MATTER_INCREASE * chargePercent);
 
 		IMatterHandler storage = machine.getCapability(MatterOverdriveCapabilities.MATTER_HANDLER, null);
 		if (storage.getMatterStored() >= matterDrainPerSec
@@ -99,21 +99,21 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 			Color color = Reference.COLOR_MATTER.multiplyWithoutAlpha(0.5f);
 			float dimValue = machine.getDimensionalValue();
 
-			if (getWorld().getWorldTime() % 10 == 0) {
+			if (getWorld().getDayTime() % 10 == 0) {
 				if (random.nextFloat() < (0.2f * dimValue)) {
-					List<Entity> entities = getWorld().getEntitiesWithinAABB(EntityLivingBase.class,
-							new AxisAlignedBB(getPos(), getPos()).expand(4, 4, 4));
+					List<Entity> entities = getWorld().getEntitiesOfClass(Entity.class,
+							new AABB(getPos(), getPos()).expandTowards(4, 4, 4));
 					for (Entity entity : entities) {
 						boolean hasFullIron = false;
-						if (entity instanceof EntityPlayer) {
-							EntityPlayer entityPlayer = ((EntityPlayer) entity);
-							if (entityPlayer.capabilities.disableDamage) {
+						if (entity instanceof Player) {
+							Player entityPlayer = ((Player) entity);
+							if (entityPlayer.getAbilities().invulnerable) {
 								continue;
 							}
 						}
-						if (entity instanceof EntityLivingBase) {
+						if (entity instanceof LivingEntity) {
 							hasFullIron = true;
-							for (ItemStack armor : entity.getArmorInventoryList()) {
+							for (ItemStack armor : entity.getArmorSlots()) {
 								if (!isIronMaterial(armor)) {
 									hasFullIron = false;
 								}
@@ -123,17 +123,17 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 						y = getPos().getY() + random.nextDouble() * 2;
 						dirX = random.nextGaussian() * 0.2;
 						dirZ = random.nextGaussian() * 0.2;
-						Vec3d start = new Vec3d(getPos().getX() + dirX, y, getPos().getZ() + dirZ);
-						Vec3d destination = entity.getPositionEyes(1);
+						Vec3 start = new Vec3(getPos().getX() + dirX, y, getPos().getZ() + dirZ);
+						Vec3 destination = entity.getEyePosition(1);
 						spawnSpark(color, start, destination);
 						if (!hasFullIron) {
 							DamageSource damageSource = new DamageSource("pylon_lightning");
-							entity.attackEntityFrom(damageSource, dimValue * 2);
+							entity.hurt(damageSource, dimValue * 2);
 						}
 
-						if (entity instanceof EntityCreeper) {
-							((EntityCreeper) entity).setCreeperState(1);
-						} else if (entity instanceof EntityPig) {
+						if (entity instanceof Creeper) {
+							((Creeper) entity).ignite();
+						} else if (entity instanceof Pig) {
 							entity.onStruckByLightning(null);
 						}
 					}
@@ -142,9 +142,9 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 
 			BlockPos destPos = machine.mainBlock.add((int) (random.nextGaussian() * 7),
 					(int) (random.nextGaussian() * 6), (int) (random.nextGaussian() * 7));
-			IBlockState state = getWorld().getBlockState(destPos);
-			if (state.getBlock() == MatterOverdrive.BLOCKS.pylon) {
-				TileEntity tileEntity = getWorld().getTileEntity(destPos);
+			BlockState state = getWorld().getBlockState(destPos);
+			if (state.getBlock() == MatterOverdriveRewriteEdition.BLOCKS.pylon) {
+				BlockEntity tileEntity = getWorld().getBlockEntity(destPos);
 				if (tileEntity instanceof TileEntityMachineDimensionalPylon) {
 					TileEntityMachineDimensionalPylon dimensionalPylon = (TileEntityMachineDimensionalPylon) tileEntity;
 					if (dimensionalPylon.mainBlock != null && !dimensionalPylon.mainBlock.equals(machine.mainBlock)) {
@@ -153,21 +153,21 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 							y = getPos().getY() + random.nextDouble() * 2;
 							dirX = random.nextGaussian() * 0.2;
 							dirZ = random.nextGaussian() * 0.2;
-							Vec3d start = new Vec3d(getPos().getX() + dirX, y, getPos().getZ() + dirZ);
-							Vec3d destination = new Vec3d(((TileEntityMachineDimensionalPylon) tileEntity).mainBlock)
+							Vec3 start = new Vec3(getPos().getX() + dirX, y, getPos().getZ() + dirZ);
+							Vec3 destination = new Vec3(((TileEntityMachineDimensionalPylon) tileEntity).mainBlock)
 									.add(0, 1, 0);
 							spawnSpark(color, start, destination);
-							machine.removeCharge(MathHelper.ceil(CHARGE_DECREASE_ON_HIT * dimValue));
-							dimensionalPylon.addCharge(MathHelper.ceil(CHARGE_INCREASE_RATE * dimValue));
+							machine.removeCharge(Mth.ceil(CHARGE_DECREASE_ON_HIT * dimValue));
+							dimensionalPylon.addCharge(Mth.ceil(CHARGE_INCREASE_RATE * dimValue));
 						}
 					}
 				}
-			} else if (state.getMaterial().equals(Material.IRON) || state.getMaterial().equals(Material.IRON)) {
+			} else if (state.getMaterial().equals(Material.METAL) || state.getMaterial().equals(Material.METAL)) {
 				y = getPos().getY() + random.nextDouble() * 2;
 				dirX = random.nextGaussian() * 0.2;
 				dirZ = random.nextGaussian() * 0.2;
-				Vec3d start = new Vec3d(getPos().getX() + dirX, y, getPos().getZ() + dirZ);
-				Vec3d destination = new Vec3d(destPos).add(0.5, 0.5, 0.5);
+				Vec3 start = new Vec3(getPos().getX() + dirX, y, getPos().getZ() + dirZ);
+				Vec3 destination = new Vec3(destPos).add(0.5, 0.5, 0.5);
 				spawnSpark(color, start, destination);
 			}
 		}
@@ -176,17 +176,17 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 	private void spawnSpark(Color color, Vec3d from, Vec3d to) {
 		Lightning lightning = new Lightning(getWorld(), from, to, 1, 1f);
 		lightning.setColorRGBA(color);
-		MatterOverdrive.NETWORK.sendToAllAround(
+		MatterOverdriveRewriteEdition.NETWORK.sendToAllAround(
 				new PacketSpawnParticle("lightning", new double[] { from.x, from.y, from.z, to.x, to.y, to.z }, 1,
 						RenderParticlesHandler.Blending.LinesAdditive, 0),
 				machine, 64);
-		getWorld().playSound(null, to.x, to.y, to.z, MatterOverdriveSounds.fxElectricArc, SoundCategory.BLOCKS,
+		getWorld().playSound(null, to.x, to.y, to.z, MatterOverdriveSounds.fxElectricArc, SoundSource.BLOCKS,
 				0.8f + random.nextFloat() * 0.2f, 0.8f + random.nextFloat() * 0.4f);
 	}
 
 	private boolean isIronMaterial(ItemStack itemStack) {
-		if (itemStack != null && itemStack.getItem() instanceof ItemArmor) {
-			String materialName = ((ItemArmor) itemStack.getItem()).getArmorMaterial().getName();
+		if (itemStack != null && itemStack.getItem() instanceof ArmorItem) {
+			String materialName = ((ArmorItem) itemStack.getItem()).getMaterial().getName();
 			return materialName.matches("(?i)(iron|chainmail|tritanium)");
 		}
 		return false;
@@ -194,7 +194,7 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 
 	public void manageCharge() {
 		if (machine.charge > 0) {
-			if (getWorld().getWorldTime() % 40 == 0) {
+			if (getWorld().getDayTime() % 40 == 0) {
 				machine.charge -= 1 + Math.round(machine.charge * 0.005f);
 				machine.forceSync();
 			}

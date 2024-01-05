@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.machines.configs;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * @autor Simeon
@@ -16,9 +16,9 @@ public interface IConfigProperty {
 
 	void setValue(Object value);
 
-	void writeToNBT(NBTTagCompound nbt);
+	void writeToNBT(CompoundTag nbt);
 
-	void readFromNBT(NBTTagCompound nbt);
+	void readFromNBT(CompoundTag nbt);
 
 	Class<?> getType();
 }

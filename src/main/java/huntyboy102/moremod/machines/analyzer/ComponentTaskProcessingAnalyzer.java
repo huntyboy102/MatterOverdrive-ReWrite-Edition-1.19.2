@@ -13,16 +13,16 @@ import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.matter_network.components.TaskQueueComponent;
 import huntyboy102.moremod.matter_network.tasks.MatterNetworkTaskStorePattern;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.EnumSet;
 
 public class ComponentTaskProcessingAnalyzer extends
-		TaskQueueComponent<MatterNetworkTaskStorePattern, TileEntityMachineMatterAnalyzer> implements ITickable {
+		TaskQueueComponent<MatterNetworkTaskStorePattern, TileEntityMachineMatterAnalyzer> implements Tickable {
 	public static final int PROGRESS_AMOUNT_PER_ITEM = 20;
 	public static final int ANALYZE_SPEED = 800;
 	public static final int ENERGY_DRAIN_PER_ITEM = 64000;
@@ -36,7 +36,7 @@ public class ComponentTaskProcessingAnalyzer extends
 
 	@Override
 	public void update() {
-		if (!getWorld().isRemote) {
+		if (!getWorld().isClientSide) {
 			manageAnalyze();
 		}
 	}
@@ -85,7 +85,7 @@ public class ComponentTaskProcessingAnalyzer extends
 			addStorePatternTask(storePattern);
 		}
 
-		TileEntity TE = getWorld().getTileEntity(getPos());
+		BlockEntity TE = getWorld().getBlockEntity(getPos());
 
 		// Make sure at that location we don't have a muffler installed.
 		if (TE != null) {
@@ -94,7 +94,7 @@ public class ComponentTaskProcessingAnalyzer extends
 			ItemStack stack = temma.getStackInSlot(0);
 
 			if (!(temma.getUpgradeMultiply(UpgradeTypes.Muffler) == 2d || stack.isEmpty())) {
-				SoundHandler.PlaySoundAt(getWorld(), MatterOverdriveSounds.scannerSuccess, SoundCategory.BLOCKS,
+				SoundHandler.PlaySoundAt(getWorld(), MatterOverdriveSounds.scannerSuccess, SoundSource.BLOCKS,
 						getPos().getX(), getPos().getY(), getPos().getZ());
 			}
 		}
@@ -130,7 +130,7 @@ public class ComponentTaskProcessingAnalyzer extends
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readFromNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readFromNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			analyzeTime = nbt.getShort("AnalyzeTime");
@@ -138,10 +138,10 @@ public class ComponentTaskProcessingAnalyzer extends
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeToNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeToNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setShort("AnalyzeTime", (short) analyzeTime);
+			nbt.putShort("AnalyzeTime", (short) analyzeTime);
 		}
 	}
 

@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.machines.replicator;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.matter.IMatterHandler;
 import huntyboy102.moremod.api.network.MatterNetworkTaskState;
@@ -16,17 +16,17 @@ import huntyboy102.moremod.matter_network.tasks.MatterNetworkTaskReplicatePatter
 import huntyboy102.moremod.network.packet.client.PacketReplicationComplete;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.TimeTracker;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ITickable;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.EnumSet;
 import java.util.Random;
 
 public class ComponentTaskProcessingReplicator extends
-		TaskQueueComponent<MatterNetworkTaskReplicatePattern, TileEntityMachineReplicator> implements ITickable {
+		TaskQueueComponent<MatterNetworkTaskReplicatePattern, TileEntityMachineReplicator> implements Tickable {
 	public static final double FAIL_CHANCE = 0.005;
 	public static int REPLICATE_SPEED_PER_MATTER = 120;
 	public static int REPLICATE_ENERGY_PER_MATTER = 16000;
@@ -57,7 +57,7 @@ public class ComponentTaskProcessingReplicator extends
 
 		if (this.isReplicating()) {
 
-			if (!getWorld().isRemote) {
+			if (!getWorld().isClientSide) {
 
 				MatterNetworkTaskReplicatePattern replicatePattern = getTaskQueue().peek();
 				ItemStack patternStack = replicatePattern.getPattern().toItemStack(false);
@@ -72,9 +72,9 @@ public class ComponentTaskProcessingReplicator extends
 						if (this.replicateTime >= time) {
 							this.replicateTime = 0;
 							this.replicateItem(replicatePattern.getPattern(), patternStack);
-							MatterOverdrive.NETWORK.sendToDimention(new PacketReplicationComplete(machine), getWorld());
+							MatterOverdriveRewriteEdition.NETWORK.sendToDimention(new PacketReplicationComplete(machine), getWorld());
 
-							TileEntity TE = getWorld().getTileEntity(getPos());
+							BlockEntity TE = getWorld().getBlockEntity(getPos());
 
 							// Make sure at that location we don't have a muffler installed.
 							if (TE != null) {
@@ -84,7 +84,7 @@ public class ComponentTaskProcessingReplicator extends
 
 								if (!(temr.getUpgradeMultiply(UpgradeTypes.Muffler) == 2d || stack.isEmpty())) {
 									SoundHandler.PlaySoundAt(getWorld(), MatterOverdriveSounds.replicateSuccess,
-											SoundCategory.BLOCKS, this.getPos().getX(), this.getPos().getY(),
+											SoundSource.BLOCKS, this.getPos().getX(), this.getPos().getY(),
 											this.getPos().getZ(),
 											0.25F * machine.getBlockType(BlockReplicator.class).replication_volume,
 											1.0F, 0.2F, 0.8F);
@@ -183,7 +183,7 @@ public class ComponentTaskProcessingReplicator extends
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readFromNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readFromNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			this.replicateTime = nbt.getShort("ReplicateTime");
@@ -191,10 +191,10 @@ public class ComponentTaskProcessingReplicator extends
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeToNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeToNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA) && toDisk) {
-			nbt.setShort("ReplicateTime", (short) this.replicateTime);
+			nbt.putShort("ReplicateTime", (short) this.replicateTime);
 		}
 	}
 

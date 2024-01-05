@@ -9,7 +9,7 @@ import huntyboy102.moremod.machines.MachineNBTCategory;
 import huntyboy102.moremod.machines.configs.IConfigProperty;
 import huntyboy102.moremod.machines.configs.IConfigurable;
 import huntyboy102.moremod.machines.events.MachineEvent;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class ComponentConfigs extends MachineComponentAbstract<MOTileEntityMachi
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readFromNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		if (categories.contains(MachineNBTCategory.CONFIGS)) {
 			for (IConfigProperty property : propertyMap.values()) {
 				property.readFromNBT(nbt);
@@ -33,7 +33,7 @@ public class ComponentConfigs extends MachineComponentAbstract<MOTileEntityMachi
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeToNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		if (categories.contains(MachineNBTCategory.CONFIGS)) {
 			for (IConfigProperty property : propertyMap.values()) {
 				property.writeToNBT(nbt);

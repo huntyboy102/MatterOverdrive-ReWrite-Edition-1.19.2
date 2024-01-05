@@ -2,6 +2,7 @@
 package huntyboy102.moremod.data;
 
 import huntyboy102.moremod.data.inventory.Slot;
+import huntyboy102.moremod.machines.MOTileEntityMachine;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 
@@ -11,7 +12,7 @@ import java.util.Collection;
 public class TileEntityCustomInventory extends CustomInventory {
 	final TileEntity entity;
 
-	public TileEntityCustomInventory(TileEntity entity, String name) {
+	public TileEntityCustomInventory(MOTileEntityMachine entity, String name) {
 		this(entity, name, new ArrayList<>());
 	}
 

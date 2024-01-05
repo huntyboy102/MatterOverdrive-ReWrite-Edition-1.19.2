@@ -1,21 +1,21 @@
 
 package huntyboy102.moremod.machines.events;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
 
 public class MachineEvent {
 	public static class Destroyed extends MachineEvent {
-		public final World world;
+		public final Level world;
 		public final BlockPos pos;
-		public final IBlockState state;
+		public final BlockState state;
 
-		public Destroyed(World world, BlockPos pos, IBlockState state) {
+		public Destroyed(Level world, BlockPos pos, BlockState state) {
 			this.world = world;
 			this.pos = pos;
 			this.state = state;
@@ -23,12 +23,12 @@ public class MachineEvent {
 	}
 
 	public static class NeighborChange extends MachineEvent {
-		public final IBlockAccess world;
+		public final LevelAccessor world;
 		public final BlockPos pos;
-		public final IBlockState state;
+		public final BlockState state;
 		public final Block neighborBlock;
 
-		public NeighborChange(IBlockAccess world, BlockPos pos, IBlockState state, Block neighborBlock) {
+		public NeighborChange(LevelAccessor world, BlockPos pos, BlockState state, Block neighborBlock) {
 			this.world = world;
 			this.pos = pos;
 			this.state = state;
@@ -37,21 +37,21 @@ public class MachineEvent {
 	}
 
 	public static class Placed extends MachineEvent {
-		public final World world;
-		public final EntityLivingBase entityLiving;
+		public final Level world;
+		public final LivingEntity entityLiving;
 
-		public Placed(World world, EntityLivingBase entityLiving) {
+		public Placed(Level world, LivingEntity entityLiving) {
 			this.world = world;
 			this.entityLiving = entityLiving;
 		}
 	}
 
 	public static class Added extends MachineEvent {
-		public final World world;
+		public final Level world;
 		public final BlockPos pos;
-		public final IBlockState state;
+		public final BlockState state;
 
-		public Added(World world, BlockPos pos, IBlockState state) {
+		public Added(Level world, BlockPos pos, BlockState state) {
 			this.world = world;
 			this.pos = pos;
 			this.state = state;
@@ -63,17 +63,17 @@ public class MachineEvent {
 	}
 
 	public static class Awake extends MachineEvent {
-		public final Side side;
+		public final Dist side;
 
-		public Awake(Side side) {
+		public Awake(Dist side) {
 			this.side = side;
 		}
 	}
 
 	public static class OpenContainer extends MachineEvent {
-		public final Side side;
+		public final Dist side;
 
-		public OpenContainer(Side side) {
+		public OpenContainer(Dist side) {
 			this.side = side;
 		}
 	}

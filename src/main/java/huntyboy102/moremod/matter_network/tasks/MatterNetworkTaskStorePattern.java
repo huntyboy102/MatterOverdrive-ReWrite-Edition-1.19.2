@@ -4,9 +4,9 @@ package huntyboy102.moremod.matter_network.tasks;
 import huntyboy102.moremod.util.MatterDatabaseHelper;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.api.network.MatterNetworkTask;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 
 import java.text.DecimalFormat;
 
@@ -30,24 +30,24 @@ public class MatterNetworkTaskStorePattern extends MatterNetworkTask {
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound compound) {
+	public void readFromNBT(CompoundTag compound) {
 		super.readFromNBT(compound);
 		if (compound != null) {
-			itemStack = new ItemStack(compound.getCompoundTag("Item"));
-			progress = compound.getInteger(MatterDatabaseHelper.PROGRESS_TAG_NAME);
+			itemStack = new ItemStack(compound.getCompound("Item"));
+			progress = compound.getInt(MatterDatabaseHelper.PROGRESS_TAG_NAME);
 		}
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound compound) {
+	public void writeToNBT(CompoundTag compound) {
 		super.writeToNBT(compound);
 		if (compound != null) {
-			NBTTagCompound itemComp = new NBTTagCompound();
+			CompoundTag itemComp = new CompoundTag();
 			if (itemStack != null) {
 				itemStack.writeToNBT(itemComp);
 			}
-			compound.setTag("Item", itemComp);
-			compound.setInteger(MatterDatabaseHelper.PROGRESS_TAG_NAME, progress);
+			compound.put("Item", itemComp);
+			compound.putInt(MatterDatabaseHelper.PROGRESS_TAG_NAME, progress);
 		}
 	}
 
@@ -72,7 +72,7 @@ public class MatterNetworkTaskStorePattern extends MatterNetworkTask {
 		this.progress = progress;
 	}
 
-	public boolean isValid(World world) {
+	public boolean isValid(Level world) {
 		if (!super.isValid(world)) {
 			return false;
 		}

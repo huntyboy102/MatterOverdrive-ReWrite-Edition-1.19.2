@@ -1,6 +1,7 @@
 
 package huntyboy102.moremod.api;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -9,6 +10,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author Simeon
@@ -27,7 +30,12 @@ public interface IMOTileEntity {
 
 	void readFromPlaceItem(ItemStack itemStack);
 
-	boolean shouldRefresh(Level world, BlockPos pos, BlockState oldState, BlockState newSate);
+	void readFromNBT(CompoundTag nbt);
+
+	@Nonnull
+    CompoundTag writeToNBT(CompoundTag nbt);
+
+    boolean shouldRefresh(Level world, BlockPos pos, BlockState oldState, BlockState newSate);
 
 	void markDirty();
 }

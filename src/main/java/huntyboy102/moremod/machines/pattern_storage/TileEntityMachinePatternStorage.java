@@ -2,7 +2,7 @@
 package huntyboy102.moremod.machines.pattern_storage;
 
 import huntyboy102.moremod.items.MatterScanner;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.IScannable;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.api.matter.IMatterDatabase;
@@ -29,16 +29,16 @@ import huntyboy102.moremod.matter_network.tasks.MatterNetworkTaskReplicatePatter
 import huntyboy102.moremod.tile.MOTileEntityMachineEnergy;
 import huntyboy102.moremod.util.MatterDatabaseHelper;
 import huntyboy102.moremod.util.MatterHelper;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.level.Level;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -74,15 +74,15 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	public void update() {
 		super.update();
 
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			if (energyStorage.getEnergyStored() > 0) {
 				manageLinking();
 			}
 		} else {
 			if (isActive() && random.nextFloat() < 0.2f && getBlockType(BlockPatternStorage.class) != null
 					&& getBlockType(BlockPatternStorage.class).hasVentParticles
-					&& world.getBlockState(getPos()).getBlock() == MatterOverdrive.BLOCKS.pattern_storage) {
-				SpawnVentParticles(0.03f, world.getBlockState(getPos()).getValue(MOBlock.PROPERTY_DIRECTION), 1);
+					&& level.getBlockState(getBlockPos()).getBlock() == MatterOverdriveRewriteEdition.BLOCKS.pattern_storage) {
+				SpawnVentParticles(0.03f, level.getBlockState(getBlockPos()).getValue(MOBlock.PROPERTY_DIRECTION), 1);
 			}
 		}
 	}
@@ -112,7 +112,7 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 
 	protected void manageLinking() {
 		if (MatterHelper.isMatterScanner(customInventory.getStackInSlot(input_slot))) {
-			MatterScanner.link(world, getPos(), customInventory.getStackInSlot(input_slot));
+			MatterScanner.link(level, getBlockPos(), customInventory.getStackInSlot(input_slot));
 		}
 	}
 
@@ -122,7 +122,7 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	@Override
-	public void addInfo(World world, double x, double y, double z, List<String> infos) {
+	public void addInfo(Level world, double x, double y, double z, List<String> infos) {
 		int patternCount = 0;
 		for (ItemStack patternDrive : getPatternStorageList()) {
 			if (patternDrive != null && patternDrive.getItem() instanceof IMatterPatternStorage) {
@@ -145,12 +145,12 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 	}
 
@@ -188,7 +188,7 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	public boolean addItem(ItemStack itemStack, int amount, boolean simulate, StringBuilder info) {
 		if (!MatterHelper.CanScan(itemStack)) {
 			if (info != null) {
-				info.append(String.format("%s%s cannot be analyzed!", TextFormatting.RED, itemStack.getDisplayName()));
+				info.append(String.format("%s%s cannot be analyzed!", ChatFormatting.RED, itemStack.getDisplayName()));
 			}
 			return false;
 		}
@@ -202,7 +202,7 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 					if (pattern != null && pattern.equals(itemStack)) {
 						if (pattern.getProgress() < MatterDatabaseHelper.MAX_ITEM_PROGRESS) {
 							if (!simulate) {
-								pattern.setProgress(MathHelper.clamp(pattern.getProgress() + amount, 0,
+								pattern.setProgress(Mth.clamp(pattern.getProgress() + amount, 0,
 										MatterDatabaseHelper.MAX_ITEM_PROGRESS));
 								storage.setItemPatternAt(storageStack, i, pattern);
 								if (getNetwork() != null) {
@@ -211,14 +211,14 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 							}
 							if (info != null) {
 								info.append(String.format("%s added to Pattern Storage. Progress is now at %s",
-										TextFormatting.GREEN + itemStack.getDisplayName(),
+										ChatFormatting.GREEN + itemStack.getDisplayName(),
 										pattern.getProgress() + "%"));
 							}
 							return true;
 						} else {
 							if (info != null) {
 								info.append(String.format("%s is fully analyzed!",
-										TextFormatting.RED + itemStack.getDisplayName()));
+										ChatFormatting.RED + itemStack.getDisplayName()));
 							}
 							return false;
 						}
@@ -244,7 +244,7 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 						}
 						if (info != null) {
 							info.append(String.format("%s added to Pattern Storage. Progress is now at %s",
-									TextFormatting.GREEN + itemStack.getDisplayName(), amount + "%"));
+									ChatFormatting.GREEN + itemStack.getDisplayName(), amount + "%"));
 						}
 						return true;
 					}
@@ -254,7 +254,7 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 
 		if (info != null) {
 			info.append(
-					String.format("%sNo space available for '%s' !", TextFormatting.RED, itemStack.getDisplayName()));
+					String.format("%sNo space available for '%s' !", ChatFormatting.RED, itemStack.getDisplayName()));
 		}
 		return false;
 	}
@@ -321,8 +321,8 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
-		if (side == EnumFacing.UP) {
+	public int[] getSlotsForFace(Direction side) {
+		if (side == Direction.UP) {
 			return new int[] { input_slot };
 		} else {
 			return pattern_storage_slots;
@@ -330,18 +330,18 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	@Override
-	public boolean canExtractItem(int slot, ItemStack item, EnumFacing side) {
+	public boolean canExtractItem(int slot, ItemStack item, Direction side) {
 		return true;
 	}
 
 	@Override
-	public boolean canConnectFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean canConnectFromSide(BlockState blockState, Direction side) {
 		// return side == blockState.getValue(MOBlock.PROPERTY_DIRECTION);
 
 		// Let's see if this allows connections from ANY side.
 		return true;
 
-		// EnumFacing facing = blockState.getValue(MOBlock.PROPERTY_DIRECTION);
+		// Direction facing = blockState.getValue(MOBlock.PROPERTY_DIRECTION);
 		// return facing.getOpposite() == side;
 	}
 
@@ -351,12 +351,12 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	@Override
-	public boolean establishConnectionFromSide(IBlockState blockState, EnumFacing side) {
+	public boolean establishConnectionFromSide(BlockState blockState, Direction side) {
 		return networkComponent.establishConnectionFromSide(blockState, side);
 	}
 
 	@Override
-	public void breakConnection(IBlockState blockState, EnumFacing side) {
+	public void breakConnection(BlockState blockState, Direction side) {
 		networkComponent.breakConnection(blockState, side);
 	}
 
@@ -376,17 +376,17 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	@Override
-	public World getNodeWorld() {
-		return getWorld();
+	public Level getNodeWorld() {
+		return getLevel();
 	}
 
 	@Override
-	public boolean canConnectToNetworkNode(IBlockState blockState, IGridNode toNode, EnumFacing direction) {
+	public boolean canConnectToNetworkNode(BlockState blockState, IGridNode toNode, Direction direction) {
 		return networkComponent.canConnectToNetworkNode(blockState, toNode, direction);
 	}
 
 	@Override
-	public void onScan(World world, double x, double y, double z, EntityPlayer player, ItemStack scanner) {
+	public void onScan(Level world, double x, double y, double z, Player player, ItemStack scanner) {
 
 	}
 

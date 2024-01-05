@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.machines.configs;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 public class ConfigPropertyBoolean extends ConfigPropertyAbstract {
 
@@ -27,12 +27,12 @@ public class ConfigPropertyBoolean extends ConfigPropertyAbstract {
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setBoolean(getUnlocalizedName(), value);
+	public void writeToNBT(CompoundTag nbt) {
+		nbt.putBoolean(getUnlocalizedName(), value);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void readFromNBT(CompoundTag nbt) {
 		value = nbt.getBoolean(getUnlocalizedName());
 	}
 

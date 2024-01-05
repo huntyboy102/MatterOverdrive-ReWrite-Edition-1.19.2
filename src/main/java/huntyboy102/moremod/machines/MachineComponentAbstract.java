@@ -1,8 +1,8 @@
 
 package huntyboy102.moremod.machines;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public abstract class MachineComponentAbstract<T extends MOTileEntityMachine> implements IMachineComponent {
 	protected final T machine;
@@ -15,11 +15,11 @@ public abstract class MachineComponentAbstract<T extends MOTileEntityMachine> im
 		return machine;
 	}
 
-	public World getWorld() {
-		return machine.getWorld();
+	public Level getWorld() {
+		return machine.getLevel();
 	}
 
 	public BlockPos getPos() {
-		return machine.getPos();
+		return machine.getBlockPos();
 	}
 }

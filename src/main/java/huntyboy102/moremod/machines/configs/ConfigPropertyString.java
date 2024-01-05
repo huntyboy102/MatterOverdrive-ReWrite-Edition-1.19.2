@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.machines.configs;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.regex.Pattern;
 
@@ -26,12 +26,12 @@ public class ConfigPropertyString extends ConfigPropertyAbstract {
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setString(getKey(), value);
+	public void writeToNBT(CompoundTag nbt) {
+		nbt.putString(getKey(), value);
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
+	public void readFromNBT(CompoundTag nbt) {
 		value = nbt.getString(getKey());
 	}
 

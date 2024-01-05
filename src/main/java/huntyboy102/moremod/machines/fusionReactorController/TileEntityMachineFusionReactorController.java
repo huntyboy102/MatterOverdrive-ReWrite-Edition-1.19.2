@@ -4,13 +4,14 @@ package huntyboy102.moremod.machines.fusionReactorController;
 import static java.lang.Math.round;
 import static huntyboy102.moremod.util.MOBlockHelper.getAboveSide;
 
+import java.io.Serializable;
 import java.util.EnumSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import huntyboy102.moremod.machines.fusionReactorController.components.ComponentComputers;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.blocks.BlockFusionReactorController;
 import huntyboy102.moremod.blocks.includes.MOBlock;
@@ -24,23 +25,24 @@ import huntyboy102.moremod.tile.TileEntityFusionReactorPart;
 import huntyboy102.moremod.tile.TileEntityGravitationalAnomaly;
 import huntyboy102.moremod.util.MOEnergyHelper;
 import huntyboy102.moremod.util.TimeTracker;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.energy.IEnergyStorage;
 
 /*@Optional.InterfaceList({
 		@Optional.Interface(modid = "ComputerCraft", iface = "dan200.computercraft.api.peripheral.IPeripheral"),
@@ -93,35 +95,35 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 	}
 
 	@Override
-	public void writeCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
+	public void writeCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories, boolean toDisk) {
 		super.writeCustomNBT(nbt, categories, toDisk);
 		if (categories.contains(MachineNBTCategory.DATA)) {
-			nbt.setBoolean("ValidStructure", validStructure);
-			nbt.setInteger("MonitorInfo", monitorInfo.getMeta());
-			nbt.setFloat("EnergyEfficiency", energyEfficiency);
-			nbt.setFloat("MatterPerTick", matterPerTick);
-			nbt.setInteger("EnergyPerTick", energyPerTick);
+			nbt.putBoolean("ValidStructure", validStructure);
+			nbt.putInt("MonitorInfo", monitorInfo.getMeta());
+			nbt.putFloat("EnergyEfficiency", energyEfficiency);
+			nbt.putFloat("MatterPerTick", matterPerTick);
+			nbt.putInt("EnergyPerTick", energyPerTick);
 		}
 	}
 
 	@Override
-	public void readCustomNBT(NBTTagCompound nbt, EnumSet<MachineNBTCategory> categories) {
+	public void readCustomNBT(CompoundTag nbt, EnumSet<MachineNBTCategory> categories) {
 		super.readCustomNBT(nbt, categories);
 		if (categories.contains(MachineNBTCategory.DATA)) {
 			validStructure = nbt.getBoolean("ValidStructure");
-			monitorInfo = MonitorInfo.fromMeta(nbt.getInteger("MonitorInfo"));
+			monitorInfo = MonitorInfo.fromMeta(nbt.getInt("MonitorInfo"));
 			energyEfficiency = nbt.getFloat("EnergyEfficiency");
 			matterPerTick = nbt.getFloat("MatterPerTick");
-			energyPerTick = nbt.getInteger("EnergyPerTick");
+			energyPerTick = nbt.getInt("EnergyPerTick");
 		}
 	}
 
 	@Override
 	public void update() {
-		if (worldTickLast != getWorld().getTotalWorldTime()) {
-			worldTickLast = getWorld().getTotalWorldTime();
+		if (worldTickLast != getLevel().getGameTime()) {
+			worldTickLast = getLevel().getGameTime();
 			super.update();
-			if (!world.isRemote) {
+			if (!level.isClientSide) {
 				// System.out.println("Fusion Reactor Update in chunk that is loaded:" +
 				// world.getChunkFromBlocks(x,z).isChunkLoaded);
 				manageStructure();
@@ -153,22 +155,22 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 		return 0;
 	}
 
-	public Vec3d getPosition(int i, EnumFacing facing) {
+	public Vec3 getPosition(int i, Direction facing) {
 		if (i < positionsCount) {
-			EnumFacing back = facing.getOpposite();
-			Vec3d pos = new Vec3d(TileEntityMachineFusionReactorController.positions[i * 2], 0,
+			Direction back = facing.getOpposite();
+			Vec3 pos = new Vec3(TileEntityMachineFusionReactorController.positions[i * 2], 0,
 					TileEntityMachineFusionReactorController.positions[(i * 2) + 1]);
 
-			if (back == EnumFacing.NORTH) {
-				pos = pos.rotateYaw((float) Math.PI);
-			} else if (back == EnumFacing.WEST) {
-				pos = pos.rotateYaw((float) (Math.PI + Math.PI / 2));
-			} else if (back == EnumFacing.EAST) {
-				pos = pos.rotatePitch((float) (Math.PI / 2));
-			} else if (back == EnumFacing.UP) {
-				pos = pos.rotatePitch((float) (Math.PI / 2));
-			} else if (back == EnumFacing.DOWN) {
-				pos = pos.rotatePitch((float) (Math.PI + Math.PI / 2));
+			if (back == Direction.NORTH) {
+				pos = pos.add(0, 0, 1);
+			} else if (back == Direction.WEST) {
+				pos = pos.add(1, 0, 0);
+			} else if (back == Direction.EAST) {
+				pos = pos.add(0, 1, 0);
+			} else if (back == Direction.UP) {
+				pos = pos.add(0, 0, 1).reverse();
+			} else if (back == Direction.DOWN) {
+				pos = pos.add(0, 1, 0).reverse();
 
 			}
 
@@ -184,9 +186,9 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 	}
 
 	public void manageStructure() {
-		if (structureCheckTimer.hasDelayPassed(world, STRUCTURE_CHECK_DELAY)) {
+		if (structureCheckTimer.hasDelayPassed(level, STRUCTURE_CHECK_DELAY)) {
 			multiBlock.update();
-			EnumFacing side = world.getBlockState(getPos()).getValue(MOBlock.PROPERTY_DIRECTION);
+			Direction side = level.getBlockState(getBlockPos()).getValue(MOBlock.PROPERTY_DIRECTION);
 			int anomalyDistance;
 			boolean validStructure = true;
 			MonitorInfo info = this.monitorInfo;
@@ -194,9 +196,9 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 			float matterPerTick = this.matterPerTick;
 
 			for (int i = 0; i < positionsCount; i++) {
-				Vec3d offset = getPosition(i, side);
-				BlockPos position = new BlockPos(getPos().getX() + (int) round(offset.x),
-						getPos().getY() + (int) round(offset.y), getPos().getZ() + (int) round(offset.z));
+				Vec3 offset = getPosition(i, side);
+				BlockPos position = new BlockPos(getBlockPos().getX() + (int) round(offset.x),
+						getBlockPos().getY() + (int) round(offset.y), getBlockPos().getZ() + (int) round(offset.z));
 
 				if (blocks[i] == 255) {
 					BlockPos anomalyOffset = checkForGravitationalAnomaly(position, getAboveSide(side));
@@ -210,7 +212,7 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 							info = MonitorInfo.ANOMALY_TOO_FAR;
 							break;
 						}
-						anomalyPosition = anomalyOffset.add(offset.x, offset.y, offset.z);
+						anomalyPosition = anomalyOffset.offset(offset.x, offset.y, offset.z);
 					} else {
 						validStructure = false;
 						info = MonitorInfo.NO_ANOMALY;
@@ -225,27 +227,27 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 					double energyMultiply = getGravitationalAnomalyEnergyMultiply();
 					matterPerTick = (float) (MATTER_DRAIN_PER_TICK * energyMultiply);
 				} else {
-					Block block = world.getBlockState(position).getBlock();
-					TileEntity tileEntity = world.getTileEntity(position);
+					Block block = level.getBlockState(position).getBlock();
+					BlockEntity tileEntity = level.getBlockEntity(position);
 
 					if (block == Blocks.AIR) {
 						validStructure = false;
 						info = MonitorInfo.INVALID_STRUCTURE;
 						break;
-					} else if (block == MatterOverdrive.BLOCKS.machine_hull) {
+					} else if (block == MatterOverdriveRewriteEdition.BLOCKS.machine_hull) {
 						if (blocks[i] == 1) {
 							validStructure = false;
 							info = MonitorInfo.NEED_COILS;
 							break;
 						}
-					} else if (block == MatterOverdrive.BLOCKS.fusion_reactor_coil
+					} else if (block == MatterOverdriveRewriteEdition.BLOCKS.fusion_reactor_coil
 							|| tileEntity instanceof IMultiBlockTile) {
 						if (blocks[i] == 0) {
 							validStructure = false;
 							info = MonitorInfo.INVALID_MATERIALS;
 							break;
 						}
-					} else if (block == MatterOverdrive.BLOCKS.decomposer) {
+					} else if (block == MatterOverdriveRewriteEdition.BLOCKS.decomposer) {
 						if (blocks[i] != 2) {
 							validStructure = false;
 							info = MonitorInfo.INVALID_MATERIALS;
@@ -295,9 +297,9 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 			int energyRecived = energyStorage.modifyEnergyStored(energyPerTick);
 			if (energyRecived != 0) {
 				matterDrain += getMatterDrainPerTick() * ((float) energyRecived / (float) energyPerTick);
-				if (MathHelper.floor(matterDrain) >= 1) {
-					matterStorage.modifyMatterStored(-MathHelper.floor(matterDrain));
-					matterDrain -= MathHelper.floor(matterDrain);
+				if (Mth.floor(matterDrain) >= 1) {
+					matterStorage.modifyMatterStored(-Mth.floor(matterDrain));
+					matterDrain -= Mth.floor(matterDrain);
 				}
 				UpdateClientPower();
 			}
@@ -317,19 +319,23 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 	}
 
 	private void manageExtractFrom(MOTileEntityMachineEnergy source) {
-		TileEntity entity;
 		int energy;
 		int startDir = random.nextInt(6);
 
 		for (int i = 0; i < 6; i++) {
 			energy = Math.min(energyStorage.getEnergyStored(), ENERGY_CAPACITY);
-			EnumFacing dir = EnumFacing.VALUES[(i + startDir) % 6];
-			entity = world.getTileEntity(source.getPos().offset(dir));
+			Direction dir = Direction.values()[(i + startDir) % 6];
+			BlockPos neighborPos = source.getBlockPos().relative(dir);
+			BlockEntity entity = level.getBlockEntity(neighborPos);
 
-			if (entity != null) {
-				if (entity.hasCapability(CapabilityEnergy.ENERGY, dir.getOpposite())) {
-					energyStorage.modifyEnergyStored(-entity.getCapability(CapabilityEnergy.ENERGY, dir.getOpposite())
-							.receiveEnergy(energy, false));
+			if (entity != null && entity instanceof Tickable) {
+				Tickable tickable = (Tickable) entity;
+				if (entity.getCapability(CapabilityEnergy.ENERGY, dir.getOpposite()).isPresent()) {
+					IEnergyStorage energyStorage = entity.getCapability(CapabilityEnergy.ENERGY, dir.getOpposite()).orElse(null);
+					if (energyStorage != null) {
+						int extracted = energyStorage.extractEnergy(energy, false);
+						energyStorage.receiveEnergy(-extracted, false);
+					}
 				}
 			}
 		}
@@ -344,7 +350,7 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 	@Override
 	protected void manageCharging() {
 		if (isCharging()) {
-			if (!this.world.isRemote) {
+			if (!this.level.isClientSide) {
 				int maxExtracted = Math.min((int) energyStorage.getOutputRate(), energyStorage.getEnergyStored());
 				int extracted = MOEnergyHelper.insertEnergyIntoContainer(this.customInventory.getStackInSlot(energySlotID),
 						maxExtracted, false);
@@ -359,7 +365,7 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 
 	public double getGravitationalAnomalyEnergyMultiply() {
 		if (anomalyPosition != null) {
-			TileEntity entity = world.getTileEntity(getPos().add(anomalyPosition));
+			BlockEntity entity = level.getBlockEntity(getBlockPos().add(anomalyPosition));
 			if (entity instanceof TileEntityGravitationalAnomaly) {
 				return ((TileEntityGravitationalAnomaly) entity).getRealMassUnsuppressed();
 			}
@@ -381,10 +387,10 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 		return energyEfficiency;
 	}
 
-	private BlockPos checkForGravitationalAnomaly(BlockPos position, EnumFacing up) {
+	private BlockPos checkForGravitationalAnomaly(BlockPos position, Direction up) {
 		for (int i = -MAX_GRAVITATIONAL_ANOMALY_DISTANCE; i < MAX_GRAVITATIONAL_ANOMALY_DISTANCE + 1; i++) {
-			Block block = world.getBlockState(position.offset(up, i)).getBlock();
-			if (block != null && block == MatterOverdrive.BLOCKS.gravitational_anomaly) {
+			Block block = level.getBlockState(position.offset(up, i)).getBlock();
+			if (block != null && block == MatterOverdriveRewriteEdition.BLOCKS.gravitational_anomaly) {
 				return new BlockPos(0, 0, 0).offset(up, i);
 			}
 		}
@@ -397,16 +403,16 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public AxisAlignedBB getRenderBoundingBox() {
-		IBlockState state = world.getBlockState(pos);
+	@OnlyIn(Dist.CLIENT)
+	public AABB getRenderBoundingBox() {
+		BlockState state = level.getBlockState(pos);
 		if (!(state.getBlock() instanceof BlockFusionReactorController))
-			return Block.FULL_BLOCK_AABB.offset(getPos());
-		EnumFacing backSide = state.getValue(MOBlock.PROPERTY_DIRECTION).getOpposite();
-		return new AxisAlignedBB(getPos().getX(), getPos().getY(), getPos().getZ(),
-				getPos().getX() + backSide.getDirectionVec().getX() * 10,
-				getPos().getY() + backSide.getDirectionVec().getY() * 10,
-				getPos().getZ() + backSide.getDirectionVec().getZ() * 10);
+			return Block.FULL_BLOCK_AABB.offset(getBlockPos());
+		Direction backSide = state.getValue(MOBlock.PROPERTY_DIRECTION).getOpposite();
+		return new AABB(getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
+				getBlockPos().getX() + backSide.getDirectionVec().getX() * 10,
+				getBlockPos().getY() + backSide.getDirectionVec().getY() * 10,
+				getBlockPos().getZ() + backSide.getDirectionVec().getZ() * 10);
 	}
 
 	public boolean isValidStructure() {
@@ -428,12 +434,12 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
 
 	@Override
-	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
+	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable Direction facing) {
 		if (capability == CapabilityEnergy.ENERGY) {
 			return true;
 		}
@@ -443,7 +449,7 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 	@Nonnull
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
+	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
 		if (capability == CapabilityEnergy.ENERGY) {
 			return (T) energyStorage;
 		}
@@ -503,22 +509,22 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 	 * componentComputers.invoke(method,context,args); }
 	 */
 
-	public static enum MonitorInfo implements IStringSerializable {
+	public static enum MonitorInfo implements Serializable {
 		INVALID_STRUCTURE, NEED_COILS, INVALID_MATERIALS, NO_ANOMALY, ANOMALY_TOO_FAR, OK;
 
 		public static MonitorInfo[] VALUES = values();
 
 		public static MonitorInfo fromMeta(int meta) {
-			return VALUES[MathHelper.clamp(meta, 0, VALUES.length)];
+			return VALUES[Mth.clamp(meta, 0, VALUES.length)];
 		}
 
 		public int getMeta() {
 			return ordinal();
 		}
 
-		@SideOnly(Side.CLIENT)
+		@OnlyIn(Dist.CLIENT)
 		public String localize() {
-			return I18n.format("fusion_reactor.info." + getName());
+			return I18n.get("fusion_reactor.info." + getName());
 		}
 
 		@Override
