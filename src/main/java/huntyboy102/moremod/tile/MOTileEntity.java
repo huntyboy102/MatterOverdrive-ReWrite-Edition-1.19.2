@@ -13,6 +13,7 @@ import huntyboy102.moremod.network.packet.server.PacketSendMachineNBT;
 import net.minecraft.core.Direction;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
@@ -109,6 +110,16 @@ public abstract class MOTileEntity extends BlockEntity implements IMOTileEntity 
 	public abstract void invalidate();
 
 	public abstract void onNeighborBlockChange(LevelAccessor world, BlockPos pos, BlockState state, Block neighborBlock);
+
+    public abstract void onPlaced(org.apache.logging.log4j.Level world, LivingEntity entityLiving);
+
+	public abstract void onAdded(org.apache.logging.log4j.Level world, BlockPos pos, BlockState state);
+
+	public abstract void onDestroyed(Level worldIn, BlockPos pos, BlockState state);
+
+	public abstract void onPlaced(Level world, LivingEntity entityLiving);
+
+	public abstract void onAdded(Level world, BlockPos pos, BlockState state);
 
 	protected abstract void onAwake(Dist side);
 

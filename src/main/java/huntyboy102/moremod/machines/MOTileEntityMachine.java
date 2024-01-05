@@ -19,14 +19,15 @@ import huntyboy102.moremod.machines.configs.ConfigPropertyStringList;
 import huntyboy102.moremod.machines.events.MachineEvent;
 import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
 import net.minecraftforge.network.NetworkHooks;
-import org.apache.logging.log4j.Level;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.joml.Vector4f;
 
 import huntyboy102.moremod.MatterOverdriveRewriteEdition;
@@ -59,6 +60,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -150,7 +152,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			try {
 				((Tickable) component).tick();
 			} catch (Exception e) {
-				MOLog.log(Level.FATAL, e, "There was a problem while ticking %s component %s", this, component);
+				MOLog.log(e, "There was a problem while ticking %s component %s", this, component);
 			}
 		});
 	}
@@ -253,7 +255,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 				try {
 					owner = UUID.fromString(nbt.getString("Owner"));
 				} catch (Exception e) {
-					MOLog.log(Level.ERROR, "Invalid Owner ID: " + nbt.getString("Owner"));
+					MOLog.log(Level, "Invalid Owner ID: " + nbt.getString("Owner"));
 				}
 			}
 		}
@@ -332,7 +334,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 				try {
 					this.owner = UUID.fromString(machineTag.getString("Owner"));
 				} catch (Exception e) {
-					MOLog.log(Level.ERROR, e, "Invalid Owner ID: " + machineTag.getString("Owner"));
+					MOLog.log(Level, e, "Invalid Owner ID: " + machineTag.getString("Owner"));
 				}
 			}
 		}
@@ -665,17 +667,22 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			Vector3f circle = MOMathHelper.randomCirclePoint(random.nextFloat(), random);
 			circle.set(0.4f);
 			Vector4f circleTransformed = new Vector4f(circle.x, circle.y, circle.z, 1);
-			Matrix4f.transform(rotation, circleTransformed, circleTransformed);
+			Matrix4f rotationMatrix = new Matrix4f();
+			rotationMatrix.transform(circleTransformed);
 
+			Vec3i directionVec = side.getNormal();
 			float scale = 3f;
 
 			VentParticle ventParticle = new VentParticle(this.level,
 					this.getBlockPos().getX() + offset.x + circleTransformed.x,
 					this.getBlockPos().getY() + offset.y + circleTransformed.y,
-					this.getBlockPos().getZ() + offset.z + circleTransformed.z, side.getDirectionVec().getX() * speed,
-					side.getDirectionVec().getY() * speed, side.getDirectionVec().getZ() * speed, scale);
+					this.getBlockPos().getZ() + offset.z + circleTransformed.z,
+					directionVec.getX() * speed,
+					directionVec.getY() * speed,
+					directionVec.getZ() * speed,
+					scale);
 			ventParticle.setAlphaF(0.05f);
-			Minecraft.getInstance().effectRenderer.addEffect(ventParticle);
+			Minecraft.getInstance().particleEngine.add(ventParticle);
 		}
 	}
 
@@ -720,7 +727,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	public boolean unclaim(ItemStack security_protocol) {
 		try {
 			if (owner != null) {
-				if (security_protocol.hasTag() && security_protocol.getTag().hasKey("Owner", 8)
+				if (security_protocol.hasTag() && security_protocol.getTag().hasUUID("Owner")
 						&& owner.equals(UUID.fromString(security_protocol.getTag().getString("Owner")))) {
 					owner = null;
 					forceSync();
