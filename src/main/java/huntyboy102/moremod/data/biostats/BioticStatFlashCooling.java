@@ -9,11 +9,11 @@ import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.util.MOEnergyHelper;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 import java.text.DecimalFormat;
@@ -32,12 +32,12 @@ public class BioticStatFlashCooling extends AbstractBioticStat {
 	@Override
 	public String getDetails(int level) {
 		return MOStringHelper.translateToLocal(getUnlocalizedDetails(),
-				TextFormatting.GREEN + DecimalFormat.getPercentInstance().format(COOLDOWN_CHANGE) + TextFormatting.GRAY,
-				TextFormatting.YELLOW + (ENERGY_PER_COOLDOWN + MOEnergyHelper.ENERGY_UNIT) + TextFormatting.GRAY);
+				ChatFormatting.GREEN + DecimalFormat.getPercentInstance().format(COOLDOWN_CHANGE) + ChatFormatting.GRAY,
+				ChatFormatting.YELLOW + (ENERGY_PER_COOLDOWN + MOEnergyHelper.ENERGY_UNIT) + ChatFormatting.GRAY);
 	}
 
 	@Override
-	public void registerIcons(TextureMap textureMap, HoloIcons holoIcons) {
+	public void registerIcons(TextureManager textureMap, HoloIcons holoIcons) {
 		this.icon = holoIcons.getIcon("temperature");
 	}
 
@@ -62,8 +62,8 @@ public class BioticStatFlashCooling extends AbstractBioticStat {
 			event.setCanceled(true);
 			((MOEventEnergyWeapon.Overheat) event).energyWeapon
 					.setHeat(((MOEventEnergyWeapon.Overheat) event).weaponStack, 0);
-			event.getEntity().world.playSound(null, event.getEntityLiving().posX, event.getEntityLiving().posY,
-					event.getEntityLiving().posZ, MatterOverdriveSounds.weaponsOverheat, SoundCategory.PLAYERS, 1F, 1f);
+			event.getEntity().level.playSound(null, event.getEntity().getX(), event.getEntity().getY(),
+					event.getEntity().getZ(), MatterOverdriveSounds.weaponsOverheat, SoundSource.PLAYERS, 1F, 1f);
 		}
 	}
 
@@ -94,7 +94,7 @@ public class BioticStatFlashCooling extends AbstractBioticStat {
 
 	@Override
 	public boolean showOnHud(AndroidPlayer android, int level) {
-		return android.getPlayer().getHeldItem(EnumHand.MAIN_HAND) != null
-				&& android.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IWeapon;
+		return android.getPlayer().getItemInHand(InteractionHand.MAIN_HAND) != null
+				&& android.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof IWeapon;
 	}
 }

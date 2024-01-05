@@ -4,7 +4,7 @@ package huntyboy102.moremod.data.biostats;
 import com.google.common.collect.Multimap;
 
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public class BioticStatMinimap extends AbstractBioticStat {

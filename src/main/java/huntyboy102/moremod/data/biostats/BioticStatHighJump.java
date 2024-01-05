@@ -7,9 +7,9 @@ import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.IConfigSubscriber;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.handler.ConfigurationHandler;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
@@ -34,7 +34,7 @@ public class BioticStatHighJump extends AbstractBioticStat implements IConfigSub
 	@Override
 	public String getDetails(int level) {
 		return MOStringHelper.translateToLocal(getUnlocalizedDetails(),
-				TextFormatting.YELLOW.toString() + ENERGY_PER_JUMP + " FE" + TextFormatting.GRAY);
+				ChatFormatting.YELLOW.toString() + ENERGY_PER_JUMP + " FE" + ChatFormatting.GRAY);
 	}
 
 	@Override
@@ -55,15 +55,15 @@ public class BioticStatHighJump extends AbstractBioticStat implements IConfigSub
 	public void onLivingEvent(AndroidPlayer androidPlayer, int level, LivingEvent event) {
 		if (event instanceof LivingEvent.LivingJumpEvent && isActive(androidPlayer, level)) {
 			if (!MinecraftForge.EVENT_BUS.post(new MOEventBionicStat(this, level, androidPlayer))) {
-				if (!androidPlayer.getPlayer().isSneaking()) {
-					if (!event.getEntity().world.isRemote) {
+				if (!androidPlayer.getPlayer().isCrouching()) {
+					if (!event.getEntity().level.isClientSide) {
 						androidPlayer.extractEnergyScaled(ENERGY_PER_JUMP * level);
 					}
 
-					Vec3d motion = new Vec3d(event.getEntityLiving().motionX, event.getEntityLiving().motionY,
-							event.getEntityLiving().motionZ);
+					Vec3 motion = new Vec3(event.getEntity().xo, event.getEntity().yo,
+							event.getEntity().zo);
 					motion = motion.normalize().add(0, 1, 0).normalize();
-					event.getEntityLiving().addVelocity(motion.x * 0.25 * level, motion.y * 0.25 * level,
+					event.getEntity().setDeltaMovement(motion.x * 0.25 * level, motion.y * 0.25 * level,
 							motion.z * 0.25 * level);
 				}
 			}
@@ -83,7 +83,7 @@ public class BioticStatHighJump extends AbstractBioticStat implements IConfigSub
 	@Override
 	public boolean isEnabled(AndroidPlayer android, int level) {
 		return super.isEnabled(android, level) && android.hasEnoughEnergyScaled(ENERGY_PER_JUMP)
-				&& android.getPlayer().onGround;
+				&& android.getPlayer().isOnGround();
 	}
 
 	@Override

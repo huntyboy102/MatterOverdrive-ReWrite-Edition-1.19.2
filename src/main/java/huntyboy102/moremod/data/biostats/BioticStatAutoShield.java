@@ -5,14 +5,14 @@ import com.google.common.collect.Multimap;
 
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.init.OverdriveBioticStats;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.DamageSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.fml.common.eventhandler.Event;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class BioticStatAutoShield extends AbstractBioticStat {
 	public BioticStatAutoShield(String name, int xp) {

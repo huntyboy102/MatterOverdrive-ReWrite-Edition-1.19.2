@@ -5,12 +5,12 @@ import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.MOEnergyHelper;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public class BioticStatItemMagnet extends AbstractBioticStat {
@@ -26,23 +26,22 @@ public class BioticStatItemMagnet extends AbstractBioticStat {
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
 		if (isActive(android, level)) {
-			if (!android.getPlayer().world.isRemote && !android.getPlayer().isDead) {
-				for (Entity entityitem : android.getPlayer().world.getEntitiesWithinAABBExcludingEntity(
-						android.getPlayer(), android.getPlayer().getEntityBoundingBox().grow(10.0D, 5.0D, 10.0D))) {
-					if (entityitem instanceof EntityItem) {
-						if (!((EntityItem) entityitem).cannotPickup()) {
-							Vec3d dir = android.getPlayer().getPositionVector()
+			if (!android.getPlayer().level.isClientSide && !android.getPlayer().isDeadOrDying()) {
+				for (Entity entityitem : android.getPlayer().level.getEntitiesOfClass(
+						android.getPlayer(), android.getPlayer().getBoundingBox().inflate(10.0D, 5.0D, 10.0D))) {
+					if (entityitem instanceof ItemEntity && entityitem.isAlive()) {
+							Vec3 dir = android.getPlayer().getDeltaMovement()
 									.add(0, android.getPlayer().getEyeHeight(), 0)
-									.subtract(entityitem.getPositionVector()).normalize();
-							entityitem.addVelocity(dir.x * ITEM_SPEED, dir.y * ITEM_SPEED, dir.z * ITEM_SPEED);
+									.subtract(entityitem.getDeltaMovement()).normalize();
+							entityitem.setDeltaMovement(dir.x * ITEM_SPEED, dir.y * ITEM_SPEED, dir.z * ITEM_SPEED);
 							android.extractEnergyScaled(ENERGY_PULL_PER_ITEM);
-						}
-					} else if (entityitem instanceof EntityXPOrb && ((EntityXPOrb) entityitem).delayBeforeCanPickup <= 0
+
+					} else if (entityitem instanceof ExperienceOrb && ((ExperienceOrb) entityitem).delayBeforeCanPickup <= 0
 							&& android.getPlayer().xpCooldown == 0) {
-						Vec3d dir = android.getPlayer().getPositionVector()
-								.add(0, android.getPlayer().getEyeHeight(), 0).subtract(entityitem.getPositionVector())
+						Vec3 dir = android.getPlayer().getDeltaMovement()
+								.add(0, android.getPlayer().getEyeHeight(), 0).subtract(entityitem.getDeltaMovement())
 								.normalize();
-						entityitem.addVelocity(dir.x * ITEM_SPEED, dir.y * ITEM_SPEED, dir.z * ITEM_SPEED);
+						entityitem.setDeltaMovement(dir.x * ITEM_SPEED, dir.y * ITEM_SPEED, dir.z * ITEM_SPEED);
 						android.extractEnergyScaled(ENERGY_PULL_PER_ITEM);
 					}
 				}
@@ -53,7 +52,7 @@ public class BioticStatItemMagnet extends AbstractBioticStat {
 	@Override
 	public String getDetails(int level) {
 		return MOStringHelper.translateToLocal(getUnlocalizedDetails(),
-				TextFormatting.YELLOW + (ENERGY_PULL_PER_ITEM + MOEnergyHelper.ENERGY_UNIT) + TextFormatting.GRAY);
+				ChatFormatting.YELLOW + (ENERGY_PULL_PER_ITEM + MOEnergyHelper.ENERGY_UNIT) + ChatFormatting.GRAY);
 	}
 
 	@Override

@@ -4,8 +4,8 @@ package huntyboy102.moremod.data.biostats;
 import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
@@ -35,8 +35,8 @@ public class BioticStatNanoArmor extends AbstractBioticStat {
 
 	@Override
 	public String getDetails(int level) {
-		return MOStringHelper.translateToLocal(getUnlocalizedDetails(), TextFormatting.GREEN
-				+ DecimalFormat.getPercentInstance().format(getDamageNegate(level)) + TextFormatting.GRAY);
+		return MOStringHelper.translateToLocal(getUnlocalizedDetails(), ChatFormatting.GREEN
+				+ DecimalFormat.getPercentInstance().format(getDamageNegate(level)) + ChatFormatting.GRAY);
 	}
 
 	@Override
