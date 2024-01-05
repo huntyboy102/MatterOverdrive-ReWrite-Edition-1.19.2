@@ -31,8 +31,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.eventbus.api.*;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -41,9 +39,11 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.common.reflection.qual.NewInstance;
 
-@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION, guiFactory = Reference.GUI_FACTORY_CLASS, dependencies = Reference.DEPENDENCIES)
+@Mod.EventBusSubscriber(modid = Reference.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class MatterOverdriveRewriteEdition {
     public static final ExecutorService THREAD_POOL = Executors.newFixedThreadPool(2);
 
@@ -81,8 +81,8 @@ public class MatterOverdriveRewriteEdition {
     public static final FluidNetworkHandler FLUID_NETWORK_HANDLER;
     public static final MOLootTableManager LOOT_TABLE_MANAGER;
     public static Logger LOGGER;
-    @Instance(Reference.MOD_ID)
-    public static MatterOverdrive INSTANCE;
+    @NewInstance(Reference.MOD_ID)
+    public static MatterOverdriveRewriteEdition INSTANCE;
     @SidedProxy(clientSide = "matteroverdrive.proxy.ClientProxy", serverSide = "matteroverdrive.proxy.CommonProxy")
     public static CommonProxy PROXY;
 
@@ -112,20 +112,20 @@ public class MatterOverdriveRewriteEdition {
         MO_WORLD = new MatterOverdriveWorld(CONFIG_HANDLER);
     }
 
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
+    @SubscribeEvent
+    public void preInit(FMLCommonSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(this);
         AndroidPlayer.register();
         OverdriveExtendedProperties.register();
 
         ITEMS.init();
-        OverdriveFluids.init(event);
+        OverdriveFluids.init();
         BLOCKS.init();
         OverdriveBioticStats.init();
         MatterOverdriveDialogs.init(CONFIG_HANDLER, DIALOG_REGISTRY);
         MatterOverdriveQuests.init();
         MatterOverdriveQuests.register(QUESTS);
-        MatterOverdriveSounds.register();
+        //MatterOverdriveSounds.register();
         EntityVillagerMadScientist.registerDialogMessages(DIALOG_REGISTRY, event.getSide());
         MatterOverdriveCapabilities.init();
 
@@ -151,7 +151,7 @@ public class MatterOverdriveRewriteEdition {
         LOGGER = event.getModLog();
     }
 
-    @EventHandler
+    @SubscribeEvent
     public void init(FMLInitializationEvent event) {
         MatterOverdriveBlocks.blocks.stream().filter(block -> block instanceof OreDictItem)
                 .forEach(block -> ((OreDictItem) block).registerOreDict());
@@ -174,7 +174,7 @@ public class MatterOverdriveRewriteEdition {
 
     }
 
-    @EventHandler
+    @SubscribeEvent
     public void postInit(FMLPostInitializationEvent event) {
         PROXY.postInit(event);
         MatterOverdriveCompat.postInit(event);

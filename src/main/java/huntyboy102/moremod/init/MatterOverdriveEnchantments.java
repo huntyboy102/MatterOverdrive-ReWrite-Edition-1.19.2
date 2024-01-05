@@ -18,7 +18,7 @@ public class MatterOverdriveEnchantments implements IConfigSubscriber {
 
 	public static final DeferredRegister<Enchantment> ENCHANTMENTS = DeferredRegister.create(ForgeRegistries.ENCHANTMENTS, MOD_ID);
 
-	public static final RegistryObject<Enchantment> OVERCLOCK = ENCHANTMENTS.register("overclock",
+	public static final RegistryObject<Enchantment> register = ENCHANTMENTS.register("overclock",
 			() -> new EnchantmentOverclock(Enchantment.Rarity.COMMON));
 
 	public static void init(ConfigurationHandler configurationHandler) {

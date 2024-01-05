@@ -114,14 +114,6 @@ public class MatterOverdriveBlocks {
 	public BlockNewTritaniumCrate new_tritanium_crate_white;
 	public BlockNewTritaniumCrate new_tritanium_crate_purple;
 
-	private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> blockSupplier) {
-		return BLOCKS.register(name, blockSupplier);
-	}
-
-	private static <T extends Block> RegistryObject<Item> registerItemBlock(String name, RegistryObject<T> block) {
-		return ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties().tab(CreativeModeTab.BUILDING_BLOCKS)));
-	}
-
 	public void init() {
 		MOLog.info("Registering blocks");
 
@@ -246,7 +238,7 @@ public class MatterOverdriveBlocks {
 		return register(block, itemBlock, true);
 	}
 
-	protected <T extends Block> T register(T block, boolean addToItems) {
+	protected <T extends Block> RegistryObject<T> register(T block, boolean addToItems) {
 		BlockItem itemBlock;
 		if (block instanceof IItemBlockFactory) {
 			itemBlock = ((IItemBlockFactory) block).createItemBlock();
@@ -254,15 +246,15 @@ public class MatterOverdriveBlocks {
 			itemBlock = new MOMachineBlockItem(block);
 		} else if (block instanceof BlockDecorativeColored) {
 			itemBlock = new ItemColored(block, false);
-			itemBlock.setRegistryName(block.getRegistryName());
+			itemBlock.setRegistryName(block.getName());
 		} else {
 			itemBlock = new ItemBlock(block);
-			itemBlock.setRegistryName(block.getRegistryName());
+			itemBlock.setRegistryName(block.getName());
 		}
 		return register(block, itemBlock, addToItems);
 	}
 
-	protected <T extends Block> T register(T block, BlockItem itemBlock, boolean addToItems) {
+	protected <T extends Block> RegistryObject<T> register(T block, BlockItem itemBlock, boolean addToItems) {
 		if (block instanceof IConfigSubscriber) {
 			MatterOverdriveRewriteEdition.CONFIG_HANDLER.subscribe((IConfigSubscriber) block);
 		}
@@ -274,5 +266,13 @@ public class MatterOverdriveBlocks {
 		}
 
 		return block;
+	}
+
+	private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> blockSupplier) {
+		return BLOCKS.register(name, blockSupplier);
+	}
+
+	private static <T extends Block> RegistryObject<Item> registerItemBlock(String name, RegistryObject<T> block) {
+		return ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties().tab(CreativeModeTab.TAB_BUILDING_BLOCKS)));
 	}
 }
