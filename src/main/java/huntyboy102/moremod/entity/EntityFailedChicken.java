@@ -14,11 +14,11 @@ public class EntityFailedChicken extends EntityChicken {
 
 	@Override
 	protected SoundEvent getAmbientSound() {
-		return MatterOverdriveSounds.failedAnimalUdleChicken;
+		return MatterOverdriveSounds.failedAnimalIdleChicken;
 	}
 
 	protected SoundEvent getHurtSound() {
-		return MatterOverdriveSounds.failedAnimalUdleChicken;
+		return MatterOverdriveSounds.failedAnimalIdleChicken;
 	}
 
 	@Override
