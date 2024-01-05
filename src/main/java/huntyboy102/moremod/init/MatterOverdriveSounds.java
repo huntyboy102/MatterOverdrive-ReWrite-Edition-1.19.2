@@ -6,82 +6,73 @@ import java.lang.reflect.Field;
 import huntyboy102.moremod.Reference;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.GameData;
+import net.minecraftforge.registries.RegistryObject;
 
 public class MatterOverdriveSounds {
-	public final static SoundEvent weaponsPhaserBeam = newEvent("weapons.phaser_beam");
-	public final static SoundEvent weaponsPhaserSwitchMode = newEvent("weapons.phaser_switch_mode");
-	public final static SoundEvent scannerBeep = newEvent("scanner_beep");
-	public final static SoundEvent scannerSuccess = newEvent("scanner_success");
-	public final static SoundEvent scannerFail = newEvent("scanner_fail");
-	public final static SoundEvent scannerScanning = newEvent("scanner_scanning");
-	public final static SoundEvent replicateSuccess = newEvent("replicate_success");
-	public final static SoundEvent analyzer = newEvent("analyzer");
-	public final static SoundEvent decomposer = newEvent("decomposer");
-	public final static SoundEvent machine = newEvent("machine");
-	public final static SoundEvent transporter = newEvent("transporter");
-	public final static SoundEvent windy = newEvent("windy");
-	public final static SoundEvent anomalyConsume = newEvent("anomaly_consume");
-	public final static SoundEvent electricMachine = newEvent("electric_machine");
-	public final static SoundEvent forceField = newEvent("force_field");
-	public final static SoundEvent failedAnimalDie = newEvent("failed_animal_die");
-	public final static SoundEvent failedAnimalUdleChicken = newEvent("failed_animal_idle_chicken");
-	public final static SoundEvent failedAnimalIdlePig = newEvent("failed_animal_idle_pig");
-	public final static SoundEvent failedAnimalIdleCow = newEvent("failed_animal_idle_cow");
-	public final static SoundEvent failedAnimalIdleSheep = newEvent("failed_animal_idle_sheep");
-	public final static SoundEvent guiButtonSoft = newEvent("gui.button_soft");
-	public final static SoundEvent guiButtonLoud = newEvent("gui.button_loud");
-	public final static SoundEvent guiButtonExpand = newEvent("gui.button_expand");
-	public final static SoundEvent guiBioticStatUnlock = newEvent("gui.biotic_stat_unlock");
-	public final static SoundEvent musicTransformation = newEvent("music.transformation");
-	public final static SoundEvent guiGlitch = newEvent("gui.glitch");
-	public final static SoundEvent androidTeleport = newEvent("android.teleport");
-	public final static SoundEvent androidShieldLoop = newEvent("android.shield_loop");
-	public final static SoundEvent androidShieldHit = newEvent("android.shield_hit");
-	public final static SoundEvent androidCloakOn = newEvent("android.cloak_on");
-	public final static SoundEvent androidCloakOff = newEvent("android.cloak_off");
-	public final static SoundEvent weaponsPhaserRifleShot = newEvent("weapons.phaser_rifle_shot");
-	public final static SoundEvent weaponsOverheatAlarm = newEvent("weapons.overheat_alarm");
-	public final static SoundEvent weaponsOverheat = newEvent("weapons.overheat");
-	public final static SoundEvent weaponsReload = newEvent("weapons.reload");
-	public final static SoundEvent androidNightVision = newEvent("android.night_vision");
-	public final static SoundEvent androidPowerDown = newEvent("android.power_down");
-	public final static SoundEvent weaponsBoltHit = newEvent("weapons.bolt_hit");
-	public final static SoundEvent weaponsSizzle = newEvent("weapons.sizzle");
-	public final static SoundEvent weaponsOmniToolHum = newEvent("weapons.omni_tool_hum");
-	public final static SoundEvent blocksCrateOpen = newEvent("blocks.crate_open");
-	public final static SoundEvent blocksCrateClose = newEvent("blocks.crate_close");
-	public final static SoundEvent weaponsLaserRicochet = newEvent("weapons.laser_ricochet");
-	public final static SoundEvent weaponsLaserFire = newEvent("weapons.laser_fire");
-	public final static SoundEvent guiQuestComplete = newEvent("gui.quest_complete");
-	public final static SoundEvent guiQuestStarted = newEvent("gui.quest_started");
-	public final static SoundEvent weaponsPlasmaShotgunShot = newEvent("weapons.plasma_shotgun_shot");
-	public final static SoundEvent weaponsPlasmaShotgunCharging = newEvent("weapons.plasma_shotgun_charging");
-	public final static SoundEvent weaponsSniperRifleFire = newEvent("weapons.sniper_rifle_fire");
-	public final static SoundEvent androidShieldPowerUp = newEvent("android.shield_power_up");
-	public final static SoundEvent androidShieldPowerDown = newEvent("android.shield_power_down");
-	public final static SoundEvent mobsRogueAndroidSay = newEvent("mobs.rogue_android_say");
-	public final static SoundEvent mobsRogueAndroidDeath = newEvent("mobs.rogue_android_death");
-	public final static SoundEvent androidShockwave = newEvent("android.shockwave");
-	public final static SoundEvent fxElectricArc = newEvent("fx.electric_arc");
-	public final static SoundEvent blocksPylon = newEvent("blocks.pylon");
-	public final static SoundEvent weaponsExplosiveShot = newEvent("weapons.explosive_shot");
+	public static final RegistryObject<SoundEvent> weaponsPhaserBeam = register("weapons.phaser_beam");
+	public static final RegistryObject<SoundEvent> weaponsPhaserSwitchMode = register("weapons.phaser_switch_mode");
+	public static final RegistryObject<SoundEvent> scannerBeep = register("scanner_beep");
+	public static final RegistryObject<SoundEvent> scannerSuccess = register("scanner_success");
+	public static final RegistryObject<SoundEvent> scannerFail = register("scanner_fail");
+	public static final RegistryObject<SoundEvent> scannerScanning = register("scanner_scanning");
+	public static final RegistryObject<SoundEvent> replicateSuccess = register("replicate_success");
+	public static final RegistryObject<SoundEvent> analyzer = register("analyzer");
+	public static final RegistryObject<SoundEvent> decomposer = register("decomposer");
+	public static final RegistryObject<SoundEvent> machine = register("machine");
+	public static final RegistryObject<SoundEvent> transporter = register("transporter");
+	public final static RegistryObject<SoundEvent> windy = register("windy");
+	public final static RegistryObject<SoundEvent> anomalyConsume = register("anomaly_consume");
+	public final static RegistryObject<SoundEvent> electricMachine = register("electric_machine");
+	public final static RegistryObject<SoundEvent> forceField = register("force_field");
+	public final static RegistryObject<SoundEvent> failedAnimalDie = register("failed_animal_die");
+	public final static RegistryObject<SoundEvent> failedAnimalIdleChicken = register("failed_animal_idle_chicken");
+	public final static RegistryObject<SoundEvent> failedAnimalIdlePig = register("failed_animal_idle_pig");
+	public final static RegistryObject<SoundEvent> failedAnimalIdleCow = register("failed_animal_idle_cow");
+	public final static RegistryObject<SoundEvent> failedAnimalIdleSheep = register("failed_animal_idle_sheep");
+	public final static RegistryObject<SoundEvent> guiButtonSoft = register("gui.button_soft");
+	public final static RegistryObject<SoundEvent> guiButtonLoud = register("gui.button_loud");
+	public final static RegistryObject<SoundEvent> guiButtonExpand = register("gui.button_expand");
+	public final static RegistryObject<SoundEvent> guiBioticStatUnlock = register("gui.biotic_stat_unlock");
+	public final static RegistryObject<SoundEvent> musicTransformation = register("music.transformation");
+	public final static RegistryObject<SoundEvent> guiGlitch = register("gui.glitch");
+	public final static RegistryObject<SoundEvent> androidTeleport = register("android.teleport");
+	public final static RegistryObject<SoundEvent> androidShieldLoop = register("android.shield_loop");
+	public final static RegistryObject<SoundEvent> androidShieldHit = register("android.shield_hit");
+	public final static RegistryObject<SoundEvent> androidCloakOn = register("android.cloak_on");
+	public final static RegistryObject<SoundEvent> androidCloakOff = register("android.cloak_off");
+	public final static RegistryObject<SoundEvent> weaponsPhaserRifleShot = register("weapons.phaser_rifle_shot");
+	public final static RegistryObject<SoundEvent> weaponsOverheatAlarm = register("weapons.overheat_alarm");
+	public final static RegistryObject<SoundEvent> weaponsOverheat = register("weapons.overheat");
+	public final static RegistryObject<SoundEvent> weaponsReload = register("weapons.reload");
+	public final static RegistryObject<SoundEvent> androidNightVision = register("android.night_vision");
+	public final static RegistryObject<SoundEvent> androidPowerDown = register("android.power_down");
+	public final static RegistryObject<SoundEvent> weaponsBoltHit = register("weapons.bolt_hit");
+	public final static RegistryObject<SoundEvent> weaponsSizzle = register("weapons.sizzle");
+	public final static RegistryObject<SoundEvent> weaponsOmniToolHum = register("weapons.omni_tool_hum");
+	public final static RegistryObject<SoundEvent> blocksCrateOpen = register("blocks.crate_open");
+	public final static RegistryObject<SoundEvent> blocksCrateClose = register("blocks.crate_close");
+	public final static RegistryObject<SoundEvent> weaponsLaserRicochet = register("weapons.laser_ricochet");
+	public final static RegistryObject<SoundEvent> weaponsLaserFire = register("weapons.laser_fire");
+	public final static RegistryObject<SoundEvent> guiQuestComplete = register("gui.quest_complete");
+	public final static RegistryObject<SoundEvent> guiQuestStarted = register("gui.quest_started");
+	public final static RegistryObject<SoundEvent> weaponsPlasmaShotgunShot = register("weapons.plasma_shotgun_shot");
+	public final static RegistryObject<SoundEvent> weaponsPlasmaShotgunCharging = register("weapons.plasma_shotgun_charging");
+	public final static RegistryObject<SoundEvent> weaponsSniperRifleFire = register("weapons.sniper_rifle_fire");
+	public final static RegistryObject<SoundEvent> androidShieldPowerUp = register("android.shield_power_up");
+	public final static RegistryObject<SoundEvent> androidShieldPowerDown = register("android.shield_power_down");
+	public final static RegistryObject<SoundEvent> mobsRogueAndroidSay = register("mobs.rogue_android_say");
+	public final static RegistryObject<SoundEvent> mobsRogueAndroidDeath = register("mobs.rogue_android_death");
+	public final static RegistryObject<SoundEvent> androidShockwave = register("android.shockwave");
+	public final static RegistryObject<SoundEvent> fxElectricArc = register("fx.electric_arc");
+	public final static RegistryObject<SoundEvent> blocksPylon = register("blocks.pylon");
+	public final static RegistryObject<SoundEvent> weaponsExplosiveShot = register("weapons.explosive_shot");
 
-	private static SoundEvent newEvent(String name) {
-		return new SoundEvent(new ResourceLocation(Reference.MOD_ID, name))
-				.setRegistryName(new ResourceLocation(Reference.MOD_ID, name));
-	}
+	public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Reference.MOD_ID);
 
-	public static void register() {
-		for (Field field : MatterOverdriveSounds.class.getFields()) {
-			if (field.getType() == SoundEvent.class) {
-				try {
-					SoundEvent event = (SoundEvent) field.get(null);
-					GameData.register_impl(event);
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+	private static RegistryObject<SoundEvent> register(String name) {
+		return SOUND_EVENTS.register(name, () -> new SoundEvent(new ResourceLocation(Reference.MOD_ID, name)));
 	}
 }
