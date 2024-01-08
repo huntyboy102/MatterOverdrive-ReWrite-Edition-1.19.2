@@ -12,7 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
  * @author shadowfacts
  */
 public class MatterOverdriveCapabilities {
-	public static Capability<IMatterHandler> MATTER_HANDLER = CapabilityManager.get(new CapabilityToken<IMatterHandler>() {});
+	public static Capability<IMatterHandler> MATTER_HANDLER = CapabilityManager.get(new CapabilityToken<>() {});
 
 	@SubscribeEvent
 	public static void init(RegisterCapabilitiesEvent event) {
