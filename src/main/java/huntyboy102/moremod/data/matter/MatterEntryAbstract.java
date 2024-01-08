@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import huntyboy102.moremod.api.matter.IMatterEntry;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 public abstract class MatterEntryAbstract<KEY, MAT> implements IMatterEntry<KEY, MAT> {
 	protected final List<IMatterEntryHandler<MAT>> handlers;
@@ -38,11 +38,11 @@ public abstract class MatterEntryAbstract<KEY, MAT> implements IMatterEntry<KEY,
 
 	public abstract void writeTo(DataOutput output) throws IOException;
 
-	public abstract void writeTo(NBTTagCompound tagCompound);
+	public abstract void writeTo(CompoundTag tagCompound);
 
 	public abstract void readFrom(DataInput input) throws IOException;
 
-	public abstract void readFrom(NBTTagCompound tagCompound);
+	public abstract void readFrom(CompoundTag tagCompound);
 
 	public abstract void readKey(String data);
 

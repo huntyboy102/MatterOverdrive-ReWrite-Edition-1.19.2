@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.data.matter;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class DamageAwareStackHandler extends MatterEntryHandlerAbstract<ItemStack> {
 	private final int damage;
@@ -29,7 +29,7 @@ public class DamageAwareStackHandler extends MatterEntryHandlerAbstract<ItemStac
 
 	@Override
 	public int modifyMatter(ItemStack itemStack, int originalMatter) {
-		if (itemStack.getItemDamage() == damage) {
+		if (itemStack.getDamageValue() == damage) {
 			return matter;
 		}
 		return originalMatter;
@@ -37,7 +37,7 @@ public class DamageAwareStackHandler extends MatterEntryHandlerAbstract<ItemStac
 
 	@Override
 	public boolean finalModification(ItemStack itemStack) {
-		if (itemStack.getItemDamage() == damage) {
+		if (itemStack.getDamageValue() == damage) {
 			return finalHandle;
 		}
 		return false;

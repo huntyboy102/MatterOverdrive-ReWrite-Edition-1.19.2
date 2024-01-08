@@ -1,8 +1,8 @@
 
 package huntyboy102.moremod.data.matter;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -42,7 +42,7 @@ public class ItemStackHandlerCachable extends MatterEntryHandlerAbstract<ItemSta
 	@Override
 	public int modifyMatter(ItemStack itemStack, int originalMatter) {
 		if (metadataAware) {
-			if (itemStack.getItemDamage() == meta) {
+			if (itemStack.g() == meta) {
 				return matter;
 			}
 		} else {
@@ -64,12 +64,12 @@ public class ItemStackHandlerCachable extends MatterEntryHandlerAbstract<ItemSta
 		output.writeByte(priority);
 	}
 
-	public void writeTo(NBTTagCompound tagCompound) {
-		tagCompound.setBoolean("metaAware", metadataAware);
-		tagCompound.setBoolean("final", isFinalHandler);
-		tagCompound.setShort("meta", (short) meta);
-		tagCompound.setInteger("matter", matter);
-		tagCompound.setByte("priority", (byte) priority);
+	public void writeTo(CompoundTag tagCompound) {
+		tagCompound.putBoolean("metaAware", metadataAware);
+		tagCompound.putBoolean("final", isFinalHandler);
+		tagCompound.putShort("meta", (short) meta);
+		tagCompound.putInt("matter", matter);
+		tagCompound.putByte("priority", (byte) priority);
 	}
 
 	public void readFrom(DataInput dataInput) throws IOException {
@@ -80,11 +80,11 @@ public class ItemStackHandlerCachable extends MatterEntryHandlerAbstract<ItemSta
 		priority = dataInput.readByte();
 	}
 
-	public void readFrom(NBTTagCompound tagCompound) {
+	public void readFrom(CompoundTag tagCompound) {
 		metadataAware = tagCompound.getBoolean("metaAware");
 		isFinalHandler = tagCompound.getBoolean("final");
 		meta = tagCompound.getShort("meta");
-		matter = tagCompound.getInteger("matter");
+		matter = tagCompound.putInt("matter");
 		priority = tagCompound.getByte("priority");
 	}
 
