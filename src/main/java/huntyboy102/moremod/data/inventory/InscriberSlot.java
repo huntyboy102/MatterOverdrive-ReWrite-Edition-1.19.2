@@ -2,7 +2,7 @@
 package huntyboy102.moremod.data.inventory;
 
 import huntyboy102.moremod.init.MatterOverdriveRecipes;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class InscriberSlot extends Slot {
 	boolean isSecSlot;

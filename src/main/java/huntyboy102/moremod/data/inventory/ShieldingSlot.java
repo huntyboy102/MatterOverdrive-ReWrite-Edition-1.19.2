@@ -3,10 +3,10 @@ package huntyboy102.moremod.data.inventory;
 
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.proxy.ClientProxy;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class ShieldingSlot extends Slot {
 	public ShieldingSlot(boolean isMainSlot) {
@@ -17,14 +17,14 @@ public class ShieldingSlot extends Slot {
 	public boolean isValidForSlot(ItemStack itemStack) {
 		if (this.getItem() == null || this.getItem().getCount() < 4) {
 			if (itemStack != null && !itemStack.isEmpty()) {
-				return itemStack.getItem() == MatterOverdrive.ITEMS.tritanium_plate;
+				return itemStack.getItem() == MatterOverdriveRewriteEdition.ITEMS.tritanium_plate;
 			}
 		}
 		return false;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public HoloIcon getHoloIcon() {
 		return ClientProxy.holoIcons.getIcon("shielding");
 	}

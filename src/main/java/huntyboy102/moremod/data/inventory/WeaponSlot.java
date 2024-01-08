@@ -2,7 +2,7 @@
 package huntyboy102.moremod.data.inventory;
 
 import huntyboy102.moremod.util.WeaponHelper;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class WeaponSlot extends Slot {
 	public WeaponSlot(boolean isMainSlot) {

@@ -3,9 +3,9 @@ package huntyboy102.moremod.data.inventory;
 
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.proxy.ClientProxy;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class DestinationFilterSlot extends Slot {
 	public DestinationFilterSlot(boolean isMainSlot) {
@@ -18,7 +18,7 @@ public class DestinationFilterSlot extends Slot {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public HoloIcon getHoloIcon() {
 		return ClientProxy.holoIcons.getIcon("connections");
 	}

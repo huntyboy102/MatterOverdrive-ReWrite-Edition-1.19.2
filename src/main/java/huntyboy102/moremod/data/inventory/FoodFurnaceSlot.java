@@ -1,7 +1,8 @@
 package huntyboy102.moremod.data.inventory;
 
-import net.minecraft.item.ItemFood;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public class FoodFurnaceSlot extends Slot {
 	public FoodFurnaceSlot(boolean isMainSlot) {
@@ -9,7 +10,9 @@ public class FoodFurnaceSlot extends Slot {
 	}
 
 	public boolean isValidForSlot(ItemStack item) {
-		return item.getItem() instanceof ItemFood;
+		Item itemInStack = item.getItem();
+		FoodProperties foodProperties = itemInStack.getFoodProperties();
+		return foodProperties != null;
 	}
 
 	@Override

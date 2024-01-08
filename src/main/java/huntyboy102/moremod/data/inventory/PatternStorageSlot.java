@@ -5,9 +5,9 @@ import huntyboy102.moremod.api.matter.IMatterDatabase;
 import huntyboy102.moremod.api.matter.IMatterPatternStorage;
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.proxy.ClientProxy;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class PatternStorageSlot extends Slot {
 	private IMatterDatabase database;
@@ -25,7 +25,7 @@ public class PatternStorageSlot extends Slot {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public HoloIcon getHoloIcon() {
 		return ClientProxy.holoIcons.getIcon("pattern_storage");
 	}

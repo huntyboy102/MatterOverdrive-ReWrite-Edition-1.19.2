@@ -2,7 +2,7 @@
 package huntyboy102.moremod.data.inventory;
 
 import huntyboy102.moremod.items.Contract;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class SlotContract extends Slot {
 	public SlotContract(boolean isMainSlot) {
