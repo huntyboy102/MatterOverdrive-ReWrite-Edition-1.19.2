@@ -9,9 +9,9 @@ import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.data.MOAttributeModifier;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public class BioticStatSpeed extends AbstractBioticStat {
@@ -33,8 +33,8 @@ public class BioticStatSpeed extends AbstractBioticStat {
 	}
 
 	public String getDetails(int level) {
-		return MOStringHelper.translateToLocal(getUnlocalizedDetails(), TextFormatting.GREEN
-				+ Integer.toString(Math.round(getSpeedModify(level) * 100f)) + "%" + TextFormatting.GRAY);
+		return MOStringHelper.translateToLocal(getUnlocalizedDetails(), ChatFormatting.GREEN
+				+ Integer.toString(Math.round(getSpeedModify(level) * 100f)) + "%" + ChatFormatting.GRAY);
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class BioticStatSpeed extends AbstractBioticStat {
 	@Override
 	public Multimap<String, AttributeModifier> attributes(AndroidPlayer androidPlayer, int level) {
 		Multimap<String, AttributeModifier> multimap = HashMultimap.create();
-		multimap.put(SharedMonsterAttributes.MOVEMENT_SPEED.getName(),
+		multimap.put(Attributes.MOVEMENT_SPEED.getDescriptionId(),
 				new MOAttributeModifier(modifierID, "Android Speed", getSpeedModify(level), 2).setSaved(false));
 		return multimap;
 	}

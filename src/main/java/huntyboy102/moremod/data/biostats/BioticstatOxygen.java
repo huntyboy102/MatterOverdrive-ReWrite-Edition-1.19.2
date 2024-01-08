@@ -3,7 +3,7 @@ package huntyboy102.moremod.data.biostats;
 
 import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public class BioticstatOxygen extends AbstractBioticStat {
@@ -13,8 +13,8 @@ public class BioticstatOxygen extends AbstractBioticStat {
 
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
-		if (android.getPlayer().getAir() < 0) {
-			android.getPlayer().setAir(0);
+		if (android.getPlayer().getAirSupply() < 0) {
+			android.getPlayer().setAirSupply(0);
 		}
 	}
 

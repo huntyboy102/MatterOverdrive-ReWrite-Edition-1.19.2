@@ -3,7 +3,7 @@ package huntyboy102.moremod.data.biostats;
 
 import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public class BioticStatZeroCalories extends AbstractBioticStat {
@@ -15,10 +15,10 @@ public class BioticStatZeroCalories extends AbstractBioticStat {
 
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
-		if (android.getPlayer().getFoodStats().needFood() && isEnabled(android, level)) {
-			int foodNeeded = 20 - android.getPlayer().getFoodStats().getFoodLevel();
+		if (android.getPlayer().getFoodData().needsFood() && isEnabled(android, level)) {
+			int foodNeeded = 20 - android.getPlayer().getFoodData().getFoodLevel();
 			int extractedEnergy = android.extractEnergyRaw(foodNeeded * ENERGY_FOOD_MULTIPLY, false);
-			android.getPlayer().getFoodStats().addStats(extractedEnergy / ENERGY_FOOD_MULTIPLY, 0);
+			android.getPlayer().getFoodData().setFoodLevel(android.getPlayer().getFoodData().getFoodLevel() + extractedEnergy / ENERGY_FOOD_MULTIPLY);
 		}
 	}
 

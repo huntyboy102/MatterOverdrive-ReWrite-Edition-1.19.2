@@ -105,7 +105,7 @@ public abstract class AbstractBioticStat implements IBioticStat {
 
 	@Override
 	public void onUnlock(AndroidPlayer android, int level) {
-		android.getPlayer().addExperienceLevel(-xp);
+		android.getPlayer().giveExperiencePoints(-xp);
 		consumeItems(android);
 	}
 

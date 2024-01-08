@@ -13,23 +13,23 @@ import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.IConfigSubscriber;
 import huntyboy102.moremod.util.MOPhysicsHelper;
 import huntyboy102.moremod.util.MOStringHelper;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.handler.ConfigurationHandler;
 import huntyboy102.moremod.handler.KeyHandler;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.settings.GameSettings;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fluids.IFluidBlock;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class BioticStatTeleport extends AbstractBioticStat implements IConfigSubscriber {
 
@@ -38,7 +38,7 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 	private static int MAX_TELEPORT_HEIGHT_CHECK = 8;
 	private static int MAX_TELEPORT_DISTANCE = 32;
 	private final HashSet<String> blackListedBlocks;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private boolean hasPressedKey;
 
 	public BioticStatTeleport(String name, int xp) {
@@ -50,22 +50,22 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 
 	@Override
 	public String getDetails(int level) {
-		String keyName = TextFormatting.AQUA
+		String keyName = ChatFormatting.AQUA
 				+ GameSettings
 						.getKeyDisplayString(ClientProxy.keyHandler.getBinding(KeyHandler.ABILITY_USE_KEY).getKeyCode())
-				+ TextFormatting.GRAY;
+				+ ChatFormatting.GRAY;
 		return MOStringHelper.translateToLocal(getUnlocalizedDetails(), keyName,
-				TextFormatting.YELLOW.toString() + ENERGY_PER_TELEPORT + " FE" + TextFormatting.GRAY);
+				ChatFormatting.YELLOW.toString() + ENERGY_PER_TELEPORT + " FE" + ChatFormatting.GRAY);
 	}
 
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
-		if (android.getPlayer().world.isRemote) {
+		if (android.getPlayer().level.isClientSide) {
 			manageActivate(android);
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void manageActivate(AndroidPlayer androidPlayer) {
 		if (ClientProxy.keyHandler.getBinding(KeyHandler.ABILITY_USE_KEY).isKeyDown()
 				&& this.equals(androidPlayer.getActiveStat())) {
@@ -75,10 +75,10 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 				hasPressedKey = true;
 			}
 		} else if (hasPressedKey) {
-			Vec3d pos = getPos(androidPlayer);
+			Vec3 pos = getPos(androidPlayer);
 			if (pos != null && !MinecraftForge.EVENT_BUS
 					.post(new MOEventBionicStat(this, androidPlayer.getUnlockedLevel(this), androidPlayer))) {
-				MatterOverdrive.NETWORK.sendToServer(new PacketTeleportPlayer(pos.x, pos.y, pos.z));
+				MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketTeleportPlayer(pos.x, pos.y, pos.z));
 				hasPressedKey = false;
 			}
 			hasPressedKey = false;
@@ -95,34 +95,34 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 
 	}
 
-	public Vec3d getPos(AndroidPlayer androidPlayer) {
-		RayTraceResult position = MOPhysicsHelper.rayTraceForBlocks(androidPlayer.getPlayer(),
-				androidPlayer.getPlayer().world, MAX_TELEPORT_DISTANCE, 0,
-				new Vec3d(0, androidPlayer.getPlayer().getEyeHeight(), 0), true, true);
-		if (position != null && position.typeOfHit != RayTraceResult.Type.MISS && position.getBlockPos() != null) {
-			BlockPos pos = getTopSafeBlock(androidPlayer.getPlayer().world, position.getBlockPos(), position.sideHit);
+	public Vec3 getPos(AndroidPlayer androidPlayer) {
+		BlockHitResult position = MOPhysicsHelper.rayTraceForBlocks(androidPlayer.getPlayer(),
+				androidPlayer.getPlayer().level, MAX_TELEPORT_DISTANCE, 0,
+				new Vec3(0, androidPlayer.getPlayer().getEyeHeight(), 0), true, true);
+		if (position != null && position.getType() != BlockHitResult.Type.MISS && position.getBlockPos() != null) {
+			BlockPos pos = getTopSafeBlock(androidPlayer.getPlayer().level, position.getBlockPos(), position.sideHit);
 			if (pos != null) {
-				return new Vec3d(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+				return new Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
 			}
 			return null;
 		}
 
-		position = MOPhysicsHelper.rayTrace(androidPlayer.getPlayer(), androidPlayer.getPlayer().world, 6, 0,
-				new Vec3d(0, androidPlayer.getPlayer().getEyeHeight(), 0), true, true);
+		position = MOPhysicsHelper.rayTrace(androidPlayer.getPlayer(), androidPlayer.getPlayer().level, 6, 0,
+				new Vec3(0, androidPlayer.getPlayer().getEyeHeight(), 0), true, true);
 		if (position != null) {
 			return position.hitVec;
 		}
 		return null;
 	}
 
-	private BlockPos getTopSafeBlock(World world, BlockPos pos, EnumFacing side) {
+	private BlockPos getTopSafeBlock(Level world, BlockPos pos, Direction side) {
 		int airBlockCount = 0;
 		int heightCheck = MAX_TELEPORT_HEIGHT_CHECK;
-		if (side == EnumFacing.UP) {
+		if (side == Direction.UP) {
 			heightCheck = 3;
 		}
-		int height = Math.min(pos.getY() + heightCheck, world.getActualHeight());
-		IBlockState block;
+		int height = Math.min(pos.getY() + heightCheck, world.getHeight());
+		BlockState block;
 		for (int i = pos.getY(); i < height; i++) {
 			BlockPos blockPos = new BlockPos(pos.getX(), i, pos.getZ());
 			block = world.getBlockState(blockPos);
@@ -139,16 +139,16 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 			}
 
 			if (airBlockCount >= 2) {
-				return blockPos.offset(EnumFacing.DOWN);
+				return blockPos.offset(Direction.DOWN);
 			}
 		}
 
 		pos = pos.offset(side);
 
-		IBlockState above = world.getBlockState(pos.offset(EnumFacing.UP));
-		IBlockState aboveTwo = world.getBlockState(pos.offset(EnumFacing.UP, 2));
-		if (!above.getBlock().isNormalCube(above, world, pos.offset(EnumFacing.UP))
-				&& !aboveTwo.getBlock().isNormalCube(aboveTwo, world, pos.offset(EnumFacing.UP, 2))) {
+		BlockState above = world.getBlockState(pos.offset(Direction.UP));
+		BlockState aboveTwo = world.getBlockState(pos.offset(Direction.UP, 2));
+		if (!above.getBlock().isNormalCube(above, world, pos.offset(Direction.UP))
+				&& !aboveTwo.getBlock().isNormalCube(aboveTwo, world, pos.offset(Direction.UP, 2))) {
 			return pos;
 		}
 
@@ -162,7 +162,7 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 
 	@Override
 	public void changeAndroidStats(AndroidPlayer androidPlayer, int level, boolean enabled) {
-		if (androidPlayer.getPlayer().world.isRemote) {
+		if (androidPlayer.getPlayer().level.isClientSide) {
 			if (!isEnabled(androidPlayer, level)) {
 				hasPressedKey = false;
 			}
@@ -177,7 +177,7 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 	@Override
 	public boolean isEnabled(AndroidPlayer android, int level) {
 		long lastTeleport = android.getAndroidEffects().getEffectLong(AndroidPlayer.EFFECT_LAST_TELEPORT);
-		long worldTime = android.getPlayer().world.getTotalWorldTime();
+		long worldTime = android.getPlayer().level.getDayTime();
 		return super.isEnabled(android, level) && lastTeleport <= worldTime
 				&& android.hasEnoughEnergyScaled(ENERGY_PER_TELEPORT) && this.equals(android.getActiveStat());
 	}
@@ -187,7 +187,7 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 		return false;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public boolean getHasPressedKey() {
 		return hasPressedKey;
 	}
@@ -205,10 +205,12 @@ public class BioticStatTeleport extends AbstractBioticStat implements IConfigSub
 	@Override
 	public void onConfigChanged(ConfigurationHandler config) {
 		this.blackListedBlocks.clear();
-		String[] blackListedBlocks = config.config.getStringList("teleport_blacklist",
+		String[] blackListedBlocks = config.getStringList("teleport_blacklist",
 				ConfigurationHandler.CATEGORY_ABILITIES, new String[] { "hellsand", "barrier", "bedrock" },
 				"The Unlocalized names of the blacklist blocks that the player can't teleport to");
+
 		Collections.addAll(this.blackListedBlocks, blackListedBlocks);
+
 		MAX_TELEPORT_HEIGHT_CHECK = config.getInt("teleport_max_height_check", ConfigurationHandler.CATEGORY_ABILITIES,
 				8, "The max height amount that the teleport ability checks if there is no 2 blocks air space");
 		ENERGY_PER_TELEPORT = config.getInt("teleport_energy_cost", ConfigurationHandler.CATEGORY_ABILITIES, 4096,

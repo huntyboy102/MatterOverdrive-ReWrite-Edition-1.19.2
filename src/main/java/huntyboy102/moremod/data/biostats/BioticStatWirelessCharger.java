@@ -3,9 +3,9 @@ package huntyboy102.moremod.data.biostats;
 import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -24,17 +24,17 @@ public class BioticStatWirelessCharger extends AbstractBioticStat {
 	@Override
 	public String getDetails(int level) {
 		return MOStringHelper.translateToLocal(getUnlocalizedDetails(),
-				TextFormatting.YELLOW.toString() + CHARGE_SPEED);
+				ChatFormatting.YELLOW.toString() + CHARGE_SPEED);
 	}
 
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
-		if (!android.getPlayer().getEntityWorld().isRemote && isActive(android, level)) {
+		if (!android.getPlayer().getLevel().isClientSide && isActive(android, level)) {
 			for (int i = 0; i < 9; i++) {
-				ItemStack itemStack = android.getPlayer().inventory.getStackInSlot(i);
-				if (!itemStack.isEmpty() && itemStack.hasCapability(CapabilityEnergy.ENERGY, null)) {
-					IEnergyStorage storage = itemStack.getCapability(CapabilityEnergy.ENERGY, null);
-					if (storage != null && android.getPlayer().getHeldItemMainhand() != itemStack) {
+				ItemStack itemStack = android.getPlayer().getInventory().getItem(i);
+				if (!itemStack.isEmpty() && itemStack.getCapability(CapabilityEnergy.ENERGY).isPresent()) {
+					IEnergyStorage storage = itemStack.getCapability(CapabilityEnergy.ENERGY).orElse(null);
+					if (storage != null && android.getPlayer().getMainHandItem() != itemStack) {
 						android.extractEnergy(storage.receiveEnergy(android.extractEnergy(CHARGE_SPEED, true), false),
 								false);
 					}
