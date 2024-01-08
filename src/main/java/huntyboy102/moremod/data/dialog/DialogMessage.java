@@ -19,10 +19,11 @@ import huntyboy102.moremod.gui.GuiDialog;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.util.MOStringHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class DialogMessage implements IDialogMessage, IDialogMessageSeedable {
 	protected static Random random = new Random();
@@ -31,9 +32,9 @@ public class DialogMessage implements IDialogMessage, IDialogMessageSeedable {
 	protected boolean unlocalized;
 	protected IDialogMessage parent;
 	protected List<IDialogOption> options;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected IDialogShot[] shots;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	protected String holoIcon;
 	protected long seed;
 
@@ -83,17 +84,17 @@ public class DialogMessage implements IDialogMessage, IDialogMessageSeedable {
 	}
 
 	@Override
-	public IDialogMessage getParent(IDialogNpc npc, EntityPlayer player) {
+	public IDialogMessage getParent(IDialogNpc npc, Player player) {
 		return parent;
 	}
 
 	@Override
-	public List<IDialogOption> getOptions(IDialogNpc npc, EntityPlayer player) {
+	public List<IDialogOption> getOptions(IDialogNpc npc, Player player) {
 		return options;
 	}
 
 	@Override
-	public String getMessageText(IDialogNpc npc, EntityPlayer player) {
+	public String getMessageText(IDialogNpc npc, Player player) {
 		if (messages != null && messages.length > 0) {
 			int messageIndex = 0;
 			if (messages.length > 1) {
@@ -105,7 +106,7 @@ public class DialogMessage implements IDialogMessage, IDialogMessageSeedable {
 	}
 
 	@Override
-	public String getQuestionText(IDialogNpc npc, EntityPlayer player) {
+	public String getQuestionText(IDialogNpc npc, Player player) {
 		if (questions != null && questions.length > 0) {
 			int questionIndex = 0;
 			if (questions.length > 1) {
@@ -117,53 +118,55 @@ public class DialogMessage implements IDialogMessage, IDialogMessageSeedable {
 	}
 
 	@Override
-	public void onOptionsInteract(IDialogNpc npc, EntityPlayer player, int option) {
+	public void onOptionsInteract(IDialogNpc npc, Player player, int option) {
 		if (option >= 0 && option < options.size()) {
 			options.get(option).onInteract(npc, player);
 		}
 	}
 
 	@Override
-	public void onInteract(IDialogNpc npc, EntityPlayer player) {
+	public void onInteract(IDialogNpc npc, Player player) {
 		if (npc != null && player != null) {
-			if (player.world.isRemote) {
-				if (!MinecraftForge.EVENT_BUS.post(new MOEventDialogInteract(player, npc, this, Side.CLIENT))) {
+			if (player.level.isClientSide) {
+				if (!MinecraftForge.EVENT_BUS.post(new MOEventDialogInteract(player, npc, this, Dist.CLIENT))) {
 					setAsGuiActiveMessage(npc, player);
 				}
 			} else {
-				if (!MinecraftForge.EVENT_BUS.post(new MOEventDialogInteract(player, npc, this, Side.SERVER))) {
+				if (!MinecraftForge.EVENT_BUS.post(new MOEventDialogInteract(player, npc, this, Dist.DEDICATED_SERVER))) {
 					npc.onPlayerInteract(player, this);
 				}
 			}
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	protected void setAsGuiActiveMessage(IDialogNpc npc, EntityPlayer player) {
-		if (Minecraft.getMinecraft().currentScreen instanceof GuiDialog) {
-			((GuiDialog) Minecraft.getMinecraft().currentScreen).setCurrentMessage(this);
+	@OnlyIn(Dist.CLIENT)
+	protected void setAsGuiActiveMessage(IDialogNpc npc, Player player) {
+		Screen currentScreen = Minecraft.getInstance().screen;
+
+		if (currentScreen instanceof GuiDialog) {
+			((GuiDialog) currentScreen).setCurrentMessage(this);
 		}
 	}
 
 	@Override
-	public boolean canInteract(IDialogNpc npc, EntityPlayer player) {
+	public boolean canInteract(IDialogNpc npc, Player player) {
 		return true;
 	}
 
 	@Override
-	public boolean isVisible(IDialogNpc npc, EntityPlayer player) {
+	public boolean isVisible(IDialogNpc npc, Player player) {
 		return true;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public IDialogShot[] getShots(IDialogNpc npc, EntityPlayer player) {
+	@OnlyIn(Dist.CLIENT)
+	public IDialogShot[] getShots(IDialogNpc npc, Player player) {
 		return shots;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public String getHoloIcon(IDialogNpc npc, EntityPlayer player) {
+	@OnlyIn(Dist.CLIENT)
+	public String getHoloIcon(IDialogNpc npc, Player player) {
 		return holoIcon;
 	}
 
@@ -172,7 +175,7 @@ public class DialogMessage implements IDialogMessage, IDialogMessageSeedable {
 		return this.equals(other);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void setShots(IDialogShot... shot) {
 		this.shots = shot;
 	}
@@ -193,24 +196,24 @@ public class DialogMessage implements IDialogMessage, IDialogMessageSeedable {
 		return options;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public DialogMessage setHoloIcon(String holoIcon) {
 		this.holoIcon = holoIcon;
 		return this;
 	}
 
-	protected String formatMessage(String text, IDialogNpc npc, EntityPlayer player) {
+	protected String formatMessage(String text, IDialogNpc npc, Player player) {
 		if (text != null) {
 			return String.format(unlocalized ? MOStringHelper.translateToLocal(text) : text,
-					player.getDisplayName().getFormattedText(), npc.getEntity().getDisplayName().getFormattedText());
+					player.getDisplayName().getVisualOrderText(), npc.getEntity().getDisplayName().getVisualOrderText());
 		}
 		return null;
 	}
 
-	protected String formatQuestion(String text, IDialogNpc npc, EntityPlayer player) {
+	protected String formatQuestion(String text, IDialogNpc npc, Player player) {
 		if (text != null) {
 			return String.format(unlocalized ? MOStringHelper.translateToLocal(text) : text,
-					player.getDisplayName().getFormattedText(), npc.getEntity().getDisplayName().getFormattedText());
+					player.getDisplayName().getVisualOrderText(), npc.getEntity().getDisplayName().getVisualOrderText());
 		}
 		return null;
 	}

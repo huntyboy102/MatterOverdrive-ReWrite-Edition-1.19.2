@@ -7,9 +7,9 @@ import huntyboy102.moremod.api.dialog.IDialogMessage;
 import huntyboy102.moremod.api.dialog.IDialogNpc;
 import huntyboy102.moremod.gui.GuiDialog;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class DialogMessageBack extends DialogMessage {
 	public DialogMessageBack(JsonObject object) {
@@ -31,12 +31,12 @@ public class DialogMessageBack extends DialogMessage {
 		super(messages, questions);
 	}
 
-	@SideOnly(Side.CLIENT)
-	protected void setAsGuiActiveMessage(IDialogNpc npc, EntityPlayer player) {
-		if (Minecraft.getMinecraft().currentScreen instanceof GuiDialog) {
-			IDialogMessage message = ((GuiDialog) Minecraft.getMinecraft().currentScreen).getCurrentMessage();
+	@OnlyIn(Dist.CLIENT)
+	protected void setAsGuiActiveMessage(IDialogNpc npc, Player player) {
+		if (Minecraft.getInstance().screen instanceof GuiDialog) {
+			IDialogMessage message = ((GuiDialog) Minecraft.getInstance().screen).getCurrentMessage();
 			if (message != null && message.getParent(npc, player) != null) {
-				((GuiDialog) Minecraft.getMinecraft().currentScreen).setCurrentMessage(message.getParent(npc, player));
+				((GuiDialog) Minecraft.getInstance().screen).setCurrentMessage(message.getParent(npc, player));
 			}
 		}
 	}

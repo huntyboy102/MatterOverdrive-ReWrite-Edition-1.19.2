@@ -6,7 +6,7 @@ import huntyboy102.moremod.api.dialog.IDialogNpc;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.entity.player.OverdriveExtendedProperties;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.player.Player;
 
 public class DialogMessageQuestOnObjectivesCompleted extends DialogMessage {
 	QuestStack questStack;
@@ -39,7 +39,7 @@ public class DialogMessageQuestOnObjectivesCompleted extends DialogMessage {
 	}
 
 	@Override
-	public boolean isVisible(IDialogNpc npc, EntityPlayer player) {
+	public boolean isVisible(IDialogNpc npc, Player player) {
 		OverdriveExtendedProperties extendedProperties = MOPlayerCapabilityProvider.GetExtendedCapability(player);
 		if (extendedProperties != null) {
 			for (QuestStack questStack : extendedProperties.getQuestData().getActiveQuests()) {

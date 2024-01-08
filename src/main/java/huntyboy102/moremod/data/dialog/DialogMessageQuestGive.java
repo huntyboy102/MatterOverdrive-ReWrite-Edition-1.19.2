@@ -7,9 +7,9 @@ import huntyboy102.moremod.api.dialog.IDialogQuestGiver;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.gui.GuiDialog;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class DialogMessageQuestGive extends DialogMessage {
 	QuestStack questStack;
@@ -36,18 +36,18 @@ public class DialogMessageQuestGive extends DialogMessage {
 	}
 
 	@Override
-	public void onInteract(IDialogNpc npc, EntityPlayer player) {
+	public void onInteract(IDialogNpc npc, Player player) {
 		super.onInteract(npc, player);
-		if (npc != null && npc instanceof IDialogQuestGiver && player != null && !player.world.isRemote) {
+		if (npc != null && npc instanceof IDialogQuestGiver && player != null && !player.level.isClientSide) {
 			((IDialogQuestGiver) npc).giveQuest(this, questStack, player);
 		}
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	protected void setAsGuiActiveMessage(IDialogNpc npc, EntityPlayer player) {
-		if (Minecraft.getMinecraft().currentScreen instanceof GuiDialog) {
-			((GuiDialog) Minecraft.getMinecraft().currentScreen)
+	@OnlyIn(Dist.CLIENT)
+	protected void setAsGuiActiveMessage(IDialogNpc npc, Player player) {
+		if (Minecraft.getInstance().screen instanceof GuiDialog) {
+			((GuiDialog) Minecraft.getInstance().screen)
 					.setCurrentMessage(returnToMain ? npc.getStartDialogMessage(player) : this);
 		}
 	}

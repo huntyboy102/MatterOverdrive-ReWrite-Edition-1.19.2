@@ -4,11 +4,10 @@ package huntyboy102.moremod.data.dialog;
 import huntyboy102.moremod.api.dialog.IDialogNpc;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.util.MOStringHelper;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.ChatFormatting;
 
 public class DialogMessageAndroidTransformation extends DialogMessage {
 	public DialogMessageAndroidTransformation() {
@@ -24,14 +23,14 @@ public class DialogMessageAndroidTransformation extends DialogMessage {
 	}
 
 	@Override
-	public boolean canInteract(IDialogNpc npc, EntityPlayer player) {
+	public boolean canInteract(IDialogNpc npc, Player player) {
 		boolean[] hasParts = new boolean[4];
 		int[] slots = new int[4];
 
-		for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-			if (player.inventory.getStackInSlot(i) != null
-					&& player.inventory.getStackInSlot(i).getItem() == MatterOverdrive.ITEMS.androidParts) {
-				int damage = player.inventory.getStackInSlot(i).getItemDamage();
+		for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+			if (player.getInventory().getItem(i) != null
+					&& player.getInventory().getItem(i) == MatterOverdriveRewriteEdition.ITEMS.androidParts) {
+				int damage = player.getInventory().getItem(i).getDamageValue();
 				if (damage < hasParts.length) {
 					hasParts[damage] = true;
 					slots[damage] = i;
@@ -49,14 +48,14 @@ public class DialogMessageAndroidTransformation extends DialogMessage {
 	}
 
 	@Override
-	public void onInteract(IDialogNpc npc, EntityPlayer player) {
+	public void onInteract(IDialogNpc npc, Player player) {
 		boolean[] hasParts = new boolean[4];
 		int[] slots = new int[4];
 
-		for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-			if (player.inventory.getStackInSlot(i) != null
-					&& player.inventory.getStackInSlot(i).getItem() == MatterOverdrive.ITEMS.androidParts) {
-				int damage = player.inventory.getStackInSlot(i).getItemDamage();
+		for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+			if (player.getInventory().getItem(i) != null
+					&& player.getInventory().getItem(i) == MatterOverdriveRewriteEdition.ITEMS.androidParts) {
+				int damage = player.getInventory().getItem(i).getDamageValue();
 				if (damage < hasParts.length) {
 					hasParts[damage] = true;
 					slots[damage] = i;
@@ -66,29 +65,29 @@ public class DialogMessageAndroidTransformation extends DialogMessage {
 
 		for (boolean hasPart : hasParts) {
 			if (!hasPart) {
-				if (!player.world.isRemote) {
-					TextComponentString componentText = new TextComponentString(
-							TextFormatting.GOLD + "<Mad Scientist>" + TextFormatting.RED + MOStringHelper
-									.translateToLocal("entity.mad_scientist.line.fail." + player.getRNG().nextInt(4)));
-					componentText.setStyle(new Style().setColor(TextFormatting.RED));
-					player.sendMessage(componentText);
+				if (!player.level.isClientSide) {
+					Component componentText = new Component(
+							ChatFormatting.GOLD + "<Mad Scientist>" + ChatFormatting.RED + MOStringHelper
+									.translateToLocal("entity.mad_scientist.line.fail." + player.getRandom().nextInt(4)));
+					componentText.getStyle().withColor(ChatFormatting.RED);
+					player.sendSystemMessage(componentText);
 				}
 				return;
 			}
 		}
 
-		if (!player.world.isRemote) {
+		if (!player.level.isClientSide) {
 			for (int slot : slots) {
-				player.inventory.decrStackSize(slot, 1);
+				player.getInventory().decrStackSize(slot, 1);
 			}
 		}
 
 		MOPlayerCapabilityProvider.GetAndroidCapability(player).startConversion();
-		player.closeScreen();
+		player.closeContainer();
 	}
 
 	@Override
-	public boolean isVisible(IDialogNpc npc, EntityPlayer player) {
+	public boolean isVisible(IDialogNpc npc, Player player) {
 		return MOPlayerCapabilityProvider.GetAndroidCapability(player) == null
 				|| !MOPlayerCapabilityProvider.GetAndroidCapability(player).isAndroid();
 	}
