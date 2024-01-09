@@ -2,10 +2,10 @@
 package huntyboy102.moremod.data.transport;
 
 import huntyboy102.moremod.api.transport.IGridNode;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,9 +15,9 @@ public class ConnectionPathfind<T extends IGridNode> {
 	private final Set<T> burned;
 	private final T target;
 	private Class<T> nodeTypes;
-	private TileEntity neighborTileTmp;
+	private BlockEntity neighborTileTmp;
 	private T neighborTmp;
-	private IBlockState neighborTmpState;
+	private BlockState neighborTmpState;
 	private BlockPos neighborPosTmp;
 
 	public ConnectionPathfind(final T target, final Class<T> nodeTypes) {
@@ -30,10 +30,10 @@ public class ConnectionPathfind<T extends IGridNode> {
 		burned.clear();
 		burned.add(startNode);
 
-		for (EnumFacing d : EnumFacing.VALUES) {
+		for (Direction d : Direction.values()) {
 			if (startNode.canConnectFromSide(startNode.getNodeWorld().getBlockState(startNode.getNodePos()), d)) {
 				BlockPos neighborPos = startNode.getNodePos().offset(d);
-				TileEntity neighborTile = startNode.getNodeWorld().getTileEntity(neighborPos);
+				BlockEntity neighborTile = startNode.getNodeWorld().getBlockEntity(neighborPos);
 				if (neighborTile instanceof IGridNode && neighborTile != target) {
 					if (isConnectedToSourceRecursive((T) neighborTile)) {
 						return true;
@@ -46,11 +46,11 @@ public class ConnectionPathfind<T extends IGridNode> {
 
 	private boolean isConnectedToSourceRecursive(final T node) {
 		this.burned.add(node);
-		for (EnumFacing dir : EnumFacing.VALUES) {
+		for (Direction dir : Direction.values()) {
 			if (node.canConnectFromSide(node.getNodeWorld().getBlockState(node.getNodePos()), dir)) {
 				neighborPosTmp = node.getNodePos().offset(dir);
-				if (node.getNodeWorld().isBlockLoaded(neighborPosTmp)) {
-					neighborTileTmp = node.getNodeWorld().getTileEntity(neighborPosTmp);
+				if (node.getNodeWorld().isAreaLoaded(neighborPosTmp,1)) {
+					neighborTileTmp = node.getNodeWorld().getBlockEntity(neighborPosTmp);
 					if (nodeTypes.isInstance(neighborTileTmp)) {
 						neighborTmp = nodeTypes.cast(neighborTileTmp);
 						neighborTmpState = neighborTmp.getNodeWorld().getBlockState(neighborPosTmp);

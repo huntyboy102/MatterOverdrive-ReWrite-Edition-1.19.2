@@ -3,7 +3,7 @@ package huntyboy102.moremod.data.transport;
 
 import huntyboy102.moremod.api.transport.IGridNetwork;
 import huntyboy102.moremod.handler.matter_network.FluidNetworkHandler;
-import net.minecraftforge.fluids.Fluid;
+import net.minecraft.world.level.material.Fluid;
 
 public class FluidPipeNetwork extends AbstractGridNetwork<IFluidPipe> {
 	private Fluid fluidType;
