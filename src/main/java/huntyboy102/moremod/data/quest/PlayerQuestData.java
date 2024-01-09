@@ -6,12 +6,12 @@ import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.entity.player.OverdriveExtendedProperties;
 import huntyboy102.moremod.network.packet.client.quest.PacketUpdateQuest;
 import huntyboy102.moremod.util.MOLog;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.entity.player.PlayerModelPart;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraftforge.eventbus.api.Event;
 import org.apache.logging.log4j.Level;
 
 import java.util.ArrayList;
@@ -29,40 +29,40 @@ public class PlayerQuestData {
 		this.extendedProperties = extendedProperties;
 	}
 
-	public void writeToNBT(NBTTagCompound tagCompound, EnumSet<DataType> dataTypes) {
+	public void writeToNBT(CompoundTag tagCompound, EnumSet<DataType> dataTypes) {
 		if (dataTypes.contains(DataType.COMPLETED_QUESTS)) {
 			if (completedQuests.size() > 0) {
-				NBTTagList activeQuestsTagList = new NBTTagList();
+				ListTag activeQuestsTagList = new ListTag();
 				for (QuestStack questStack : completedQuests) {
-					NBTTagCompound questStackNBT = new NBTTagCompound();
+					CompoundTag questStackNBT = new CompoundTag();
 					questStack.writeToNBT(questStackNBT);
-					activeQuestsTagList.appendTag(questStackNBT);
+					activeQuestsTagList.add(questStackNBT);
 				}
-				tagCompound.setTag("CompletedQuests", activeQuestsTagList);
+				tagCompound.put("CompletedQuests", activeQuestsTagList);
 			}
 		}
 		if (dataTypes.contains(DataType.ACTIVE_QUESTS)) {
 			if (activeQuests.size() > 0) {
-				NBTTagList activeQuestsTagList = new NBTTagList();
+				ListTag activeQuestsTagList = new ListTag();
 				for (QuestStack questStack : activeQuests) {
-					NBTTagCompound questStackNBT = new NBTTagCompound();
+					CompoundTag questStackNBT = new CompoundTag();
 					questStack.writeToNBT(questStackNBT);
-					activeQuestsTagList.appendTag(questStackNBT);
+					activeQuestsTagList.add(questStackNBT);
 				}
-				tagCompound.setTag("ActiveQuests", activeQuestsTagList);
+				tagCompound.put("ActiveQuests", activeQuestsTagList);
 			}
 		}
 	}
 
-	public void readFromNBT(NBTTagCompound tagCompound, EnumSet<DataType> dataTypes) {
+	public void readFromNBT(CompoundTag tagCompound, EnumSet<DataType> dataTypes) {
 		if (dataTypes.contains(DataType.COMPLETED_QUESTS)) {
 			completedQuests.clear();
 			try {
-				if (tagCompound.hasKey("CompletedQuests", Constants.NBT.TAG_LIST)) {
-					NBTTagList activeQuestsTagList = tagCompound.getTagList("CompletedQuests",
-							Constants.NBT.TAG_COMPOUND);
-					for (int i = 0; i < activeQuestsTagList.tagCount(); i++) {
-						completedQuests.add(QuestStack.loadFromNBT(activeQuestsTagList.getCompoundTagAt(i)));
+				if (tagCompound.hasUUID("CompletedQuests", Tag.TAG_LIST)) {
+					ListTag activeQuestsTagList = tagCompound.getList("CompletedQuests",
+							Tag.TAG_COMPOUND);
+					for (int i = 0; i < activeQuestsTagList.size(); i++) {
+						completedQuests.add(QuestStack.loadFromNBT(activeQuestsTagList.getCompound(i)));
 					}
 				}
 			} catch (Exception e) {
@@ -72,10 +72,10 @@ public class PlayerQuestData {
 		if (dataTypes.contains(DataType.ACTIVE_QUESTS)) {
 			activeQuests.clear();
 			try {
-				if (tagCompound.hasKey("ActiveQuests", Constants.NBT.TAG_LIST)) {
-					NBTTagList activeQuestsTagList = tagCompound.getTagList("ActiveQuests", Constants.NBT.TAG_COMPOUND);
-					for (int i = 0; i < activeQuestsTagList.tagCount(); i++) {
-						activeQuests.add(QuestStack.loadFromNBT(activeQuestsTagList.getCompoundTagAt(i)));
+				if (tagCompound.hasUUID("ActiveQuests", Tag.TAG_LIST)) {
+					ListTag activeQuestsTagList = tagCompound.getList("ActiveQuests", Tag.TAG_COMPOUND);
+					for (int i = 0; i < activeQuestsTagList.size(); i++) {
+						activeQuests.add(QuestStack.loadFromNBT(activeQuestsTagList.getCompound(i)));
 					}
 				}
 			} catch (Exception e) {
@@ -135,12 +135,12 @@ public class PlayerQuestData {
 							extendedProperties.getPlayer());
 					if (questState != null) {
 						// MatterOverdrive.NETWORK.sendTo(new
-						// PacketSyncQuests(this,EnumSet.of(DataType.ACTIVE_QUESTS)),(EntityPlayerMP)
+						// PacketSyncQuests(this,EnumSet.of(DataType.ACTIVE_QUESTS)),(PlayerModelPart)
 						// extendedProperties.getPlayer());
-						if (extendedProperties.getPlayer() instanceof EntityPlayerMP) {
-							MatterOverdrive.NETWORK.sendTo(
+						if (extendedProperties.getPlayer() instanceof PlayerModelPart) {
+							MatterOverdriveRewriteEdition.NETWORK.sendTo(
 									new PacketUpdateQuest(i, questState, this, PacketUpdateQuest.UPDATE_QUEST),
-									(EntityPlayerMP) extendedProperties.getPlayer());
+									(PlayerModelPart) extendedProperties.getPlayer());
 						}
 					}
 				}

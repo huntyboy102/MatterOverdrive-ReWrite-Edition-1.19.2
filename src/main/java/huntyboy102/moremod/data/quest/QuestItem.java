@@ -4,10 +4,12 @@ package huntyboy102.moremod.data.quest;
 import com.google.gson.JsonObject;
 
 import huntyboy102.moremod.util.MOJsonHelper;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fml.common.Loader;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class QuestItem {
 	ItemStack itemStack;
@@ -15,7 +17,7 @@ public class QuestItem {
 	int itemDamage;
 	String name;
 	String mod;
-	NBTTagCompound nbtTagCompound;
+	CompoundTag nbtTagCompound;
 	boolean ignoreDamage;
 	boolean ignoreNBT;
 
@@ -45,7 +47,7 @@ public class QuestItem {
 		this(name, mod, itemAmount, itemDamage, null);
 	}
 
-	public QuestItem(String name, String mod, int itemAmount, int itemDamage, NBTTagCompound tagCompound) {
+	public QuestItem(String name, String mod, int itemAmount, int itemDamage, CompoundTag tagCompound) {
 		this.name = name;
 		this.mod = mod;
 		this.itemAmount = itemAmount;
@@ -62,7 +64,7 @@ public class QuestItem {
 	}
 
 	public boolean isModPresent() {
-		return Loader.isModLoaded(mod);
+		return ModList.get().isLoaded(mod);
 	}
 
 	public boolean canItemExist() {
@@ -74,28 +76,30 @@ public class QuestItem {
 
 	public ItemStack getItemStack() {
 		if (isModded() || itemStack == null) {
-			Item item = Item.getByNameOrId(name);
+			ResourceLocation itemLocation = new ResourceLocation(name);
+			Item item = ForgeRegistries.ITEMS.getValue(itemLocation);
+
 			if (item != null) {
 				ItemStack itemStack = new ItemStack(item, itemAmount, itemDamage);
-				itemStack.setTagCompound(nbtTagCompound);
+				itemStack.setTag(nbtTagCompound);
 				return itemStack;
 			}
 
 		} else {
 			return itemStack;
 		}
-		return null;
+		return ItemStack.EMPTY;
 	}
 
 	public boolean matches(ItemStack itemStack) {
 		if (this.itemStack != null) {
 			return itemStack.getItem().equals(this.itemStack.getItem())
-					&& (ignoreDamage || itemStack.getItemDamage() == this.itemStack.getItemDamage())
-					&& (ignoreNBT || ItemStack.areItemStackTagsEqual(itemStack, this.itemStack));
+					&& (ignoreDamage || itemStack.getDamageValue() == this.itemStack.getDamageValue())
+					&& (ignoreNBT || ItemStack.isSameItemSameTags(itemStack, this.itemStack));
 		} else {
-			return itemStack.getItem().getRegistryName().toString().equals(name)
-					&& (ignoreDamage || itemDamage == itemStack.getItemDamage())
-					&& (ignoreNBT || (nbtTagCompound == null || nbtTagCompound.equals(itemStack.getTagCompound())));
+			return itemStack.getItem().getDescription().toString().equals(name)
+					&& (ignoreDamage || itemDamage == itemStack.getDamageValue())
+					&& (ignoreNBT || (nbtTagCompound == null || nbtTagCompound.equals(itemStack.getTag())));
 		}
 	}
 }

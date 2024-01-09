@@ -6,8 +6,8 @@ import java.util.Random;
 import huntyboy102.moremod.api.quest.IQuestLogic;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
 
 public class RandomQuestText extends GenericQuest {
 	int variationsCount;
@@ -18,14 +18,14 @@ public class RandomQuestText extends GenericQuest {
 	}
 
 	@Override
-	public void initQuestStack(Random random, QuestStack questStack, EntityPlayer entityPlayer) {
+	public void initQuestStack(Random random, QuestStack questStack, Player entityPlayer) {
 		super.initQuestStack(random, questStack, entityPlayer);
-		NBTTagCompound data = questStack.getTagCompound();
+		CompoundTag data = questStack.getTagCompound();
 		if (data == null) {
-			data = new NBTTagCompound();
+			data = new CompoundTag();
 			questStack.setTagCompound(data);
 		}
-		data.setShort("Variation", (short) random.nextInt(variationsCount));
+		data.putShort("Variation", (short) random.nextInt(variationsCount));
 	}
 
 	@Override
@@ -58,7 +58,7 @@ public class RandomQuestText extends GenericQuest {
 	}
 
 	@Override
-	public String getTitle(QuestStack questStack, EntityPlayer entityPlayer) {
+	public String getTitle(QuestStack questStack, Player entityPlayer) {
 		return questLogic.modifyTitle(questStack,
 				replaceVariables(
 						MOStringHelper.translateToLocal("quest." + title + "." + getVariation(questStack) + ".title"),
@@ -66,7 +66,7 @@ public class RandomQuestText extends GenericQuest {
 	}
 
 	@Override
-	public String getInfo(QuestStack questStack, EntityPlayer entityPlayer) {
+	public String getInfo(QuestStack questStack, Player entityPlayer) {
 		return questLogic.modifyInfo(questStack,
 				replaceVariables(
 						MOStringHelper.translateToLocal("quest." + title + "." + getVariation(questStack) + ".info"),
@@ -74,7 +74,7 @@ public class RandomQuestText extends GenericQuest {
 	}
 
 	@Override
-	public String getObjective(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public String getObjective(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return questLogic.modifyObjective(questStack, entityPlayer,
 				replaceVariables(
 						MOStringHelper.translateToLocal(
