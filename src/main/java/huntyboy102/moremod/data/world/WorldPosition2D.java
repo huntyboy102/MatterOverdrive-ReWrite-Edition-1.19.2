@@ -2,7 +2,7 @@
 package huntyboy102.moremod.data.world;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.io.Serializable;
 
@@ -15,7 +15,7 @@ public class WorldPosition2D implements Serializable {
 		this.z = z;
 	}
 
-	public WorldPosition2D(NBTTagCompound tagCompound) {
+	public WorldPosition2D(CompoundTag tagCompound) {
 		readFromNBT(tagCompound);
 	}
 
@@ -23,9 +23,9 @@ public class WorldPosition2D implements Serializable {
 		readFromBuffer(byteBuf);
 	}
 
-	public void writeToNBT(NBTTagCompound tagCompound) {
-		tagCompound.setInteger("wp_x", x);
-		tagCompound.setInteger("wp_z", z);
+	public void writeToNBT(CompoundTag tagCompound) {
+		tagCompound.putInt("wp_x", x);
+		tagCompound.putInt("wp_z", z);
 	}
 
 	public void writeToBuffer(ByteBuf byteBuf) {
@@ -33,9 +33,9 @@ public class WorldPosition2D implements Serializable {
 		byteBuf.writeInt(z);
 	}
 
-	public void readFromNBT(NBTTagCompound tagCompound) {
-		x = tagCompound.getInteger("wp_x");
-		z = tagCompound.getInteger("wp_z");
+	public void readFromNBT(CompoundTag tagCompound) {
+		x = tagCompound.getInt("wp_x");
+		z = tagCompound.getInt("wp_z");
 	}
 
 	public void readFromBuffer(ByteBuf byteBuf) {

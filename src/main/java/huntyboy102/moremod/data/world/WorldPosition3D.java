@@ -2,7 +2,7 @@
 package huntyboy102.moremod.data.world;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.io.Serializable;
 
@@ -15,7 +15,7 @@ public class WorldPosition3D implements Serializable {
 		this.z = z;
 	}
 
-	public WorldPosition3D(NBTTagCompound tagCompound) {
+	public WorldPosition3D(CompoundTag tagCompound) {
 		readFromNBT(tagCompound);
 	}
 
@@ -23,10 +23,10 @@ public class WorldPosition3D implements Serializable {
 		readFromBuffer(byteBuf);
 	}
 
-	public void writeToNBT(NBTTagCompound tagCompound) {
-		tagCompound.setInteger("wp_x", x);
-		tagCompound.setInteger("wp_y", y);
-		tagCompound.setInteger("wp_z", z);
+	public void writeToNBT(CompoundTag tagCompound) {
+		tagCompound.putInt("wp_x", x);
+		tagCompound.putInt("wp_y", y);
+		tagCompound.putInt("wp_z", z);
 	}
 
 	public void writeToBuffer(ByteBuf byteBuf) {
@@ -35,10 +35,10 @@ public class WorldPosition3D implements Serializable {
 		byteBuf.writeInt(z);
 	}
 
-	public void readFromNBT(NBTTagCompound tagCompound) {
-		x = tagCompound.getInteger("wp_x");
-		y = tagCompound.getInteger("wp_y");
-		z = tagCompound.getInteger("wp_z");
+	public void readFromNBT(CompoundTag tagCompound) {
+		x = tagCompound.getInt("wp_x");
+		y = tagCompound.getInt("wp_y");
+		z = tagCompound.getInt("wp_z");
 	}
 
 	public void readFromBuffer(ByteBuf byteBuf) {
