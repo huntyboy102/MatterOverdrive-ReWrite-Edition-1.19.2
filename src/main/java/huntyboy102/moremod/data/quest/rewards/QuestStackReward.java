@@ -9,15 +9,15 @@ import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.entity.player.OverdriveExtendedProperties;
 import huntyboy102.moremod.util.MOJsonHelper;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
 
 public class QuestStackReward implements IQuestReward {
 	QuestStack questStack;
 	String questName;
-	NBTTagCompound questNbt;
+	CompoundTag questNbt;
 	String[] copyNBT;
 	boolean visible;
 
@@ -49,25 +49,26 @@ public class QuestStackReward implements IQuestReward {
 	}
 
 	@Override
-	public void giveReward(QuestStack completedQuest, EntityPlayer entityPlayer) {
+	public void giveReward(QuestStack completedQuest, Player entityPlayer) {
 		QuestStack questStack = getQuestStack();
 
 		if (questStack != null && questStack.canAccept(entityPlayer, questStack)) {
-			OverdriveExtendedProperties extendedProperties = MOPlayerCapabilityProvider
-					.GetExtendedCapability(entityPlayer);
+			OverdriveExtendedProperties extendedProperties = MOPlayerCapabilityProvider.GetExtendedCapability(entityPlayer);
+
 			if (extendedProperties != null) {
 				QuestStack questStackCopy = questStack.copy();
-				questStackCopy.getQuest().initQuestStack(entityPlayer.getRNG(), questStackCopy);
+				questStackCopy.getQuest().initQuestStack(entityPlayer.getRandom(), questStackCopy);
+
 				if (copyNBT != null && copyNBT.length > 0 && completedQuest.getTagCompound() != null) {
 					if (questStackCopy.getTagCompound() == null) {
-						questStackCopy.setTagCompound(new NBTTagCompound());
+						questStackCopy.setTagCompound(new CompoundTag());
 					}
 
 					for (String aCopyNBT : copyNBT) {
-						NBTBase nbtBase = completedQuest.getTagCompound().getTag(aCopyNBT);
+						Tag nbtBase = completedQuest.getTagCompound().get(aCopyNBT);
 						if (nbtBase != null) {
 
-							questStackCopy.getTagCompound().setTag(aCopyNBT, nbtBase.copy());
+							questStackCopy.getTagCompound().put(aCopyNBT, nbtBase.copy());
 						}
 					}
 				}
@@ -83,7 +84,7 @@ public class QuestStackReward implements IQuestReward {
 
 	public QuestStack getQuestStack() {
 		if (questStack == null) {
-			IQuest quest = MatterOverdrive.QUESTS.getQuestByName(questName);
+			IQuest quest = MatterOverdriveRewriteEdition.QUESTS.getQuestByName(questName);
 			if (quest != null) {
 				QuestStack questStack = new QuestStack(quest);
 				if (questNbt != null) {

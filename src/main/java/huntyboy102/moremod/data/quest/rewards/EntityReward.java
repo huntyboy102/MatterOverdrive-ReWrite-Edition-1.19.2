@@ -8,26 +8,26 @@ import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.util.MOLog;
 import huntyboy102.moremod.util.MOQuestHelper;
-import org.apache.logging.log4j.Level;
 
 import com.google.gson.JsonObject;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class EntityReward implements IQuestReward {
 	private String entityId;
 	private int count;
 	private boolean positionFromNbt;
-	private Vec3d positionOffset;
-	private NBTTagCompound nbtTagCompound;
+	private Vec3 positionOffset;
+	private CompoundTag nbtTagCompound;
 
 	public EntityReward() {
 	}
@@ -48,43 +48,38 @@ public class EntityReward implements IQuestReward {
 		}
 		count = MOJsonHelper.getInt(object, "count");
 		nbtTagCompound = MOJsonHelper.getNbt(object, "nbt", null);
-		positionOffset = MOJsonHelper.getVec3(object, "offset", new Vec3d(0, 0, 0));
+		positionOffset = MOJsonHelper.getVec3(object, "offset", new Vec3(0, 0, 0));
 	}
 
 	@Override
-	public void giveReward(QuestStack questStack, EntityPlayer entityPlayer) {
-		for (ResourceLocation key : EntityList.getEntityNameList()) {
+	public void giveReward(QuestStack questStack, Player entityPlayer) {
+		for (ResourceLocation key : ForgeRegistries.ENTITY_TYPES.getKeys()) {
 			MOLog.info(key.toString());
 		}
-		Class<? extends Entity> entityClass = EntityList.getClass(new ResourceLocation(entityId));
-		EntityRegistry.EntityRegistration entityRegistration = EntityRegistry.instance().lookupModSpawn(entityClass,
-				true);
-		if (entityRegistration != null) {
+
+		Entity entity = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(entityId)).create(entityPlayer.level);
+		if (entity != null) {
 			for (int i = 0; i < count; i++) {
 				try {
-					Constructor<? extends Entity> constructor = entityRegistration.getEntityClass()
-							.getConstructor(World.class);
-					Entity entity = constructor.newInstance(entityPlayer.world);
-					if (positionFromNbt) {
 						BlockPos pos = MOQuestHelper.getPosition(questStack);
 						if (pos != null) {
-							entity.setPosition(pos.getX() + positionOffset.x, pos.getY() + positionOffset.y,
+							entity.moveTo(pos.getX() + positionOffset.x, pos.getY() + positionOffset.y,
 									pos.getZ() + positionOffset.z);
 						} else {
-							entity.setPosition(entityPlayer.posX + positionOffset.x,
-									entityPlayer.posY + positionOffset.y, entityPlayer.posZ + positionOffset.z);
+							entity.moveTo(entityPlayer.getX() + positionOffset.x,
+									entityPlayer.getY() + positionOffset.y, entityPlayer.getZ() + positionOffset.z);
 						}
-					} else {
-						entity.setPosition(entityPlayer.posX + positionOffset.x, entityPlayer.posY + positionOffset.y,
-								entityPlayer.posZ + positionOffset.z);
-					}
-					if (nbtTagCompound != null) {
-						entity.readFromNBT(nbtTagCompound);
-					}
-					entityPlayer.world.spawnEntity(entity);
-				} catch (Exception e) {
-					MOLog.log(Level.WARN, e, "Could not spawn Entity reward of type %s for quest %s",
-							entityRegistration.getEntityClass(), questStack.getTitle());
+
+						if (nbtTagCompound != null) {
+							//TODO: Switch all readNbtTag to load and writeNbtTag to save
+							entity.load(nbtTagCompound);
+						}
+						//TODO: Switch all spawnEntity to addFreshEntity
+						entityPlayer.level.addFreshEntity(entity);
+
+					} catch (Exception e) {
+					MOLog.log(e, "Could not spawn Entity reward of type %s for quest %s",
+							ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()), questStack.getTitle());
 				}
 			}
 		} else {
@@ -122,19 +117,19 @@ public class EntityReward implements IQuestReward {
 		this.positionFromNbt = positionFromNbt;
 	}
 
-	public Vec3d getPositionOffset() {
+	public Vec3 getPositionOffset() {
 		return positionOffset;
 	}
 
-	public void setPositionOffset(Vec3d positionOffset) {
+	public void setPositionOffset(Vec3 positionOffset) {
 		this.positionOffset = positionOffset;
 	}
 
-	public NBTTagCompound getNbtTagCompound() {
+	public CompoundTag getNbtTagCompound() {
 		return nbtTagCompound;
 	}
 
-	public void setNbtTagCompound(NBTTagCompound nbtTagCompound) {
+	public void setNbtTagCompound(CompoundTag nbtTagCompound) {
 		this.nbtTagCompound = nbtTagCompound;
 	}
 
