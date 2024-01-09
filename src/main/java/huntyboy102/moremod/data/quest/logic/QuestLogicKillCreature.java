@@ -14,14 +14,14 @@ import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.entity.player.OverdriveExtendedProperties;
 import huntyboy102.moremod.util.MOJsonHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.fml.common.eventhandler.Event;
-import net.minecraftforge.fml.common.registry.EntityRegistry;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class QuestLogicKillCreature extends AbstractQuestLogic {
 	String regex;
@@ -81,12 +81,12 @@ public class QuestLogicKillCreature extends AbstractQuestLogic {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return getKillCount(questStack) >= getMaxKillCount(questStack);
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objetive,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objetive,
 			int objectiveIndex) {
 		objetive = objetive.replace("$maxKillCount", Integer.toString(getMaxKillCount(questStack)));
 		objetive = objetive.replace("$killCount", Integer.toString(getKillCount(questStack)));
@@ -99,35 +99,35 @@ public class QuestLogicKillCreature extends AbstractQuestLogic {
 	@Override
 	public void initQuestStack(Random random, QuestStack questStack) {
 		initTag(questStack);
-		getTag(questStack).setInteger("MaxKillCount", random(random, minKillCount, maxKillCount));
+		getTag(questStack).putInt("MaxKillCount", random(random, minKillCount, maxKillCount));
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (event instanceof LivingDeathEvent) {
 			LivingDeathEvent deathEvent = (LivingDeathEvent) event;
-			if (deathEvent.getEntityLiving() != null && isTarget(questStack, deathEvent.getEntityLiving())) {
+			if (deathEvent.getEntity() != null && isTarget(questStack, deathEvent.getEntity())) {
 				if (regex != null && !isTargetNameValid(((LivingDeathEvent) event).getEntity())) {
 					return null;
 				}
 				if (shootOnly && !((LivingDeathEvent) event).getSource().isProjectile()) {
 					return null;
 				}
-				if (burnOnly && !((LivingDeathEvent) event).getSource().isFireDamage()) {
+				if (burnOnly && !((LivingDeathEvent) event).getSource().isFire()) {
 					return null;
 				}
 				if (explosionOnly && !((LivingDeathEvent) event).getSource().isExplosion()) {
 					return null;
 				}
-				if (killWithItem != null && (entityPlayer.getHeldItemMainhand() == null
-						|| entityPlayer.getHeldItemMainhand().getItem() != killWithItem)) {
+				if (killWithItem != null && (entityPlayer.getMainHandItem() == null
+						|| entityPlayer.getMainHandItem().getItem() != killWithItem)) {
 					return null;
 				}
-				if (killWithItemStack != null && (entityPlayer.getHeldItemMainhand() == null
-						|| !ItemStack.areItemStacksEqual(entityPlayer.getHeldItemMainhand(), killWithItemStack))) {
+				if (killWithItemStack != null && (entityPlayer.getMainHandItem() == null
+						|| !ItemStack.isSame(entityPlayer.getMainHandItem(), killWithItemStack))) {
 					return null;
 				}
-				if (onlyChildren && !((LivingDeathEvent) event).getEntityLiving().isChild()) {
+				if (onlyChildren && !((LivingDeathEvent) event).getEntity().isBaby()) {
 					return null;
 				}
 
@@ -152,16 +152,17 @@ public class QuestLogicKillCreature extends AbstractQuestLogic {
 	}
 
 	public boolean isTarget(QuestStack questStack, Entity entity) {
-		EntityRegistry.EntityRegistration registration = EntityRegistry.instance().lookupModSpawn(entity.getClass(),
-				true);
-		if (registration != null) {
+		EntityType<?> entityType = entity.getType();
+
+		if (entityType != null) {
 			for (String type : creatureTypes) {
-				if (registration.getEntityName().equalsIgnoreCase(type)) {
+				if (entityType.getDescriptionId().equalsIgnoreCase(type)) {
 					return true;
 				}
 			}
 		} else {
-			String entityName = EntityList.getEntityString(entity);
+			String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
+
 			for (String type : creatureTypes) {
 				if (entityName != null && entityName.equalsIgnoreCase(type)) {
 					return true;
@@ -177,27 +178,27 @@ public class QuestLogicKillCreature extends AbstractQuestLogic {
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	public int getMaxKillCount(QuestStack questStack) {
 		if (hasTag(questStack)) {
-			return getTag(questStack).getInteger("MaxKillCount");
+			return getTag(questStack).getInt("MaxKillCount");
 		}
 		return 0;
 	}
 
 	public int getKillCount(QuestStack questStack) {
 		if (hasTag(questStack)) {
-			return getTag(questStack).getInteger("KillCount");
+			return getTag(questStack).getInt("KillCount");
 		}
 		return 0;
 	}
 
 	public void setKillCount(QuestStack questStack, int killCount) {
 		initTag(questStack);
-		getTag(questStack).setInteger("KillCount", killCount);
+		getTag(questStack).putInt("KillCount", killCount);
 	}
 
 	public String[] getCreatureTypes() {
@@ -205,17 +206,17 @@ public class QuestLogicKillCreature extends AbstractQuestLogic {
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
 	@Override
-	public int modifyXP(QuestStack questStack, EntityPlayer entityPlayer, int originalXp) {
+	public int modifyXP(QuestStack questStack, Player entityPlayer, int originalXp) {
 
 		return originalXp + xpPerKill * getMaxKillCount(questStack);
 	}

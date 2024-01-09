@@ -27,7 +27,7 @@ public class DialogMessageQuit extends DialogMessage {
 
 	@Override
 	public void onInteract(IDialogNpc npc, Player player) {
-		player.closeScreen();
+		player.closeContainer();
 	}
 
 	@Override

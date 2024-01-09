@@ -8,10 +8,10 @@ import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.data.quest.QuestItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.common.eventhandler.Event;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Random;
@@ -75,31 +75,31 @@ public class QuestLogicCraft extends AbstractQuestLogicRandomItem {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return getCraftCount(questStack) >= getMaxCraftCount(questStack);
 	}
 
 	public int getCraftCount(QuestStack questStack) {
 		if (hasTag(questStack)) {
-			return getTag(questStack).getInteger("CraftCount");
+			return getTag(questStack).getInt("CraftCount");
 		}
 		return 0;
 	}
 
 	public void setCraftCount(QuestStack questStack, int count) {
 		initTag(questStack);
-		getTag(questStack).setInteger("CraftCount", count);
+		getTag(questStack).putInt("CraftCount", count);
 	}
 
 	public int getMaxCraftCount(QuestStack questStack) {
 		if (hasTag(questStack)) {
-			return getTag(questStack).getInteger("MaxCraftCount");
+			return getTag(questStack).getInt("MaxCraftCount");
 		}
 		return 0;
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		objective = objective.replace("$craftAmount", Integer.toString(getCraftCount(questStack)));
 		objective = objective.replace("$craftMaxAmount", Integer.toString(getMaxCraftCount(questStack)));
@@ -111,14 +111,14 @@ public class QuestLogicCraft extends AbstractQuestLogicRandomItem {
 	public void initQuestStack(Random random, QuestStack questStack) {
 		initTag(questStack);
 		initItemType(random, questStack);
-		getTag(questStack).setInteger("MaxCraftCount", random(random, minCraftCount, maxCraftCount));
+		getTag(questStack).putInt("MaxCraftCount", random(random, minCraftCount, maxCraftCount));
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (event instanceof PlayerEvent.ItemCraftedEvent) {
-			if (((PlayerEvent.ItemCraftedEvent) event).crafting != null
-					&& matches(questStack, ((PlayerEvent.ItemCraftedEvent) event).crafting)) {
+			if (((PlayerEvent.ItemCraftedEvent) event).getCrafting() != null
+					&& matches(questStack, ((PlayerEvent.ItemCraftedEvent) event).getCrafting())) {
 				if (getCraftCount(questStack) < getMaxCraftCount(questStack)) {
 					setCraftCount(questStack, getCraftCount(questStack) + 1);
 
@@ -135,22 +135,22 @@ public class QuestLogicCraft extends AbstractQuestLogicRandomItem {
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
 	@Override
-	public int modifyXP(QuestStack questStack, EntityPlayer entityPlayer, int originalXp) {
+	public int modifyXP(QuestStack questStack, Player entityPlayer, int originalXp) {
 		return originalXp + xpPerCraft * getMaxCraftCount(questStack);
 	}
 }

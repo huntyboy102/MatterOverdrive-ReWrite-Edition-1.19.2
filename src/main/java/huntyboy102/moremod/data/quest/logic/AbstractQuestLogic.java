@@ -11,11 +11,11 @@ import huntyboy102.moremod.api.quest.IQuestLogic;
 import huntyboy102.moremod.api.quest.IQuestReward;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.util.MOJsonHelper;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 
 public abstract class AbstractQuestLogic implements IQuestLogic {
@@ -31,7 +31,7 @@ public abstract class AbstractQuestLogic implements IQuestLogic {
 	public void loadFromJson(JsonObject jsonObject) {
 		this.autoComplete = MOJsonHelper.getBool(jsonObject, "auto_complete", false);
 		if (jsonObject.has("rewards")) {
-			rewards.addAll(MatterOverdrive.QUEST_ASSEMBLER.parseRewards(jsonObject.getAsJsonArray("rewards")));
+			rewards.addAll(MatterOverdriveRewriteEdition.QUEST_ASSEMBLER.parseRewards(jsonObject.getAsJsonArray("rewards")));
 		}
 	}
 
@@ -41,12 +41,12 @@ public abstract class AbstractQuestLogic implements IQuestLogic {
 	}
 
 	@Override
-	public boolean canAccept(QuestStack questStack, EntityPlayer entityPlayer) {
+	public boolean canAccept(QuestStack questStack, Player entityPlayer) {
 		return true;
 	}
 
 	@Override
-	public int modifyObjectiveCount(QuestStack questStack, EntityPlayer entityPlayer, int count) {
+	public int modifyObjectiveCount(QuestStack questStack, Player entityPlayer, int count) {
 		return count;
 	}
 
@@ -56,7 +56,7 @@ public abstract class AbstractQuestLogic implements IQuestLogic {
 	}
 
 	@Override
-	public int modifyXP(QuestStack questStack, EntityPlayer entityPlayer, int originalXp) {
+	public int modifyXP(QuestStack questStack, Player entityPlayer, int originalXp) {
 		return originalXp;
 	}
 
@@ -99,34 +99,34 @@ public abstract class AbstractQuestLogic implements IQuestLogic {
 		if (getID() == null) {
 			return questStack.getTagCompound() != null;
 		} else {
-			return questStack.getTagCompound() != null && questStack.getTagCompound().hasKey(getID());
+			return questStack.getTagCompound() != null && questStack.getTagCompound().hasUUID(getID());
 		}
 	}
 
 	protected void initTag(QuestStack questStack) {
 		if (!hasTag(questStack)) {
 			if (getID() == null) {
-				questStack.setTagCompound(new NBTTagCompound());
+				questStack.setTagCompound(new CompoundTag());
 			} else {
-				NBTTagCompound tagCompound = questStack.getTagCompound();
+				CompoundTag tagCompound = questStack.getTagCompound();
 				if (tagCompound == null) {
-					tagCompound = new NBTTagCompound();
+					tagCompound = new CompoundTag();
 				}
-				tagCompound.setTag(getID(), new NBTTagCompound());
+				tagCompound.put(getID(), new CompoundTag());
 				questStack.setTagCompound(tagCompound);
 			}
 		}
 	}
 
-	protected NBTTagCompound getTag(QuestStack questStack) {
+	protected CompoundTag getTag(QuestStack questStack) {
 		if (getID() == null) {
 			return questStack.getTagCompound();
 		} else {
-			return questStack.getTagCompound().getCompoundTag(getID());
+			return questStack.getTagCompound().getCompound(getID());
 		}
 	}
 
-	protected void markComplete(QuestStack questStack, EntityPlayer entityPlayer) {
+	protected void markComplete(QuestStack questStack, Player entityPlayer) {
 		if (autoComplete) {
 			questStack.markComplited(entityPlayer, false);
 		}

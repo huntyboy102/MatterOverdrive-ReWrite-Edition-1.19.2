@@ -7,11 +7,12 @@ import huntyboy102.moremod.api.quest.QuestLogicState;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.util.MOStringHelper;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.entity.player.EntityPlayer;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class QuestLogicBecomeAndroid extends AbstractQuestLogic {
 	}
 
 	@Override
-	public int modifyObjectiveCount(QuestStack questStack, EntityPlayer entityPlayer, int count) {
+	public int modifyObjectiveCount(QuestStack questStack, Player entityPlayer, int count) {
 		if (isObjectiveCompleted(questStack, entityPlayer, 0)) {
 			return 2;
 		}
@@ -39,15 +40,15 @@ public class QuestLogicBecomeAndroid extends AbstractQuestLogic {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		if (objectiveIndex == 0) {
 			boolean[] hasParts = new boolean[4];
 			int[] slots = new int[4];
 
-			for (int i = 0; i < entityPlayer.inventory.getSizeInventory(); i++) {
-				if (entityPlayer.inventory.getStackInSlot(i) != null
-						&& entityPlayer.inventory.getStackInSlot(i).getItem() == MatterOverdrive.ITEMS.androidParts) {
-					int damage = entityPlayer.inventory.getStackInSlot(i).getItemDamage();
+			for (int i = 0; i < entityPlayer.getInventory().getContainerSize(); i++) {
+				if (entityPlayer.getInventory().getItem(i) != null
+						&& entityPlayer.getInventory().getItem(i).getItem() == MatterOverdriveRewriteEdition.ITEMS.androidParts) {
+					int damage = entityPlayer.getInventory().getItem(i).getDamageValue();
 					if (damage < hasParts.length) {
 						hasParts[damage] = true;
 						slots[damage] = i;
@@ -67,7 +68,7 @@ public class QuestLogicBecomeAndroid extends AbstractQuestLogic {
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		return objective;
 	}
@@ -78,24 +79,24 @@ public class QuestLogicBecomeAndroid extends AbstractQuestLogic {
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		return null;
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 		boolean[] hasParts = new boolean[4];
 		int[] slots = new int[4];
 
-		for (int i = 0; i < entityPlayer.inventory.getSizeInventory(); i++) {
-			if (entityPlayer.inventory.getStackInSlot(i) != null
-					&& entityPlayer.inventory.getStackInSlot(i).getItem() == MatterOverdrive.ITEMS.androidParts) {
-				int damage = entityPlayer.inventory.getStackInSlot(i).getItemDamage();
+		for (int i = 0; i < entityPlayer.getInventory().getContainerSize(); i++) {
+			if (entityPlayer.getInventory().getItem(i) != null
+					&& entityPlayer.getInventory().getItem(i).getItem() == MatterOverdriveRewriteEdition.ITEMS.androidParts) {
+				int damage = entityPlayer.getInventory().getItem(i).getDamageValue();
 				if (damage < hasParts.length) {
 					hasParts[damage] = true;
 					slots[damage] = i;
@@ -105,20 +106,20 @@ public class QuestLogicBecomeAndroid extends AbstractQuestLogic {
 
 		for (boolean hasPart : hasParts) {
 			if (!hasPart) {
-				if (!entityPlayer.world.isRemote) {
-					TextComponentString componentText = new TextComponentString(TextFormatting.GOLD + "<Mad Scientist>"
-							+ TextFormatting.RED + MOStringHelper.translateToLocal(
-									"entity.mad_scientist.line.fail." + entityPlayer.getRNG().nextInt(4)));
-					componentText.setStyle(new Style().setColor(TextFormatting.RED));
-					entityPlayer.sendMessage(componentText);
+				if (!entityPlayer.level.isClientSide) {
+					TextComponentString componentText = new TextComponentString(ChatFormatting.GOLD + "<Mad Scientist>"
+							+ ChatFormatting.RED + MOStringHelper.translateToLocal(
+									"entity.mad_scientist.line.fail." + entityPlayer.getRandom().nextInt(4)));
+					componentText.setStyle(new Style().setColor(ChatFormatting.RED));
+					entityPlayer.sendSystemMessage(componentText);
 				}
 				return;
 			}
 		}
 
-		if (!entityPlayer.world.isRemote) {
+		if (!entityPlayer.level.isClientSide) {
 			for (int slot : slots) {
-				entityPlayer.inventory.decrStackSize(slot, 1);
+				entityPlayer.getInventory().decrStackSize(slot, 1);
 			}
 		}
 
@@ -127,7 +128,7 @@ public class QuestLogicBecomeAndroid extends AbstractQuestLogic {
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 

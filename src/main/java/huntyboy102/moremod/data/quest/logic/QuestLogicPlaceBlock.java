@@ -15,11 +15,11 @@ import huntyboy102.moremod.util.MOLog;
 import huntyboy102.moremod.util.MOQuestHelper;
 import huntyboy102.moremod.data.quest.QuestBlock;
 import huntyboy102.moremod.data.quest.QuestItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.Event;
 
 public class QuestLogicPlaceBlock extends AbstractQuestLogicBlock {
 	String namePattern;
@@ -68,18 +68,18 @@ public class QuestLogicPlaceBlock extends AbstractQuestLogicBlock {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return getBlockPlaced(questStack) >= getMaxBlockPlace(questStack);
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		objective = replaceBlockNameInText(objective);
 		BlockPos pos = MOQuestHelper.getPosition(questStack);
 		if (pos != null) {
-			double distance = new Vec3d(Math.floor(entityPlayer.posX), Math.floor(entityPlayer.posY),
-					Math.floor(entityPlayer.posZ)).distanceTo(new Vec3d(pos));
+			double distance = new Vec3(Math.floor(entityPlayer.posX), Math.floor(entityPlayer.posY),
+					Math.floor(entityPlayer.posZ)).distanceTo(new Vec3(pos));
 			objective = objective.replace("$distance",
 					Integer.toString((int) Math.max(distance - radius, 0)) + " blocks");
 		} else {
@@ -94,7 +94,7 @@ public class QuestLogicPlaceBlock extends AbstractQuestLogicBlock {
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (event instanceof BlockEvent.PlaceEvent) {
 			BlockEvent.PlaceEvent placeEvent = (BlockEvent.PlaceEvent) event;
 			boolean isTheSameBlockFlag = false;
@@ -116,7 +116,7 @@ public class QuestLogicPlaceBlock extends AbstractQuestLogicBlock {
 
 			BlockPos pos = MOQuestHelper.getPosition(questStack);
 			if (pos != null && isTheSameBlockFlag) {
-				if (!(new Vec3d(placeEvent.getPos()).distanceTo(new Vec3d(pos)) <= radius)) {
+				if (!(new Vec3(placeEvent.getPos()).distanceTo(new Vec3(pos)) <= radius)) {
 					return null;
 				}
 			}
@@ -131,23 +131,23 @@ public class QuestLogicPlaceBlock extends AbstractQuestLogicBlock {
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
 	protected void setBlockPlaced(QuestStack questStack, int placed) {
 		initTag(questStack);
-		getTag(questStack).setShort("Placed", (short) placed);
+		getTag(questStack).putShort("Placed", (short) placed);
 	}
 
 	protected int getBlockPlaced(QuestStack questStack) {
@@ -159,7 +159,7 @@ public class QuestLogicPlaceBlock extends AbstractQuestLogicBlock {
 
 	protected void setMaxBlockPlace(QuestStack questStack, int maxBlockPlace) {
 		initTag(questStack);
-		getTag(questStack).setShort("MaxPlaced", (short) maxBlockPlace);
+		getTag(questStack).putShort("MaxPlaced", (short) maxBlockPlace);
 	}
 
 	protected int getMaxBlockPlace(QuestStack questStack) {

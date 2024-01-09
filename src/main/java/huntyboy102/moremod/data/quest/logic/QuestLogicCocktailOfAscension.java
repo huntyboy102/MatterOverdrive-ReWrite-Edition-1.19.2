@@ -8,17 +8,19 @@ import huntyboy102.moremod.api.quest.QuestLogicState;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.entity.EntityVillagerMadScientist;
-import net.minecraft.entity.monster.EntityCreeper;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemSpade;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ShovelItem;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Random;
@@ -41,7 +43,7 @@ public class QuestLogicCocktailOfAscension extends AbstractQuestLogic {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		if (objectiveIndex == 0) {
 			return getCreeperKillCount(questStack) >= MAX_CREEPER_KILS;
 		} else if (objectiveIndex == 1) {
@@ -55,7 +57,7 @@ public class QuestLogicCocktailOfAscension extends AbstractQuestLogic {
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		objective = objective.replace("$creeperAmount", Integer.toString(getCreeperKillCount(questStack)));
 		objective = objective.replace("$creepermaxAmount", Integer.toString(MAX_CREEPER_KILS));
@@ -68,7 +70,7 @@ public class QuestLogicCocktailOfAscension extends AbstractQuestLogic {
 	}
 
 	@Override
-	public int modifyObjectiveCount(QuestStack questStack, EntityPlayer entityPlayer, int count) {
+	public int modifyObjectiveCount(QuestStack questStack, Player entityPlayer, int count) {
 		if (questStack.hasGiver() && getCreeperKillCount(questStack) >= MAX_CREEPER_KILS
 				&& getGunpowderCount(questStack) >= MAX_GUNPOWDER_COUNT
 				&& getMushroomCount(questStack) >= MAX_MUSHROOM_COUNT) {
@@ -114,69 +116,103 @@ public class QuestLogicCocktailOfAscension extends AbstractQuestLogic {
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (getCreeperKillCount(questStack) < MAX_CREEPER_KILS && event instanceof LivingDeathEvent) {
-			// TODO: 3/26/2016 Add support for offhand
-			if (((LivingDeathEvent) event).getEntityLiving() instanceof EntityCreeper
-					&& !entityPlayer.getHeldItem(EnumHand.MAIN_HAND).isEmpty()
-					&& entityPlayer.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemSpade) {
-				initTag(questStack);
-				byte currentCreeperKillCount = getTag(questStack).getByte("CreeperKills");
-				getTag(questStack).setByte("CreeperKills", ++currentCreeperKillCount);
-				return new QuestLogicState(QuestState.Type.UPDATE, true);
+			LivingDeathEvent deathEvent = (LivingDeathEvent) event;
+			Entity entity = deathEvent.getEntity();
+
+			if (entity instanceof Creeper) {
+				InteractionHand hand = InteractionHand.MAIN_HAND;
+				ItemStack mainHandItem = entityPlayer.getItemInHand(hand);
+
+				if (!mainHandItem.isEmpty() && mainHandItem.getItem() instanceof ShovelItem) {
+					initAndIncrementTag(questStack, "CreeperKills");
+					return new QuestLogicState(QuestState.Type.UPDATE, true);
+				}
 			}
 		} else if (event instanceof EntityItemPickupEvent) {
-			ItemStack itemStack = ((EntityItemPickupEvent) event).getItem().getItem();
-			if (!itemStack.isEmpty()) {
-				if (itemStack.getItem() instanceof ItemBlock
-						&& ((ItemBlock) itemStack.getItem()).getBlock() == Blocks.RED_MUSHROOM
-						&& entityPlayer.world.provider.getDimension() == -1) {
-					initTag(questStack);
-					byte mushroomCount = getTag(questStack).getByte("MushroomCount");
-					if (mushroomCount < MAX_MUSHROOM_COUNT) {
-						int newMushroomCount = Math.min(mushroomCount + itemStack.getCount(), MAX_MUSHROOM_COUNT);
-						int takenMushrooms = newMushroomCount - mushroomCount;
-						itemStack.shrink(takenMushrooms);
-						getTag(questStack).setByte("MushroomCount", (byte) newMushroomCount);
-						return new QuestLogicState(QuestState.Type.UPDATE, true);
-					}
-				} else if (itemStack.getItem() == Items.GUNPOWDER) {
-					initTag(questStack);
+			EntityItemPickupEvent pickupEvent = (EntityItemPickupEvent) event;
+			ItemStack itemStack = pickupEvent.getItem().getItem();
 
-					byte gunpowderCount = getTag(questStack).getByte("GunpowderCount");
-					if (gunpowderCount < MAX_GUNPOWDER_COUNT) {
-						int newGunpowderCount = Math.min(gunpowderCount + itemStack.getCount(), MAX_MUSHROOM_COUNT);
-						int takenGunpowder = newGunpowderCount - gunpowderCount;
-						itemStack.shrink(takenGunpowder);
-						getTag(questStack).setByte("GunpowderCount", (byte) newGunpowderCount);
-						itemStack.shrink(1);
-						return new QuestLogicState(QuestState.Type.UPDATE, true);
-					}
+			if (!itemStack.isEmpty()) {
+				if (handleMushroomQuest(questStack, itemStack, entityPlayer)) {
+					return new QuestLogicState(QuestState.Type.UPDATE, true);
+				} else if (handleGunpowderQuest(questStack, itemStack, entityPlayer)) {
+					return new QuestLogicState(QuestState.Type.UPDATE, true);
 				}
 			}
 		} else if (event instanceof MOEventDialogInteract) {
-			if (((MOEventDialogInteract) event).npc instanceof EntityVillagerMadScientist
-					&& ((MOEventDialogInteract) event).dialogOption == EntityVillagerMadScientist.cocktailOfAscensionComplete) {
-				initTag(questStack);
-				getTag(questStack).setBoolean("TalkedToGiver", true);
-				markComplete(questStack, entityPlayer);
+			MOEventDialogInteract dialogEvent = (MOEventDialogInteract) event;
+
+			if (handleMadScientistQuest(questStack, dialogEvent, entityPlayer)) {
 				return new QuestLogicState(QuestState.Type.COMPLETE, true);
 			}
 		}
+
 		return null;
 	}
 
+	private void initAndIncrementTag(QuestStack questStack, String tagName) {
+		initTag(questStack);
+		byte count = getTag(questStack).getByte(tagName);
+		getTag(questStack).putByte(tagName, (byte) (count + 1));
+	}
+
+	private boolean handleMushroomQuest(QuestStack questStack, ItemStack itemStack, Player entityPlayer) {
+		if (itemStack.getItem() instanceof BlockItem &&
+				((BlockItem) itemStack.getItem()).getBlock() == Blocks.RED_MUSHROOM
+			/*TODO: Check to see if the quest is balanced if I go through all dimensions not just overworld
+			  Maybe I should just go through nether?
+			&& entityPlayer.level.dimension() == Level.OVERWORLD*/) {
+			initAndIncrementTag(questStack, "MushroomCount");
+			int newMushroomCount = Math.min(getTag(questStack).getByte("MushroomCount") + itemStack.getCount(), MAX_MUSHROOM_COUNT);
+			int takenMushrooms = newMushroomCount - getTag(questStack).getByte("MushroomCount");
+			itemStack.shrink(takenMushrooms);
+			getTag(questStack).putByte("MushroomCount", (byte) newMushroomCount);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean handleGunpowderQuest(QuestStack questStack, ItemStack itemStack, Player entityPlayer) {
+		if (itemStack.getItem() == Items.GUNPOWDER) {
+			initAndIncrementTag(questStack, "GunpowderCount");
+			int newGunpowderCount = Math.min(getTag(questStack).getByte("GunpowderCount") + itemStack.getCount(), MAX_GUNPOWDER_COUNT);
+			int takenGunpowder = newGunpowderCount - getTag(questStack).getByte("GunpowderCount");
+			itemStack.shrink(takenGunpowder);
+			getTag(questStack).putByte("GunpowderCount", (byte) newGunpowderCount);
+			itemStack.shrink(1);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean handleMadScientistQuest(QuestStack questStack, MOEventDialogInteract dialogEvent, Player entityPlayer) {
+		if (dialogEvent.npc instanceof EntityVillagerMadScientist &&
+				dialogEvent.dialogOption == EntityVillagerMadScientist.cocktailOfAscensionComplete) {
+			initAndSetTag(questStack, "TalkedToGiver", true);
+			markComplete(questStack, entityPlayer);
+			return true;
+		}
+		return false;
+	}
+
+	private void initAndSetTag(QuestStack questStack, String tagName, boolean value) {
+		initTag(questStack);
+		getTag(questStack).putBoolean(tagName, value);
+	}
+
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 	}
 }

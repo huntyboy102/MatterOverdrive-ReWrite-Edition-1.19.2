@@ -42,7 +42,7 @@ public class ItemStackHandlerCachable extends MatterEntryHandlerAbstract<ItemSta
 	@Override
 	public int modifyMatter(ItemStack itemStack, int originalMatter) {
 		if (metadataAware) {
-			if (itemStack.g() == meta) {
+			if (itemStack.getDamageValue() == meta) {
 				return matter;
 			}
 		} else {
@@ -84,7 +84,7 @@ public class ItemStackHandlerCachable extends MatterEntryHandlerAbstract<ItemSta
 		metadataAware = tagCompound.getBoolean("metaAware");
 		isFinalHandler = tagCompound.getBoolean("final");
 		meta = tagCompound.getShort("meta");
-		matter = tagCompound.putInt("matter");
+		matter = tagCompound.getInt("matter");
 		priority = tagCompound.getByte("priority");
 	}
 

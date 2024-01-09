@@ -8,11 +8,12 @@ import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.data.quest.QuestItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Random;
@@ -86,12 +87,12 @@ public class QuestLogicCollectItem extends AbstractQuestLogicRandomItem {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return getItemCount(entityPlayer, questStack) >= getMaxItemCount(questStack);
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		return String.format(objective, "", getItemCount(entityPlayer, questStack), getMaxItemCount(questStack),
 				getItemName(questStack));
@@ -102,19 +103,19 @@ public class QuestLogicCollectItem extends AbstractQuestLogicRandomItem {
 	public void initQuestStack(Random random, QuestStack questStack) {
 		initTag(questStack);
 		initItemType(random, questStack);
-		getTag(questStack).setInteger("MaxItemCount", random(random, minItemCount, maxItemCount));
+		getTag(questStack).putInt("MaxItemCount", random(random, minItemCount, maxItemCount));
 	}
 
-	public int getItemCount(EntityPlayer entityPlayer, QuestStack questStack) {
+	public int getItemCount(Player entityPlayer, QuestStack questStack) {
 		if (destroyOnCollect) {
 			if (hasTag(questStack)) {
-				return getTag(questStack).getInteger("ItemCount");
+				return getTag(questStack).getInt("ItemCount");
 			}
 			return 0;
 		} else {
 			int itemCount = 0;
-			for (int i = 0; i < entityPlayer.inventory.getSizeInventory(); i++) {
-				ItemStack stackInSlot = entityPlayer.inventory.getStackInSlot(i);
+			for (int i = 0; i < entityPlayer.getInventory().getContainerSize(); i++) {
+				ItemStack stackInSlot = entityPlayer.getInventory().getItem(i);
 				if (!stackInSlot.isEmpty()) {
 					if (matches(questStack, stackInSlot)) {
 						itemCount += stackInSlot.getCount();
@@ -128,22 +129,23 @@ public class QuestLogicCollectItem extends AbstractQuestLogicRandomItem {
 	public void setItemCount(QuestStack questStack, int count) {
 		if (destroyOnCollect) {
 			initTag(questStack);
-			getTag(questStack).setInteger("ItemCount", count);
+			getTag(questStack).putInt("ItemCount", count);
 		}
 	}
 
 	public int getMaxItemCount(QuestStack questStack) {
 		if (hasTag(questStack)) {
-			return getTag(questStack).getInteger("MaxItemCount");
+			return getTag(questStack).getInt("MaxItemCount");
 		}
 		return 0;
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (destroyOnCollect && event instanceof EntityItemPickupEvent
 				&& !((EntityItemPickupEvent) event).getItem().getItem().isEmpty()) {
-			if (inSpecificDimension && entityPlayer.world.provider.getDimension() != dimensionID) {
+			//TODO: figure out what the fuck this is trying to check for
+			if (inSpecificDimension && entityPlayer.level.dimension() != Level.OVERWORLD) {
 				return null;
 			}
 
@@ -168,21 +170,21 @@ public class QuestLogicCollectItem extends AbstractQuestLogicRandomItem {
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 		if (!destroyOnCollect) {
 			int itemCount = getMaxItemCount(questStack);
-			for (int i = 0; i < entityPlayer.inventory.getSizeInventory(); i++) {
-				ItemStack stackInSlot = entityPlayer.inventory.getStackInSlot(i);
+			for (int i = 0; i < entityPlayer.getInventory().getContainerSize(); i++) {
+				ItemStack stackInSlot = entityPlayer.getInventory().getItem(i);
 				if (!stackInSlot.isEmpty()) {
 					if (matches(questStack, stackInSlot) && itemCount > 0) {
 						int newItemCount = Math.max(0, itemCount - stackInSlot.getCount());
 						int takenFromStack = itemCount - newItemCount;
-						entityPlayer.inventory.decrStackSize(i, takenFromStack);
+						entityPlayer.getInventory().decrStackSize(i, takenFromStack);
 						itemCount = newItemCount;
 					}
 				}
@@ -191,12 +193,12 @@ public class QuestLogicCollectItem extends AbstractQuestLogicRandomItem {
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
 	@Override
-	public int modifyXP(QuestStack questStack, EntityPlayer entityPlayer, int originalXp) {
+	public int modifyXP(QuestStack questStack, Player entityPlayer, int originalXp) {
 		return originalXp + getMaxItemCount(questStack) * xpPerItem;
 	}
 

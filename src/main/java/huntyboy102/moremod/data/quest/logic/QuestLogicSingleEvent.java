@@ -8,8 +8,8 @@ import huntyboy102.moremod.api.quest.QuestLogicState;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.util.MOJsonHelper;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Random;
@@ -42,12 +42,12 @@ public class QuestLogicSingleEvent extends AbstractQuestLogic {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return hasEventFired(questStack);
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		return objective;
 	}
@@ -58,7 +58,7 @@ public class QuestLogicSingleEvent extends AbstractQuestLogic {
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (!hasEventFired(questStack) && this.event.isInstance(event)) {
 			markComplete(questStack, entityPlayer);
 			setEventFired(questStack);
@@ -68,17 +68,17 @@ public class QuestLogicSingleEvent extends AbstractQuestLogic {
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
@@ -91,6 +91,6 @@ public class QuestLogicSingleEvent extends AbstractQuestLogic {
 
 	public void setEventFired(QuestStack questStack) {
 		initTag(questStack);
-		getTag(questStack).setBoolean("e", true);
+		getTag(questStack).putBoolean("e", true);
 	}
 }
