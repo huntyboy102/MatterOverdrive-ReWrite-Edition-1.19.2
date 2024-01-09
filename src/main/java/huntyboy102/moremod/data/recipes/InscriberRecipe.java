@@ -10,7 +10,7 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * @author shadowfacts
@@ -50,7 +50,7 @@ public class InscriberRecipe extends Recipe<TileEntityInscriber> {
 	public boolean matches(TileEntityInscriber machine) {
 		ItemStack primary = machine.getStackInSlot(TileEntityInscriber.MAIN_INPUT_SLOT_ID);
 		ItemStack secondary = machine.getStackInSlot(TileEntityInscriber.SEC_INPUT_SLOT_ID);
-		return ItemStack.areItemsEqual(primary, this.main) && ItemStack.areItemsEqual(secondary, this.sec);
+		return ItemStack.isSame(primary, this.main) && ItemStack.isSame(secondary, this.sec);
 	}
 
 	public ItemStack getOutput(TileEntityInscriber machine) {
