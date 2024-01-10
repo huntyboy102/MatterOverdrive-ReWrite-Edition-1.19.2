@@ -4,7 +4,7 @@ package huntyboy102.moremod.proxy;
 import huntyboy102.moremod.compat.MatterOverdriveCompat;
 import huntyboy102.moremod.gui.GuiAndroidHud;
 import huntyboy102.moremod.gui.GuiQuestHud;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.RenderHandler;
 import huntyboy102.moremod.client.model.MOModelLoader;
@@ -21,22 +21,18 @@ import huntyboy102.moremod.handler.weapon.CommonWeaponHandler;
 import huntyboy102.moremod.init.MatterOverdriveGuides;
 import huntyboy102.moremod.starmap.GalaxyClient;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.resources.IReloadableResourceManager;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.ModelLoaderRegistry;
-import net.minecraftforge.client.model.obj.OBJLoader;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.server.packs.resources.ReloadableResourceManager;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.network.NetworkEvent;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ClientProxy extends CommonProxy {
 	public static RenderHandler renderHandler;
 	public static KeyHandler keyHandler;
@@ -44,7 +40,7 @@ public class ClientProxy extends CommonProxy {
 	public static GuiAndroidHud androidHud;
 	public static HoloIcons holoIcons;
 	public static GuiQuestHud questHud;
-	public static FontRenderer moFontRender;
+	public static Font moFontRender;
 	private ClientWeaponHandler weaponHandler;
 	private MOModelLoader modelLoader;
 
@@ -53,9 +49,9 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	public static ClientProxy instance() {
-		if (MatterOverdrive.PROXY instanceof ClientProxy)
-			return (ClientProxy) MatterOverdrive.PROXY;
-		else if (MatterOverdrive.PROXY == null)
+		if (MatterOverdriveRewriteEdition.PROXY instanceof ClientProxy)
+			return (ClientProxy) MatterOverdriveRewriteEdition.PROXY;
+		else if (MatterOverdriveRewriteEdition.PROXY == null)
 			throw new UnsupportedOperationException("Attempted to access ClientProxy without it being initialized");
 		throw new UnsupportedOperationException("Attempted to access ClientProxy on server side");
 	}
@@ -79,18 +75,18 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	@Override
-	public EntityPlayer getPlayerEntity(MessageContext ctx) {
-		return (ctx.side.isClient() ? Minecraft.getMinecraft().player : super.getPlayerEntity(ctx));
+	public Player getPlayerEntity(NetworkEvent.Context ctx) {
+		return (ctx.getSender().getLevel().isClientSide ? Minecraft.getInstance().player : super.getPlayerEntity(ctx));
 	}
 
 	@Override
-	public void preInit(FMLPreInitializationEvent event) {
+	public void preInit(FMLCommonSetupEvent event) {
 		super.preInit(event);
 		OBJLoader.INSTANCE.addDomain(Reference.MOD_ID);
 		modelLoader = new MOModelLoader();
 		ModelLoaderRegistry.registerLoader(modelLoader);
 
-		Minecraft.getMinecraft().getResourcePackRepository().rprMetadataSerializer
+		Minecraft.getInstance().getResourcePackRepository().rprMetadataSerializer
 				.registerMetadataSectionType(new WeaponMetadataSectionSerializer(), WeaponMetadataSection.class);
 
 		renderHandler = new RenderHandler();
@@ -100,13 +96,13 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	@Override
-	public void init(FMLInitializationEvent event) {
+	public void init(FMLCommonSetupEvent event) {
 		super.init(event);
 
-		renderHandler.init(Minecraft.getMinecraft().world, Minecraft.getMinecraft().getTextureManager());
-		renderHandler.createEntityRenderers(Minecraft.getMinecraft().getRenderManager());
+		renderHandler.init(Minecraft.getInstance().level, Minecraft.getInstance().getTextureManager());
+		renderHandler.createEntityRenderers(Minecraft.getInstance().getEntityRenderDispatcher());
 
-		androidHud = new GuiAndroidHud(Minecraft.getMinecraft());
+		androidHud = new GuiAndroidHud(Minecraft.getInstance());
 		keyHandler = new KeyHandler();
 		mouseHandler = new MouseHandler();
 		holoIcons = new HoloIcons();
@@ -116,7 +112,7 @@ public class ClientProxy extends CommonProxy {
 		registerSubscribtions();
 
 		// renderHandler.createBlockRenderers();
-		renderHandler.createTileEntityRenderers(MatterOverdrive.CONFIG_HANDLER);
+		renderHandler.createTileEntityRenderers(MatterOverdriveRewriteEdition.CONFIG_HANDLER);
 		renderHandler.createBioticStatRenderers();
 		renderHandler.createStarmapRenderers();
 		renderHandler.createModels();
@@ -130,24 +126,24 @@ public class ClientProxy extends CommonProxy {
 		// renderHandler.registerBionicPartRenderers();
 		renderHandler.registerStarmapRenderers();
 
-		MatterOverdrive.CONFIG_HANDLER.subscribe(androidHud);
+		MatterOverdriveRewriteEdition.CONFIG_HANDLER.subscribe(androidHud);
 
-		weaponHandler.registerWeapon(MatterOverdrive.ITEMS.phaserRifle);
-		weaponHandler.registerWeapon(MatterOverdrive.ITEMS.phaser);
-		weaponHandler.registerWeapon(MatterOverdrive.ITEMS.omniTool);
-		weaponHandler.registerWeapon(MatterOverdrive.ITEMS.plasmaShotgun);
-		weaponHandler.registerWeapon(MatterOverdrive.ITEMS.ionSniper);
+		weaponHandler.registerWeapon(MatterOverdriveRewriteEdition.ITEMS.phaserRifle);
+		weaponHandler.registerWeapon(MatterOverdriveRewriteEdition.ITEMS.phaser);
+		weaponHandler.registerWeapon(MatterOverdriveRewriteEdition.ITEMS.omniTool);
+		weaponHandler.registerWeapon(MatterOverdriveRewriteEdition.ITEMS.plasmaShotgun);
+		weaponHandler.registerWeapon(MatterOverdriveRewriteEdition.ITEMS.ionSniper);
 
 		MatterOverdriveGuides.registerGuideElements(event);
-		moFontRender = new FontRenderer(Minecraft.getMinecraft().gameSettings,
+		moFontRender = new Font(Minecraft.getInstance().options,
 				new ResourceLocation(Reference.MOD_ID, "textures/font/ascii.png"),
-				Minecraft.getMinecraft().renderEngine, false);
-		((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
+				Minecraft.getInstance().getTextureManager(), false);
+		((ReloadableResourceManager) Minecraft.getInstance().getResourceManager())
 				.registerReloadListener(moFontRender);
 	}
 
 	@Override
-	public void postInit(FMLPostInitializationEvent event) {
+	public void postInit(FMLCommonSetupEvent event) {
 		MatterOverdriveGuides.registerGuides(event);
 	}
 
@@ -162,16 +158,16 @@ public class ClientProxy extends CommonProxy {
 
 	@Override
 	public boolean hasTranslation(String key) {
-		return I18n.hasKey(key);
+		return I18n.exists(key);
 	}
 
 	@Override
 	public String translateToLocal(String key, Object... params) {
-		return I18n.format(key, params);
+		return I18n.get(key, params);
 	}
 
 	@Override
 	public void matterToast(boolean b, long l) {
-		Minecraft.getMinecraft().getToastGui().add(new RegistryToast(b, l));
+		Minecraft.getInstance().getToasts().addToast(new RegistryToast(b, l));
 	}
 }
