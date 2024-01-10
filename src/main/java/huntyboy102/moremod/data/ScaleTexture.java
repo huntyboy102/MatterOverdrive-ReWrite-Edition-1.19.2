@@ -2,20 +2,16 @@
 package huntyboy102.moremod.data;
 
 import static org.lwjgl.opengl.GL11.GL_CLAMP;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glTranslatef;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 public class ScaleTexture {
 	int texW;
@@ -52,7 +48,7 @@ public class ScaleTexture {
 
 	public void render(int x, int y, int width, int height, int zLevel) {
 		// top
-		Minecraft.getMinecraft().renderEngine.bindTexture(location);
+		Minecraft.getInstance().textureManager.bindForSetup(location);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -68,85 +64,85 @@ public class ScaleTexture {
 		float centerUWidth = ((float) this.width / (float) texW) - (leftOffset + rightOffset);
 		float centerVHeight = ((float) this.height / (float) texH) - (topOffset + bottomOffset);
 
-		GlStateManager.pushMatrix();
-		glTranslatef(x, y, 0);
-		BufferBuilder wr = Tessellator.getInstance().getBuffer();
-		wr.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+		PoseStack poseStack = RenderSystem.getModelViewStack();
+		poseStack.pushPose();
+		poseStack.translate(x, y, 0);
+		VertexConsumer wr = Tesselator.getInstance().getBuilder();
 		// top left
-		wr.pos(0, this.topOffset, 0).tex(u, v + topOffset).endVertex();
-		wr.pos(this.leftOffset, this.topOffset, 0).tex(u + leftOffset, v + topOffset).endVertex();
-		wr.pos(this.leftOffset, 0, 0).tex(u + leftOffset, v).endVertex();
-		wr.pos(0, 0, 0).tex(u, v).endVertex();
+		wr.vertex(0, this.topOffset, 0).uv(u, v + topOffset).endVertex();
+		wr.vertex(this.leftOffset, this.topOffset, 0).uv(u + leftOffset, v + topOffset).endVertex();
+		wr.vertex(this.leftOffset, 0, 0).uv(u + leftOffset, v).endVertex();
+		wr.vertex(0, 0, 0).uv(u, v).endVertex();
 		// top middle
-		wr.pos(this.leftOffset, this.topOffset, 0).tex(u + leftOffset, v + topOffset).endVertex();
-		wr.pos(this.leftOffset + centerWidth, this.topOffset, 0).tex(u + leftOffset + centerUWidth, v + topOffset)
+		wr.vertex(this.leftOffset, this.topOffset, 0).uv(u + leftOffset, v + topOffset).endVertex();
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset, 0).uv(u + leftOffset + centerUWidth, v + topOffset)
 				.endVertex();
-		wr.pos(this.leftOffset + centerWidth, 0, 0).tex(u + leftOffset + centerUWidth, v).endVertex();
-		wr.pos(this.leftOffset, 0, 0).tex(u + leftOffset, v).endVertex();
+		wr.vertex(this.leftOffset + centerWidth, 0, 0).uv(u + leftOffset + centerUWidth, v).endVertex();
+		wr.vertex(this.leftOffset, 0, 0).uv(u + leftOffset, v).endVertex();
 		// top right
-		wr.pos(this.leftOffset + centerWidth, this.topOffset, 0).tex(u + leftOffset + centerUWidth, v + topOffset)
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset, 0).uv(u + leftOffset + centerUWidth, v + topOffset)
 				.endVertex();
-		wr.pos(this.leftOffset + centerWidth + this.rightOffset, this.topOffset, 0)
-				.tex(u + leftOffset + centerUWidth + rightOffset, v + topOffset).endVertex();
-		wr.pos(this.leftOffset + centerWidth + this.rightOffset, 0, 0)
-				.tex(u + leftOffset + centerUWidth + rightOffset, v).endVertex();
-		wr.pos(this.leftOffset + centerWidth, 0, 0).tex(u + leftOffset + centerUWidth, v).endVertex();
+		wr.vertex(this.leftOffset + centerWidth + this.rightOffset, this.topOffset, 0)
+				.uv(u + leftOffset + centerUWidth + rightOffset, v + topOffset).endVertex();
+		wr.vertex(this.leftOffset + centerWidth + this.rightOffset, 0, 0)
+				.uv(u + leftOffset + centerUWidth + rightOffset, v).endVertex();
+		wr.vertex(this.leftOffset + centerWidth, 0, 0).uv(u + leftOffset + centerUWidth, v).endVertex();
 		// middle left
-		wr.pos(0, this.topOffset + centerHeight, 0).tex(u, v + topOffset + centerVHeight).endVertex();
-		wr.pos(this.leftOffset, this.topOffset + centerHeight, 0).tex(u + leftOffset, v + topOffset + centerVHeight)
+		wr.vertex(0, this.topOffset + centerHeight, 0).uv(u, v + topOffset + centerVHeight).endVertex();
+		wr.vertex(this.leftOffset, this.topOffset + centerHeight, 0).uv(u + leftOffset, v + topOffset + centerVHeight)
 				.endVertex();
-		wr.pos(this.leftOffset, this.topOffset, 0).tex(u + leftOffset, v + topOffset).endVertex();
-		wr.pos(0, this.topOffset, 0).tex(u, v + topOffset).endVertex();
+		wr.vertex(this.leftOffset, this.topOffset, 0).uv(u + leftOffset, v + topOffset).endVertex();
+		wr.vertex(0, this.topOffset, 0).uv(u, v + topOffset).endVertex();
 		// middle
-		wr.pos(this.leftOffset, this.topOffset + centerHeight, 0).tex(u + leftOffset, v + topOffset + centerVHeight)
+		wr.vertex(this.leftOffset, this.topOffset + centerHeight, 0).uv(u + leftOffset, v + topOffset + centerVHeight)
 				.endVertex();
-		wr.pos(this.leftOffset + centerWidth, this.topOffset + centerHeight, 0)
-				.tex(u + leftOffset + centerUWidth, v + topOffset + centerVHeight).endVertex();
-		wr.pos(this.leftOffset + centerWidth, this.topOffset, 0).tex(u + leftOffset + centerUWidth, v + topOffset)
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset + centerHeight, 0)
+				.uv(u + leftOffset + centerUWidth, v + topOffset + centerVHeight).endVertex();
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset, 0).uv(u + leftOffset + centerUWidth, v + topOffset)
 				.endVertex();
-		wr.pos(this.leftOffset, this.topOffset, 0).tex(u + leftOffset, v + topOffset).endVertex();
+		wr.vertex(this.leftOffset, this.topOffset, 0).uv(u + leftOffset, v + topOffset).endVertex();
 		// middle right
-		wr.pos(this.leftOffset + centerWidth, this.topOffset + centerHeight, 0)
-				.tex(u + leftOffset + centerUWidth, v + topOffset + centerVHeight).endVertex();
-		wr.pos(this.leftOffset + centerWidth + this.rightOffset, this.topOffset + centerHeight, 0)
-				.tex(u + leftOffset + centerUWidth + rightOffset, v + topOffset + centerVHeight).endVertex();
-		wr.pos(this.leftOffset + centerWidth + this.rightOffset, this.topOffset, 0)
-				.tex(u + leftOffset + centerUWidth + rightOffset, v + topOffset).endVertex();
-		wr.pos(this.leftOffset + centerWidth, this.topOffset, 0).tex(u + leftOffset + centerUWidth, v + topOffset)
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset + centerHeight, 0)
+				.uv(u + leftOffset + centerUWidth, v + topOffset + centerVHeight).endVertex();
+		wr.vertex(this.leftOffset + centerWidth + this.rightOffset, this.topOffset + centerHeight, 0)
+				.uv(u + leftOffset + centerUWidth + rightOffset, v + topOffset + centerVHeight).endVertex();
+		wr.vertex(this.leftOffset + centerWidth + this.rightOffset, this.topOffset, 0)
+				.uv(u + leftOffset + centerUWidth + rightOffset, v + topOffset).endVertex();
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset, 0).uv(u + leftOffset + centerUWidth, v + topOffset)
 				.endVertex();
 		// bottom left
-		wr.pos(0, this.topOffset + centerHeight + this.bottomOffset, 0)
-				.tex(u, v + topOffset + centerVHeight + bottomOffset).endVertex();
-		wr.pos(this.leftOffset, this.topOffset + centerHeight + this.bottomOffset, 0)
-				.tex(u + leftOffset, v + topOffset + centerVHeight + bottomOffset).endVertex();
-		wr.pos(this.leftOffset, this.topOffset + centerHeight, 0).tex(u + leftOffset, v + topOffset + centerVHeight)
+		wr.vertex(0, this.topOffset + centerHeight + this.bottomOffset, 0)
+				.uv(u, v + topOffset + centerVHeight + bottomOffset).endVertex();
+		wr.vertex(this.leftOffset, this.topOffset + centerHeight + this.bottomOffset, 0)
+				.uv(u + leftOffset, v + topOffset + centerVHeight + bottomOffset).endVertex();
+		wr.vertex(this.leftOffset, this.topOffset + centerHeight, 0).uv(u + leftOffset, v + topOffset + centerVHeight)
 				.endVertex();
-		wr.pos(0, this.topOffset + centerHeight, 0).tex(u, v + topOffset + centerVHeight).endVertex();
+		wr.vertex(0, this.topOffset + centerHeight, 0).uv(u, v + topOffset + centerVHeight).endVertex();
 		// bottom middle
-		wr.pos(this.leftOffset, this.topOffset + centerHeight + this.bottomOffset, 0)
-				.tex(u + leftOffset, v + topOffset + centerVHeight + bottomOffset).endVertex();
-		wr.pos(this.leftOffset + centerWidth, this.topOffset + centerHeight + this.bottomOffset, 0)
-				.tex(u + leftOffset + centerUWidth, v + topOffset + centerVHeight + bottomOffset).endVertex();
-		wr.pos(this.leftOffset + centerWidth, this.topOffset + centerHeight, 0)
-				.tex(u + leftOffset + centerUWidth, v + topOffset + centerVHeight).endVertex();
-		wr.pos(this.leftOffset, this.topOffset + centerHeight, 0).tex(u + leftOffset, v + topOffset + centerVHeight)
+		wr.vertex(this.leftOffset, this.topOffset + centerHeight + this.bottomOffset, 0)
+				.uv(u + leftOffset, v + topOffset + centerVHeight + bottomOffset).endVertex();
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset + centerHeight + this.bottomOffset, 0)
+				.uv(u + leftOffset + centerUWidth, v + topOffset + centerVHeight + bottomOffset).endVertex();
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset + centerHeight, 0)
+				.uv(u + leftOffset + centerUWidth, v + topOffset + centerVHeight).endVertex();
+		wr.vertex(this.leftOffset, this.topOffset + centerHeight, 0).uv(u + leftOffset, v + topOffset + centerVHeight)
 				.endVertex();
 		// bottom right
-		wr.pos(this.leftOffset + centerWidth, this.topOffset + centerHeight + this.bottomOffset, 0)
-				.tex(u + leftOffset + centerUWidth, v + topOffset + centerVHeight + bottomOffset).endVertex();
-		wr.pos(this.leftOffset + centerWidth + this.rightOffset, this.topOffset + centerHeight + this.bottomOffset, 0)
-				.tex(u + leftOffset + centerUWidth + rightOffset, v + topOffset + centerVHeight + bottomOffset)
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset + centerHeight + this.bottomOffset, 0)
+				.uv(u + leftOffset + centerUWidth, v + topOffset + centerVHeight + bottomOffset).endVertex();
+		wr.vertex(this.leftOffset + centerWidth + this.rightOffset, this.topOffset + centerHeight + this.bottomOffset, 0)
+				.uv(u + leftOffset + centerUWidth + rightOffset, v + topOffset + centerVHeight + bottomOffset)
 				.endVertex();
-		wr.pos(this.leftOffset + centerWidth + this.rightOffset, this.topOffset + centerHeight, 0)
-				.tex(u + leftOffset + centerUWidth + rightOffset, v + topOffset + centerVHeight).endVertex();
-		wr.pos(this.leftOffset + centerWidth, this.topOffset + centerHeight, 0)
-				.tex(u + leftOffset + centerUWidth, v + topOffset + centerVHeight).endVertex();
-		Tessellator.getInstance().draw();
-		GlStateManager.popMatrix();
+		wr.vertex(this.leftOffset + centerWidth + this.rightOffset, this.topOffset + centerHeight, 0)
+				.uv(u + leftOffset + centerUWidth + rightOffset, v + topOffset + centerVHeight).endVertex();
+		wr.vertex(this.leftOffset + centerWidth, this.topOffset + centerHeight, 0)
+				.uv(u + leftOffset + centerUWidth, v + topOffset + centerVHeight).endVertex();
+		Tesselator.getInstance().end();
+		poseStack.popPose();
 	}
 
 	private int clamp(int value, int max) {
-		return MathHelper.clamp(value, 0, max);
+		return Mth.clamp(value, 0, max);
 	}
 
 	public void setLocation(ResourceLocation location) {

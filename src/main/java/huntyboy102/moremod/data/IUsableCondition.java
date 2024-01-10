@@ -1,8 +1,8 @@
 
 package huntyboy102.moremod.data;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.player.Player;
 
 public interface IUsableCondition {
-	boolean usableByPlayer(EntityPlayer player);
+	boolean usableByPlayer(Player player);
 }

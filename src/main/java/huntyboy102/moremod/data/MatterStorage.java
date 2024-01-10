@@ -3,9 +3,9 @@ package huntyboy102.moremod.data;
 
 import huntyboy102.moremod.api.matter.IMatterHandler;
 import huntyboy102.moremod.init.OverdriveFluids;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 public class MatterStorage extends FluidTank implements IMatterHandler {
 
@@ -56,7 +56,7 @@ public class MatterStorage extends FluidTank implements IMatterHandler {
 	public int modifyMatterStored(int amount) {
 		int lastAmount = getFluid() == null ? 0 : getFluid().amount;
 		int newAmount = lastAmount + amount;
-		newAmount = MathHelper.clamp(newAmount, 0, getCapacity());
+		newAmount = Mth.clamp(newAmount, 0, getCapacity());
 		setMatterStored(newAmount);
 		return lastAmount - newAmount;
 	}

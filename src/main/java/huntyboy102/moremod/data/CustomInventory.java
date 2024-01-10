@@ -2,12 +2,11 @@
 package huntyboy102.moremod.data;
 
 import huntyboy102.moremod.data.inventory.Slot;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.entity.player.Inventory;
@@ -54,12 +53,12 @@ public class CustomInventory extends Inventory {
 		this.usableCondition = condition;
 	}
 
-	public void readFromNBT(NBTTagCompound compound) {
-		NBTTagList nbttaglist = compound.getTagList("Items", 10);
-		for (int i = 0; i < nbttaglist.tagCount(); ++i) {
-			NBTTagCompound nbttagcompound1 = nbttaglist.getCompoundTagAt(i);
+	public void readFromNBT(CompoundTag compound) {
+		ListTag nbttaglist = compound.getList("Items", 10);
+		for (int i = 0; i < nbttaglist.size(); ++i) {
+			CompoundTag nbttagcompound1 = nbttaglist.getCompound(i);
 			byte b0 = nbttagcompound1.getByte("Slot");
-			if (nbttagcompound1.hasKey("id")) {
+			if (nbttagcompound1.hasUUID("id")) {
 				setInventorySlotContents(b0, new ItemStack(nbttagcompound1));
 			} else {
 				setInventorySlotContents(b0, ItemStack.EMPTY);
@@ -67,35 +66,35 @@ public class CustomInventory extends Inventory {
 		}
 	}
 
-	public void writeToNBT(NBTTagCompound compound, boolean toDisk) {
-		NBTTagList nbttaglist = new NBTTagList();
+	public void writeToNBT(CompoundTag compound, boolean toDisk) {
+		ListTag nbttaglist = new ListTag();
 
 		for (int i = 0; i < getSizeInventory(); ++i) {
 			writeSlotToNBT(nbttaglist, i, toDisk);
 		}
 
-		if (nbttaglist.tagCount() > 0) {
-			compound.setTag("Items", nbttaglist);
+		if (nbttaglist.size() > 0) {
+			compound.put("Items", nbttaglist);
 		}
 	}
 
-	protected void writeSlotToNBT(NBTTagList nbttaglist, int slotId, boolean toDisk) {
+	protected void writeSlotToNBT(ListTag nbttaglist, int slotId, boolean toDisk) {
 		Slot slot = getSlot(slotId);
 		if (slot != null) {
 			if (toDisk && !slot.getItem().isEmpty()) {
-				NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-				nbttagcompound1.setByte("Slot", (byte) slotId);
+				CompoundTag nbttagcompound1 = new CompoundTag();
+				nbttagcompound1.putByte("Slot", (byte) slotId);
 				if (!slot.getItem().isEmpty()) {
-					slot.getItem().writeToNBT(nbttagcompound1);
+					slot.getItem().save(nbttagcompound1);
 				}
-				nbttaglist.appendTag(nbttagcompound1);
+				nbttaglist.add(nbttagcompound1);
 			} else if (!toDisk && slot.sendsToClient()) {
-				NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-				nbttagcompound1.setByte("Slot", (byte) slotId);
+				CompoundTag nbttagcompound1 = new CompoundTag();
+				nbttagcompound1.putByte("Slot", (byte) slotId);
 				if (!slot.getItem().isEmpty()) {
-					slot.getItem().writeToNBT(nbttagcompound1);
+					slot.getItem().save(nbttagcompound1);
 				}
-				nbttaglist.appendTag(nbttagcompound1);
+				nbttaglist.add(nbttagcompound1);
 			}
 		}
 	}
@@ -124,7 +123,7 @@ public class CustomInventory extends Inventory {
 
 				return itemstack;
 			} else {
-				itemstack = slot.getItem().splitStack(size);
+				itemstack = slot.getItem().split(size);
 
 				if (slot.getItem().getCount() == 0) {
 					slot.setItem(ItemStack.EMPTY);
@@ -161,7 +160,7 @@ public class CustomInventory extends Inventory {
 				if (slot.getItem().isEmpty()) {
 					slot.setItem(itemStack);
 					return;
-				} else if (ItemStack.areItemStacksEqual(slot.getItem(), itemStack)
+				} else if (ItemStack.isSame(slot.getItem(), itemStack)
 						&& slot.getItem().getCount() < slot.getItem().getMaxStackSize()) {
 					int newStackSize = Math.min(slot.getItem().getCount() + itemStack.getCount(),
 							slot.getItem().getMaxStackSize());
@@ -209,18 +208,18 @@ public class CustomInventory extends Inventory {
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean isUsableByPlayer(Player player) {
 		return true;
 
 	}
 
 	@Override
-	public void openInventory(EntityPlayer entityPlayer) {
+	public void openInventory(Player entityPlayer) {
 
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer entityPlayer) {
+	public void closeInventory(Player entityPlayer) {
 
 	}
 
