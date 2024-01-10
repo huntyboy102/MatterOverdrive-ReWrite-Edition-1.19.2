@@ -5,9 +5,9 @@ import com.google.gson.JsonObject;
 import huntyboy102.moremod.api.dialog.IDialogNpc;
 import huntyboy102.moremod.gui.GuiDialog;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class DialogMessageBackToMain extends DialogMessageBack {
 	public DialogMessageBackToMain(JsonObject object) {
@@ -29,11 +29,11 @@ public class DialogMessageBackToMain extends DialogMessageBack {
 		super(messages, questions);
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	protected void setAsGuiActiveMessage(IDialogNpc npc, EntityPlayer player) {
-		if (Minecraft.getMinecraft().currentScreen instanceof GuiDialog) {
-			((GuiDialog) Minecraft.getMinecraft().currentScreen).setCurrentMessage(npc.getStartDialogMessage(player));
+	protected void setAsGuiActiveMessage(IDialogNpc npc, Player player) {
+		if (Minecraft.getInstance().screen instanceof GuiDialog) {
+			((GuiDialog) Minecraft.getInstance().screen).setCurrentMessage(npc.getStartDialogMessage(player));
 		}
 	}
 }

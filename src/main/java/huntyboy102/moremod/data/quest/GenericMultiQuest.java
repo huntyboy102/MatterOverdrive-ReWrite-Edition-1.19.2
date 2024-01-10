@@ -7,11 +7,11 @@ import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.entity.player.OverdriveExtendedProperties;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.util.MOStringHelper;
-import matteroverdrive.api.quest.*;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import huntyboy102.moremod.api.quest.*;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public boolean canBeAccepted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public boolean canBeAccepted(QuestStack questStack, Player entityPlayer) {
 		OverdriveExtendedProperties extendedProperties = MOPlayerCapabilityProvider.GetExtendedCapability(entityPlayer);
 		if (extendedProperties != null) {
 			for (IQuestLogic logic : logics) {
@@ -68,7 +68,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public String getTitle(QuestStack questStack, EntityPlayer entityPlayer) {
+	public String getTitle(QuestStack questStack, Player entityPlayer) {
 		String t = replaceVariables(MOStringHelper.translateToLocal("quest." + title + ".title"), entityPlayer);
 		if (sequential) {
 			t = logics[getCurrentObjective(questStack)].modifyTitle(questStack, t);
@@ -77,7 +77,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public String getInfo(QuestStack questStack, EntityPlayer entityPlayer) {
+	public String getInfo(QuestStack questStack, Player entityPlayer) {
 		if (sequential) {
 			String i;
 			if (MOStringHelper.hasTranslation("quest." + title + ".info." + getCurrentObjective(questStack))) {
@@ -95,7 +95,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public String getObjective(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public String getObjective(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return logics[objectiveIndex].modifyObjective(questStack, entityPlayer,
 				replaceVariables(MOStringHelper.translateToLocal("quest." + title + ".objective." + objectiveIndex),
 						entityPlayer),
@@ -103,7 +103,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public int getObjectivesCount(QuestStack questStack, EntityPlayer entityPlayer) {
+	public int getObjectivesCount(QuestStack questStack, Player entityPlayer) {
 		if (sequential) {
 			return getCurrentObjective(questStack) + 1;
 		} else {
@@ -112,7 +112,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return logics[objectiveIndex].isObjectiveCompleted(questStack, entityPlayer, 0);
 	}
 
@@ -131,7 +131,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public QuestState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		QuestState.Type type = null;
 		List<Integer> logicIds = null;
 		for (int i = 0; i < logics.length; i++) {
@@ -173,14 +173,14 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public void onCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onCompleted(QuestStack questStack, Player entityPlayer) {
 		for (IQuestLogic logic : logics) {
 			logic.onQuestCompleted(questStack, entityPlayer);
 		}
 	}
 
 	@Override
-	public int getXpReward(QuestStack questStack, EntityPlayer entityPlayer) {
+	public int getXpReward(QuestStack questStack, Player entityPlayer) {
 		int xp = xpReward;
 		for (IQuestLogic logic : logics) {
 			xp = logic.modifyXP(questStack, entityPlayer, xp);
@@ -189,7 +189,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public void addToRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void addToRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 		rewards.addAll(questRewards);
 		for (IQuestLogic logic : logics) {
 			logic.modifyRewards(questStack, entityPlayer, rewards);
@@ -202,7 +202,7 @@ public class GenericMultiQuest extends GenericQuest {
 	}
 
 	@Override
-	public void setCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void setCompleted(QuestStack questStack, Player entityPlayer) {
 		for (int i = 0; i < logics.length; i++) {
 			if (!logics[i].isObjectiveCompleted(questStack, entityPlayer, 0)) {
 				return;
@@ -217,18 +217,18 @@ public class GenericMultiQuest extends GenericQuest {
 
 	public int getCurrentObjective(QuestStack questStack) {
 		if (questStack.getTagCompound() != null) {
-			return MathHelper.clamp(questStack.getTagCompound().getByte("CurrentObjective"), 0, logics.length - 1);
+			return Mth.clamp(questStack.getTagCompound().getByte("CurrentObjective"), 0, logics.length - 1);
 		}
 		return 0;
 	}
 
 	public void setCurrentObjective(QuestStack questStack, int objective) {
 		if (questStack.getTagCompound() == null) {
-			questStack.setTagCompound(new NBTTagCompound());
+			questStack.setTagCompound(new CompoundTag());
 		}
 
-		questStack.getTagCompound().setByte("CurrentObjective",
-				(byte) MathHelper.clamp(objective, 0, logics.length - 1));
+		questStack.getTagCompound().putByte("CurrentObjective",
+				(byte) Mth.clamp(objective, 0, logics.length - 1));
 	}
 
 	public GenericMultiQuest setAutoComplete(boolean autoComplete) {

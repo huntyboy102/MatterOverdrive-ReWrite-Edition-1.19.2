@@ -9,13 +9,15 @@ import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.util.MOQuestHelper;
 import huntyboy102.moremod.data.quest.QuestBlock;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IInteractionObject;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Random;
@@ -37,10 +39,10 @@ public class QuestLogicBlockInteract extends AbstractQuestLogic {
 
 	public static void setBlockPosition(QuestStack questStack, BlockPos pos) {
 		if (questStack.getTagCompound() == null) {
-			questStack.setTagCompound(new NBTTagCompound());
+			questStack.setTagCompound(new CompoundTag());
 		}
 
-		questStack.getTagCompound().setLong("pos", pos.toLong());
+		questStack.getTagCompound().putLong("pos", pos.asLong());
 	}
 
 	@Override
@@ -61,16 +63,16 @@ public class QuestLogicBlockInteract extends AbstractQuestLogic {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return hasInteracted(questStack);
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		BlockPos pos = MOQuestHelper.getPosition(questStack);
 		if (pos != null) {
-			double distance = Math.sqrt(entityPlayer.getPosition().distanceSq(pos));
+			double distance = Math.sqrt(entityPlayer.getOnPos().distSqr(pos));
 			objective = objective.replace("$distance", Integer.toString((int) distance));
 		}
 		// objective = objective.replace("$containerName",containerName);
@@ -83,7 +85,7 @@ public class QuestLogicBlockInteract extends AbstractQuestLogic {
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (event instanceof PlayerInteractEvent.RightClickBlock) {
 			PlayerInteractEvent interactEvent = (PlayerInteractEvent) event;
 			if (!hasInteracted(questStack)) {
@@ -95,19 +97,28 @@ public class QuestLogicBlockInteract extends AbstractQuestLogic {
 				}
 
 				if (mustBeInteractable) {
-					TileEntity tileEntity = interactEvent.getWorld().getTileEntity(interactEvent.getPos());
-					if (!(tileEntity instanceof IInteractionObject)) {
+					BlockEntity tileEntity = interactEvent.getLevel().getBlockEntity(interactEvent.getPos());
+
+					if (!(tileEntity instanceof MenuProvider)) {
 						return null;
 					}
 
-					if (regex != null && ((!((IInteractionObject) tileEntity).hasCustomName())
-							|| !((IInteractionObject) tileEntity).getName().matches(regex))) {
+					MenuProvider menuProvider = (MenuProvider) tileEntity;
+					Player playerEntity = interactEvent.getEntity();
+
+					if (regex != null && ((!menuProvider.getDisplayName().getString().equals(regex)))) {
 						return null;
 					}
 				}
 
 				if (destoryBlock && pos != null) {
-					((PlayerInteractEvent) event).getWorld().setBlockToAir(pos);
+					Level world = ((PlayerInteractEvent) event).getLevel();
+					Player player = ((PlayerInteractEvent) event).getEntity();
+
+					world.removeBlock(pos, true);
+
+					// Notify clients of the block removal
+					world.levelEvent(player, 2001, pos, Block.getId(world.getBlockState(pos)));
 				}
 
 				setInteracted(questStack, true);
@@ -119,17 +130,17 @@ public class QuestLogicBlockInteract extends AbstractQuestLogic {
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
@@ -142,8 +153,8 @@ public class QuestLogicBlockInteract extends AbstractQuestLogic {
 
 	public void setInteracted(QuestStack questStack, boolean interacted) {
 		if (questStack.getTagCompound() == null) {
-			questStack.setTagCompound(new NBTTagCompound());
+			questStack.setTagCompound(new CompoundTag());
 		}
-		questStack.getTagCompound().setBoolean("interacted", interacted);
+		questStack.getTagCompound().putBoolean("interacted", interacted);
 	}
 }

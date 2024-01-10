@@ -15,13 +15,13 @@ import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.entity.EntityVillagerMadScientist;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.util.MOStringHelper;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.data.dialog.DialogMessage;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Random;
@@ -53,13 +53,13 @@ public class QuestLogicConversation extends AbstractQuestLogic {
 			JsonArray givenArray = jsonObject.getAsJsonArray("given");
 			given = new IDialogOption[givenArray.size()];
 			for (int i = 0; i < givenArray.size(); i++) {
-				given[i] = MatterOverdrive.DIALOG_ASSEMBLER.parseOption(givenArray.get(i),
-						MatterOverdrive.DIALOG_REGISTRY);
+				given[i] = MatterOverdriveRewriteEdition.DIALOG_ASSEMBLER.parseOption(givenArray.get(i),
+						MatterOverdriveRewriteEdition.DIALOG_REGISTRY);
 			}
 		}
 		if (jsonObject.has("target")) {
-			targetOption = MatterOverdrive.DIALOG_ASSEMBLER.parseOption(jsonObject.get("target"),
-					MatterOverdrive.DIALOG_REGISTRY);
+			targetOption = MatterOverdriveRewriteEdition.DIALOG_ASSEMBLER.parseOption(jsonObject.get("target"),
+					MatterOverdriveRewriteEdition.DIALOG_REGISTRY);
 			if (targetOption == null) {
 				throw new MORuntimeException("Conversation Quest Logic must have a target dialog option");
 			}
@@ -74,12 +74,12 @@ public class QuestLogicConversation extends AbstractQuestLogic {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return hasTalked(questStack);
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		objective = objective.replace("$target", MOStringHelper.translateToLocal("entity." + npcType2 + ".name"));
 		return objective;
@@ -91,7 +91,7 @@ public class QuestLogicConversation extends AbstractQuestLogic {
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (event instanceof MOEventDialogInteract) {
 			if (((MOEventDialogInteract) event).npc instanceof EntityVillagerMadScientist
 					&& targetOption.equalsOption(((MOEventDialogInteract) event).dialogOption)) {
@@ -112,33 +112,33 @@ public class QuestLogicConversation extends AbstractQuestLogic {
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
 	public boolean isTarget(IDialogNpc npc) {
-		EntityLiving entity = npc.getEntity();
+		LivingEntity entity = npc.getEntity();
 		System.out.println("npcType2: " + npcType);
 		System.out.println("entity: " + entity);
-		System.out.println("newname check: " + EntityList.getKey(entity));
-		System.out.println("namedEntry : " + regex);
 
-		if (EntityList.getEntityString(entity).matches(regex)) {
+		EntityType<?> entityType = entity.getType();
+
+		if (entityType != null && entityType.getDescriptionId().matches(regex)) {
 			System.out.println("false");
-			return npcType.equals(EntityList.getEntityString(entity));
+			return npcType.equals(entityType.getDescriptionId());
 		}
 		System.out.println("true");
-		return npcType.equals(EntityList.getEntityString(entity));
+		return npcType.equals(entityType.getDescriptionId());
 	}
 
 	public boolean hasTalked(QuestStack questStack) {
@@ -150,8 +150,8 @@ public class QuestLogicConversation extends AbstractQuestLogic {
 
 	public void setTalked(QuestStack questStack, boolean talked) {
 		if (questStack.getTagCompound() == null) {
-			questStack.setTagCompound(new NBTTagCompound());
+			questStack.setTagCompound(new CompoundTag());
 		}
-		questStack.getTagCompound().setBoolean("talked", talked);
+		questStack.getTagCompound().putBoolean("talked", talked);
 	}
 }

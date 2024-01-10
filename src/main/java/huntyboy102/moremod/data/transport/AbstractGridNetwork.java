@@ -12,10 +12,10 @@ import huntyboy102.moremod.api.transport.IGridNetwork;
 import huntyboy102.moremod.api.transport.IGridNode;
 import huntyboy102.moremod.util.MOLog;
 import huntyboy102.moremod.handler.matter_network.GridNetworkHandler;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 
 public abstract class AbstractGridNetwork<T extends IGridNode> implements IGridNetwork<T> {
 	private final Class<T> nodeTypes;
@@ -29,19 +29,19 @@ public abstract class AbstractGridNetwork<T extends IGridNode> implements IGridN
 	}
 
 	@Override
-	public void onNodeDestroy(final IBlockState blockState, final T node) {
+	public void onNodeDestroy(final BlockState blockState, final T node) {
 		removeNode(node);
 
 		if (nodes.size() > 0) {
 			ConnectionPathfind<T> pathfind = new ConnectionPathfind(node, nodeTypes);
 			List<T> connections = new ArrayList<>();
 
-			for (EnumFacing dir : EnumFacing.VALUES) {
+			for (Direction dir : Direction.values()) {
 				if (node.canConnectFromSide(blockState, dir)) {
 					BlockPos otherNodePos = node.getNodePos().offset(dir);
-					if (node.getNodeWorld().isBlockLoaded(otherNodePos)) {
-						TileEntity otherNodeTile = node.getNodeWorld().getTileEntity(otherNodePos);
-						IBlockState otherNodeBlockState = node.getNodeWorld().getBlockState(otherNodePos);
+					if (node.getNodeWorld().isAreaLoaded(otherNodePos, 1)) {
+						BlockEntity otherNodeTile = node.getNodeWorld().getBlockEntity(otherNodePos);
+						BlockState otherNodeBlockState = node.getNodeWorld().getBlockState(otherNodePos);
 						if (nodeTypes.isInstance(otherNodeTile)) {
 							T otherNode = nodeTypes.cast(otherNodeTile);
 							if (node.canConnectToNetworkNode(blockState, otherNode, dir) && otherNode

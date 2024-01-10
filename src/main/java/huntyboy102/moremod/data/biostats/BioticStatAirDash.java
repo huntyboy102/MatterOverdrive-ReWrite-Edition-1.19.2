@@ -2,25 +2,27 @@
 package huntyboy102.moremod.data.biostats;
 
 import com.google.common.collect.Multimap;
+import huntyboy102.moremod.client.render.HoloIcons;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.MOLog;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class BioticStatAirDash extends AbstractBioticStat {
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private int lastClickTime;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private int clickCount;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private boolean hasNotReleased;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private boolean hasDashed;
 
 	public BioticStatAirDash(String name, int xp) {
@@ -29,18 +31,18 @@ public class BioticStatAirDash extends AbstractBioticStat {
 
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
-		if (android.getPlayer().world.isRemote) {
+		if (android.getPlayer().level.isClientSide) {
 			manageDashing(android);
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void manageDashing(AndroidPlayer android) {
-		EntityPlayerSP playerSP = (EntityPlayerSP) android.getPlayer();
+		LocalPlayer playerSP = (LocalPlayer) android.getPlayer();
 
-		if (!playerSP.onGround) {
+		if (!playerSP.isOnGround()) {
 			if (!hasDashed) {
-				if (Minecraft.getMinecraft().gameSettings.keyBindForward.isKeyDown()) {
+				if (Minecraft.getInstance().options.keyUp.isDown()) {
 					if (!hasNotReleased) {
 						hasNotReleased = true;
 						if (lastClickTime > 0) {
@@ -71,15 +73,15 @@ public class BioticStatAirDash extends AbstractBioticStat {
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
-	private void dash(EntityPlayerSP playerSP) {
-		Vec3d look = playerSP.getLookVec().add(0, 0.75, 0).normalize();
-		playerSP.addVelocity(look.x, look.y, look.z);
+	@OnlyIn(Dist.CLIENT)
+	private void dash(LocalPlayer playerSP) {
+		Vec3 look = playerSP.getLookAngle().add(0, 0.75, 0).normalize();
+		playerSP.setDeltaMovement(look.x, look.y, look.z);
 		for (int i = 0; i < 30; i++) {
-			playerSP.world.spawnParticle(EnumParticleTypes.CLOUD,
-					playerSP.posX + playerSP.getRNG().nextGaussian() * 0.5,
-					playerSP.posY + playerSP.getRNG().nextFloat() * playerSP.getEyeHeight(),
-					playerSP.posZ + playerSP.getRNG().nextGaussian() * 0.5, -look.x, -look.z, -look.z);
+			playerSP.level.addParticle(ParticleTypes.CLOUD,
+					playerSP.getX() + playerSP.getRandom().nextGaussian() * 0.5,
+					playerSP.getY() + playerSP.getRandom().nextFloat() * playerSP.getEyeHeight(),
+					playerSP.getZ() + playerSP.getRandom().nextGaussian() * 0.5, -look.x, -look.z, -look.z);
 		}
 	}
 

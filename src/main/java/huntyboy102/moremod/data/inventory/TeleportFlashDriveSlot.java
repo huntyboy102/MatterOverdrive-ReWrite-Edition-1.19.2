@@ -3,10 +3,10 @@ package huntyboy102.moremod.data.inventory;
 
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.proxy.ClientProxy;
-import matteroverdrive.MatterOverdrive;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class TeleportFlashDriveSlot extends Slot {
 	public TeleportFlashDriveSlot(boolean isMainSlot) {
@@ -14,10 +14,10 @@ public class TeleportFlashDriveSlot extends Slot {
 	}
 
 	public boolean isValidForSlot(ItemStack item) {
-		return item != null && item.getItem() == MatterOverdrive.ITEMS.transportFlashDrive;
+		return item != null && item.getItem() == MatterOverdriveRewriteEdition.ITEMS.transportFlashDrive;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public HoloIcon getHoloIcon() {
 		return ClientProxy.holoIcons.getIcon("flash_drive");
 	}

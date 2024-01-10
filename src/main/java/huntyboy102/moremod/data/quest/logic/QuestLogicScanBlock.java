@@ -10,10 +10,10 @@ import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.data.quest.QuestBlock;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Random;
@@ -50,12 +50,12 @@ public class QuestLogicScanBlock extends AbstractQuestLogicBlock {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return getBlockScan(questStack) >= getMaxBlockScan(questStack);
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		objective = replaceBlockNameInText(objective);
 		objective = objective.replace("$scanAmount", Integer.toString(getBlockScan(questStack)));
@@ -69,10 +69,10 @@ public class QuestLogicScanBlock extends AbstractQuestLogicBlock {
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		if (event instanceof MOEventScan) {
 			MOEventScan eventScan = (MOEventScan) event;
-			if (eventScan.position.typeOfHit == RayTraceResult.Type.BLOCK) {
+			if (eventScan.position.typeOfHit == BlockHitResult.Type.BLOCK) {
 				if (onlyDestroyable) {
 					if (eventScan.scannerStack.getItem() instanceof IBlockScanner
 							&& !((IBlockScanner) eventScan.scannerStack.getItem())
@@ -81,7 +81,7 @@ public class QuestLogicScanBlock extends AbstractQuestLogicBlock {
 					}
 				}
 
-				IBlockState state = entityPlayer.world.getBlockState(eventScan.position.getBlockPos());
+				BlockState state = entityPlayer.level.getBlockState(eventScan.position.getBlockPos());
 				if (block != null && areBlocksTheSame(state)) {
 					if (getBlockScan(questStack) < getMaxBlockScan(questStack)) {
 						setBlocScan(questStack, getBlockScan(questStack) + 1);
@@ -102,28 +102,28 @@ public class QuestLogicScanBlock extends AbstractQuestLogicBlock {
 	}
 
 	@Override
-	public int modifyXP(QuestStack questStack, EntityPlayer entityPlayer, int originalXp) {
+	public int modifyXP(QuestStack questStack, Player entityPlayer, int originalXp) {
 		return originalXp + getMaxBlockScan(questStack) * xpPerBlock;
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
 	protected void setMaxBlockScan(QuestStack questStack, int maxBlockScan) {
 		initTag(questStack);
-		getTag(questStack).setShort("MaxBlockScan", (short) maxBlockScan);
+		getTag(questStack).putShort("MaxBlockScan", (short) maxBlockScan);
 	}
 
 	protected int getMaxBlockScan(QuestStack questStack) {
@@ -142,7 +142,7 @@ public class QuestLogicScanBlock extends AbstractQuestLogicBlock {
 
 	protected void setBlocScan(QuestStack questStack, int blockScan) {
 		initTag(questStack);
-		getTag(questStack).setShort("BlockScan", (short) blockScan);
+		getTag(questStack).putShort("BlockScan", (short) blockScan);
 	}
 
 	public QuestLogicScanBlock setOnlyDestroyable(boolean onlyDestroyable) {

@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 
 import huntyboy102.moremod.data.quest.QuestBlock;
 import huntyboy102.moremod.data.quest.QuestItem;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.ItemStack;
 
 public abstract class AbstractQuestLogicBlock extends AbstractQuestLogic {
 	protected QuestBlock block;
@@ -34,10 +34,10 @@ public abstract class AbstractQuestLogicBlock extends AbstractQuestLogic {
 
 	protected boolean areBlockStackTheSame(ItemStack stack) {
 		return blockStack.getItemStack().isItemEqual(stack)
-				&& ItemStack.areItemStackTagsEqual(blockStack.getItemStack(), stack);
+				&& ItemStack.isSameItemSameTags(blockStack.getItemStack(), stack);
 	}
 
-	protected boolean areBlocksTheSame(IBlockState blockState) {
+	protected boolean areBlocksTheSame(BlockState blockState) {
 		return this.block.isTheSame(blockState);
 	}
 

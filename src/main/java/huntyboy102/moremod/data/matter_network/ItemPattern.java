@@ -3,9 +3,9 @@ package huntyboy102.moremod.data.matter_network;
 
 import huntyboy102.moremod.util.MatterDatabaseHelper;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 
 public class ItemPattern {
 	private int itemID;
@@ -21,7 +21,7 @@ public class ItemPattern {
 	}
 
 	public ItemPattern(ItemStack itemStack, int progress) {
-		this(Item.getIdFromItem(itemStack.getItem()), itemStack.getItemDamage(), progress);
+		this(Item.getId(itemStack.getItem()), itemStack.getDamageValue(), progress);
 	}
 
 	public ItemPattern(int itemID) {
@@ -38,7 +38,7 @@ public class ItemPattern {
 		this.progress = progress;
 	}
 
-	public ItemPattern(NBTTagCompound tagCompound) {
+	public ItemPattern(CompoundTag tagCompound) {
 		readFromNBT(tagCompound);
 	}
 
@@ -65,22 +65,22 @@ public class ItemPattern {
 	}
 
 	public ItemStack toItemStack(boolean withInfo) {
-		ItemStack itemStack = new ItemStack(Item.getItemById(itemID));
-		itemStack.setItemDamage(damage);
+		ItemStack itemStack = new ItemStack(Item.byId(itemID));
+		itemStack.setDamageValue(damage);
 		if (withInfo) {
-			itemStack.setTagCompound(new NBTTagCompound());
-			itemStack.getTagCompound().setByte(MatterDatabaseHelper.PROGRESS_TAG_NAME, (byte) progress);
+			itemStack.setTag(new CompoundTag());
+			itemStack.getTag().putByte(MatterDatabaseHelper.PROGRESS_TAG_NAME, (byte) progress);
 		}
 		return itemStack;
 	}
 
-	public void writeToNBT(NBTTagCompound nbtTagCompound) {
-		nbtTagCompound.setShort("id", (short) itemID);
-		nbtTagCompound.setByte(MatterDatabaseHelper.PROGRESS_TAG_NAME, (byte) progress);
-		nbtTagCompound.setShort("Damage", (short) damage);
+	public void writeToNBT(CompoundTag nbtTagCompound) {
+		nbtTagCompound.putShort("id", (short) itemID);
+		nbtTagCompound.putByte(MatterDatabaseHelper.PROGRESS_TAG_NAME, (byte) progress);
+		nbtTagCompound.putShort("Damage", (short) damage);
 	}
 
-	public void readFromNBT(NBTTagCompound nbtTagCompound) {
+	public void readFromNBT(CompoundTag nbtTagCompound) {
 		itemID = nbtTagCompound.getShort("id");
 		progress = nbtTagCompound.getByte(MatterDatabaseHelper.PROGRESS_TAG_NAME);
 		damage = nbtTagCompound.getShort("Damage");
@@ -111,12 +111,12 @@ public class ItemPattern {
 	}
 
 	public Item getItem() {
-		return Item.getItemById(getItemID());
+		return Item.byId(getItemID());
 	}
 
 	public boolean equals(ItemStack itemStack) {
 		if (itemStack != null) {
-			return getDamage() == itemStack.getItemDamage() && getItemID() == Item.getIdFromItem(itemStack.getItem());
+			return getDamage() == itemStack.getDamageValue() && getItemID() == Item.getId(itemStack.getItem());
 		}
 		return false;
 	}

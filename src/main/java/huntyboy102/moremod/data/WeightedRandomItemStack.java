@@ -6,17 +6,17 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
 
-public class WeightedRandomItemStack extends WeightedRandom.Item {
+public class WeightedRandomItemStack {
 	private final ItemStack stack;
+	private final int weight;
 
 	public WeightedRandomItemStack(@Nonnull ItemStack stack) {
-
 		this(stack, 100);
 	}
 
 	public WeightedRandomItemStack(@Nonnull ItemStack stack, int weight) {
-		super();
 		this.stack = stack;
+		this.weight = weight;
 	}
 
 	public ItemStack getStack() {
@@ -25,5 +25,9 @@ public class WeightedRandomItemStack extends WeightedRandom.Item {
 			return null;
 		}
 		return stack.copy();
+	}
+
+	public int getWeight() {
+		return weight;
 	}
 }

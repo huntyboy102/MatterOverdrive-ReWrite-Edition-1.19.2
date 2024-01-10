@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.data.matter;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class OreHandler extends MatterEntryHandlerAbstract<ItemStack> {
 	private final int matter;

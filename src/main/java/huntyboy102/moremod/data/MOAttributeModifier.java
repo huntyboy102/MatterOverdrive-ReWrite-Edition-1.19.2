@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.data;
 
-import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import java.util.UUID;
 

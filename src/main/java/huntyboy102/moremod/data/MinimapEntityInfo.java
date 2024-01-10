@@ -2,9 +2,9 @@
 package huntyboy102.moremod.data;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
 
 public class MinimapEntityInfo {
 	private boolean isAttacking;
@@ -13,16 +13,16 @@ public class MinimapEntityInfo {
 	public MinimapEntityInfo() {
 	}
 
-	public MinimapEntityInfo(EntityLivingBase entityLivingBase, EntityPlayer player) {
-		if (entityLivingBase instanceof EntityLiving && ((EntityLiving) entityLivingBase).getAttackTarget() != null) {
-			isAttacking = player.equals(((EntityLiving) entityLivingBase).getAttackTarget());
+	public MinimapEntityInfo(LivingEntity entityLivingBase, Player player) {
+		if (entityLivingBase instanceof Mob && ((Mob) entityLivingBase).getTarget() != null) {
+			isAttacking = player.equals(((Mob) entityLivingBase).getTarget());
 		}
-		entityID = entityLivingBase.getEntityId();
+		entityID = entityLivingBase.getId();
 	}
 
-	public static boolean hasInfo(EntityLivingBase entityLivingBase, EntityPlayer player) {
-		return entityLivingBase instanceof EntityLiving && ((EntityLiving) entityLivingBase).getAttackTarget() != null
-				&& player.equals(((EntityLiving) entityLivingBase).getAttackTarget());
+	public static boolean hasInfo(LivingEntity entityLivingBase, Player player) {
+		return entityLivingBase instanceof Mob && ((Mob) entityLivingBase).getTarget() != null
+				&& player.equals(((Mob) entityLivingBase).getTarget());
 	}
 
 	public MinimapEntityInfo writeToBuffer(ByteBuf buf) {

@@ -3,24 +3,24 @@ package huntyboy102.moremod.data;
 
 import huntyboy102.moremod.data.inventory.Slot;
 import huntyboy102.moremod.machines.MOTileEntityMachine;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class TileEntityCustomInventory extends CustomInventory {
-	final TileEntity entity;
+public class BlockEntityCustomInventory extends CustomInventory {
+	final BlockEntity entity;
 
-	public TileEntityCustomInventory(MOTileEntityMachine entity, String name) {
+	public BlockEntityCustomInventory(MOTileEntityMachine entity, String name) {
 		this(entity, name, new ArrayList<>());
 	}
 
-	public TileEntityCustomInventory(TileEntity entity, String name, Collection<Slot> slots) {
+	public BlockEntityCustomInventory(BlockEntity entity, String name, Collection<Slot> slots) {
 		this(entity, name, slots, null);
 	}
 
-	public TileEntityCustomInventory(TileEntity entity, String name, Collection<Slot> slots,
+	public BlockEntityCustomInventory(BlockEntity entity, String name, Collection<Slot> slots,
 									 IUsableCondition usableCondition) {
 		super(name, slots, usableCondition);
 		this.entity = entity;
@@ -29,17 +29,17 @@ public class TileEntityCustomInventory extends CustomInventory {
 	@Override
 	public void markDirty() {
 		if (this.entity != null) {
-			this.entity.markDirty();
+			this.entity.setRemoved();
 		}
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean isUsableByPlayer(Player player) {
 		if (usableCondition != null) {
 			return usableCondition.usableByPlayer(player);
 		}
-		return entity.getWorld().getTileEntity(entity.getPos()) == entity
-				&& player.getDistanceSq((double) entity.getPos().getX() + 0.5D, (double) entity.getPos().getY() + 0.5D,
-						(double) entity.getPos().getZ() + 0.5D) <= 64.0D;
+		return entity.getLevel().getBlockEntity(entity.getBlockPos()) == entity
+				&& player.distanceToSqr((double) entity.getBlockPos().getX() + 0.5D, (double) entity.getBlockPos().getY() + 0.5D,
+						(double) entity.getBlockPos().getZ() + 0.5D) <= 64.0D;
 	}
 }

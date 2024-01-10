@@ -4,8 +4,8 @@ package huntyboy102.moremod.data.biostats;
 import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 
@@ -25,10 +25,10 @@ public class BioticStatInertialDampers extends AbstractBioticStat {
 	public String getDetails(int level) {
 		if (level == 1) {
 			return MOStringHelper.translateToLocal(getUnlocalizedDetails(),
-					TextFormatting.GREEN + DecimalFormat.getPercentInstance().format(1 * 0.5f) + TextFormatting.GRAY);
+					ChatFormatting.GREEN + DecimalFormat.getPercentInstance().format(1 * 0.5f) + ChatFormatting.GRAY);
 		} else {
 			return MOStringHelper.translateToLocal(getUnlocalizedDetails(),
-					TextFormatting.GREEN + DecimalFormat.getPercentInstance().format(2 * 0.5f) + TextFormatting.GRAY);
+					ChatFormatting.GREEN + DecimalFormat.getPercentInstance().format(2 * 0.5f) + ChatFormatting.GRAY);
 		}
 	}
 

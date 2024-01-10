@@ -4,7 +4,7 @@ package huntyboy102.moremod.data.biostats;
 import com.google.common.collect.Multimap;
 
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public class BioticStatStepAssist extends AbstractBioticStat {
@@ -15,8 +15,8 @@ public class BioticStatStepAssist extends AbstractBioticStat {
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
 		if (android.getEnergyStored() > 0) {
-			if (android.getPlayer().stepHeight < 1) {
-				android.getPlayer().stepHeight = 1;
+			if (android.getPlayer().getStepHeight() < 1) {
+				android.getPlayer().getStepHeight() = 1;
 			}
 		}
 	}
@@ -64,6 +64,6 @@ public class BioticStatStepAssist extends AbstractBioticStat {
 	@Override
 	public void onUnlearn(AndroidPlayer androidPlayer, int level) {
 		super.onUnlearn(androidPlayer, level);
-		androidPlayer.getPlayer().stepHeight = 0.5f;
+		androidPlayer.getPlayer().getStepHeight() = 0.5f;
 	}
 }

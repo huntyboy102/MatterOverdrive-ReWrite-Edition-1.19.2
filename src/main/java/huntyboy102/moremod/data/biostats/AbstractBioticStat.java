@@ -9,18 +9,19 @@ import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.client.render.HoloIcons;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.MOStringHelper;
-import matteroverdrive.api.android.BionicStatGuiInfo;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import huntyboy102.moremod.api.android.BionicStatGuiInfo;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.data.models.model.TextureMapping;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.ChatFormatting;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public abstract class AbstractBioticStat implements IBioticStat {
 	protected String name;
 	boolean showOnHud;
 	boolean showOnWheel;
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
     HoloIcon icon;
 	private int xp;
 	private IBioticStat root;
@@ -72,7 +73,7 @@ public abstract class AbstractBioticStat implements IBioticStat {
 		if (isLocked(android, level)) {
 			return false;
 		}
-		if (requiredItems.size() > 0 && !android.getPlayer().capabilities.isCreativeMode) {
+		if (requiredItems.size() > 0 && !android.getPlayer().getAbilities().instabuild) {
 			for (ItemStack item : requiredItems) {
 
 				if (!hasItem(android, item)) {
@@ -81,7 +82,7 @@ public abstract class AbstractBioticStat implements IBioticStat {
 			}
 		}
 		return android.isAndroid()
-				&& (android.getPlayer().capabilities.isCreativeMode || android.getPlayer().experienceLevel >= xp);
+				&& (android.getPlayer().getAbilities().instabuild || android.getPlayer().experienceLevel >= xp);
 	}
 
 	@Override
@@ -91,9 +92,10 @@ public abstract class AbstractBioticStat implements IBioticStat {
 
 	protected boolean hasItem(AndroidPlayer player, ItemStack stack) {
 		int amountCount = stack.getCount();
-		for (int i = 0; i < player.getPlayer().inventory.getSizeInventory(); i++) {
-			ItemStack s = player.getPlayer().inventory.getStackInSlot(i);
-			if (!s.isEmpty() && s.isItemEqual(stack)) {
+
+		for (int i = 0; i < player.getPlayer().getInventory().getContainerSize(); i++) {
+			ItemStack s = player.getPlayer().getInventory().getItem(i);
+			if (!s.isEmpty() && s.sameItem(stack)) {
 				amountCount -= s.getCount();
 			}
 		}
@@ -103,7 +105,7 @@ public abstract class AbstractBioticStat implements IBioticStat {
 
 	@Override
 	public void onUnlock(AndroidPlayer android, int level) {
-		android.getPlayer().addExperienceLevel(-xp);
+		android.getPlayer().giveExperiencePoints(-xp);
 		consumeItems(android);
 	}
 
@@ -117,11 +119,11 @@ public abstract class AbstractBioticStat implements IBioticStat {
 	protected void consumeItems(AndroidPlayer androidPlayer) {
 		for (ItemStack itemStack : requiredItems) {
 			int itemCount = itemStack.getCount();
-			for (int j = 0; j < androidPlayer.getPlayer().inventory.getSizeInventory(); j++) {
-				ItemStack pStack = androidPlayer.getPlayer().inventory.getStackInSlot(j);
-				if (!pStack.isEmpty() && pStack.isItemEqual(itemStack)) {
+			for (int j = 0; j < androidPlayer.getPlayer().getInventory().getContainerSize(); j++) {
+				ItemStack pStack = androidPlayer.getPlayer().getInventory().getItem(j);
+				if (!pStack.isEmpty() && pStack.sameItem(itemStack)) {
 					int countShouldTake = Math.min(itemCount, pStack.getCount());
-					androidPlayer.getPlayer().inventory.decrStackSize(j, countShouldTake);
+					androidPlayer.getPlayer().getInventory().decrStackSize(j, countShouldTake);
 					itemCount -= countShouldTake;
 				}
 
@@ -134,15 +136,15 @@ public abstract class AbstractBioticStat implements IBioticStat {
 
 	@Override
 	public void onTooltip(AndroidPlayer android, int level, List<String> list, int mouseX, int mouseY) {
-		String name = TextFormatting.BOLD + getDisplayName(android, level);
+		String name = ChatFormatting.BOLD + getDisplayName(android, level);
 		if (maxLevel() > 1) {
-			name += TextFormatting.RESET + String.format(" [%s/%s]", level, maxLevel());
+			name += ChatFormatting.RESET + String.format(" [%s/%s]", level, maxLevel());
 		}
-		list.add(TextFormatting.WHITE + name);
+		list.add(ChatFormatting.WHITE + name);
 		String details = getDetails(level + 1);
 		String[] detailsSplit = details.split("/n/");
 		for (String detail : detailsSplit) {
-			list.add(TextFormatting.GRAY + detail);
+			list.add(ChatFormatting.GRAY + detail);
 		}
 		if (root != null) {
 			String rootLevel = "";
@@ -151,31 +153,31 @@ public abstract class AbstractBioticStat implements IBioticStat {
 					rootLevel = " " + root.maxLevel();
 				}
 			}
-			list.add(TextFormatting.DARK_AQUA + MOStringHelper.translateToLocal("gui.tooltip.parent") + ": "
-					+ TextFormatting.GOLD + String.format("[%s%s]", root.getDisplayName(android, 0), rootLevel));
+			list.add(ChatFormatting.DARK_AQUA + MOStringHelper.translateToLocal("gui.tooltip.parent") + ": "
+					+ ChatFormatting.GOLD + String.format("[%s%s]", root.getDisplayName(android, 0), rootLevel));
 		}
 
 		StringBuilder requires = new StringBuilder();
 		if (requiredItems.size() > 0) {
 			for (ItemStack itemStack : requiredItems) {
 				if (requires.length() > 0) {
-					requires.append(TextFormatting.GRAY + ", ");
+					requires.append(ChatFormatting.GRAY + ", ");
 				}
 				if (itemStack.getCount() > 1) {
-					requires.append(TextFormatting.DARK_GREEN.toString()).append(itemStack.getCount()).append("x");
+					requires.append(ChatFormatting.DARK_GREEN.toString()).append(itemStack.getCount()).append("x");
 				}
 
-				requires.append(TextFormatting.DARK_GREEN + "[").append(itemStack.getDisplayName()).append("]");
+				requires.append(ChatFormatting.DARK_GREEN + "[").append(itemStack.getDisplayName()).append("]");
 			}
 		}
 
 		if (requires.length() > 0) {
-			list.add(TextFormatting.DARK_AQUA + MOStringHelper.translateToLocal("gui.tooltip.requires") + ": "
+			list.add(ChatFormatting.DARK_AQUA + MOStringHelper.translateToLocal("gui.tooltip.requires") + ": "
 					+ requires);
 		}
 
 		if (competitors.size() > 0) {
-			String locks = TextFormatting.RED + MOStringHelper.translateToLocal("gui.tooltip.locks") + ": ";
+			String locks = ChatFormatting.RED + MOStringHelper.translateToLocal("gui.tooltip.locks") + ": ";
 			for (IBioticStat compeditor : competitors) {
 				locks += String.format("[%s] ", compeditor.getDisplayName(android, 0));
 			}
@@ -183,7 +185,7 @@ public abstract class AbstractBioticStat implements IBioticStat {
 		}
 
 		if (level < maxLevel()) {
-			list.add((android.getPlayer().experienceLevel < xp ? TextFormatting.RED : TextFormatting.GREEN) + "XP: "
+			list.add((android.getPlayer().experienceLevel < xp ? ChatFormatting.RED : ChatFormatting.GREEN) + "XP: "
 					+ xp);
 		}
 	}
@@ -199,7 +201,7 @@ public abstract class AbstractBioticStat implements IBioticStat {
 	}
 
 	@Override
-	public void registerIcons(TextureMap textureMap, HoloIcons holoIcons) {
+	public void registerIcons(TextureManager textureMap, HoloIcons holoIcons) {
 		icon = holoIcons.registerIcon(textureMap, "biotic_stat_" + name, 18);
 	}
 

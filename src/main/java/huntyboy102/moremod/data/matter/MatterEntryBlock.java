@@ -5,11 +5,11 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.nbt.CompoundTag;
 
-public class MatterEntryBlock extends MatterEntryAbstract<Block, IBlockState> {
+public class MatterEntryBlock extends MatterEntryAbstract<Block, BlockState> {
 	public MatterEntryBlock(Block block) {
 		super(block);
 	}
@@ -20,7 +20,7 @@ public class MatterEntryBlock extends MatterEntryAbstract<Block, IBlockState> {
 	}
 
 	@Override
-	public void writeTo(NBTTagCompound tagCompound) {
+	public void writeTo(CompoundTag tagCompound) {
 
 	}
 
@@ -30,7 +30,7 @@ public class MatterEntryBlock extends MatterEntryAbstract<Block, IBlockState> {
 	}
 
 	@Override
-	public void readFrom(NBTTagCompound tagCompound) {
+	public void readFrom(CompoundTag tagCompound) {
 
 	}
 

@@ -11,12 +11,12 @@ import huntyboy102.moremod.api.quest.IQuestReward;
 import huntyboy102.moremod.api.quest.QuestLogicState;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.util.MOLog;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.eventbus.api.Event;
 
 public class QuestLogicSpawnMobs extends AbstractQuestLogic {
 	private String customSpawnName;
@@ -52,12 +52,12 @@ public class QuestLogicSpawnMobs extends AbstractQuestLogic {
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return true;
 	}
 
 	@Override
-	public String modifyObjective(QuestStack questStack, EntityPlayer entityPlayer, String objective,
+	public String modifyObjective(QuestStack questStack, Player entityPlayer, String objective,
 			int objectiveIndex) {
 		objective.replace("$spawnType", getSpawnName(questStack));
 		objective = objective.replace("$spawnAmount", Integer.toString(getSpawnAmount(questStack)));
@@ -67,32 +67,32 @@ public class QuestLogicSpawnMobs extends AbstractQuestLogic {
 	@Override
 	public void initQuestStack(Random random, QuestStack questStack) {
 		initTag(questStack);
-		getTag(questStack).setByte("SpawnType", (byte) random.nextInt(mobClasses.length));
-		getTag(questStack).setShort("SpawnAmount", (short) random(random, minSpawnAmount, maxSpawnAmount));
+		getTag(questStack).putByte("SpawnType", (byte) random.nextInt(mobClasses.length));
+		getTag(questStack).putShort("SpawnAmount", (short) random(random, minSpawnAmount, maxSpawnAmount));
 	}
 
 	@Override
-	public QuestLogicState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestLogicState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		return null;
 	}
 
 	@Override
-	public void onQuestTaken(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestTaken(QuestStack questStack, Player entityPlayer) {
 		int spawnAmount = getSpawnAmount(questStack);
 		for (int i = 0; i < spawnAmount; i++) {
 			Entity entity;
 			try {
-				entity = mobClasses[getSpawnType(questStack)].getConstructor(World.class)
-						.newInstance(entityPlayer.world);
+				entity = mobClasses[getSpawnType(questStack)].getConstructor(Level.class)
+						.newInstance(entityPlayer.level);
 				positionSpawn(entity, entityPlayer);
-				if (entity instanceof EntityLiving) {
-					((EntityLiving) entity).onInitialSpawn(entity.world.getDifficultyForLocation(entity.getPosition()),
+				if (entity instanceof LivingEntity) {
+					((LivingEntity) entity).onInitialSpawn(entity.level.getDifficulty(entity.getPosition()),
 							null);
 					if (customSpawnName != null) {
 						entity.setCustomNameTag(customSpawnName);
 					}
 				}
-				entityPlayer.world.spawnEntity(entity);
+				entityPlayer.level.spawnEntity(entity);
 
 			} catch (InstantiationException e) {
 				MOLog.error("Count not instantiate entity of type %s", mobClasses[getSpawnType(questStack)]);
@@ -112,17 +112,17 @@ public class QuestLogicSpawnMobs extends AbstractQuestLogic {
 		}
 	}
 
-	private void positionSpawn(Entity spawn, EntityPlayer entityPlayer) {
-		spawn.setPosition(entityPlayer.posX, entityPlayer.posY, entityPlayer.posZ);
+	private void positionSpawn(Entity spawn, Player entityPlayer) {
+		spawn.setPos(entityPlayer.getX(), entityPlayer.getY(), entityPlayer.getZ());
 	}
 
 	@Override
-	public void onQuestCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onQuestCompleted(QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public void modifyRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void modifyRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 
 	}
 
@@ -132,7 +132,7 @@ public class QuestLogicSpawnMobs extends AbstractQuestLogic {
 
 	public int getSpawnType(QuestStack questStack) {
 		if (hasTag(questStack)) {
-			return MathHelper.clamp(getTag(questStack).getByte("SpawnType"), 0, mobClasses.length);
+			return Mth.clamp(getTag(questStack).getByte("SpawnType"), 0, mobClasses.length);
 		}
 		return 0;
 	}

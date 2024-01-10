@@ -2,7 +2,7 @@
 package huntyboy102.moremod.data.matter_network;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public class ItemPatternMapping {
 	private ItemPattern itemPattern;
@@ -12,7 +12,7 @@ public class ItemPatternMapping {
 
 	public ItemPatternMapping(ByteBuf byteBuf) {
 		itemPattern = ItemPattern.fromBuffer(byteBuf);
-		databaseId = BlockPos.fromLong(byteBuf.readLong());
+		databaseId = BlockPos.of(byteBuf.readLong());
 		storageId = byteBuf.readByte();
 		patternId = byteBuf.readByte();
 	}
@@ -34,7 +34,7 @@ public class ItemPatternMapping {
 
 	public void writeToBuffer(ByteBuf byteBuf) {
 		ItemPattern.writeToBuffer(byteBuf, itemPattern);
-		byteBuf.writeLong(databaseId.toLong());
+		byteBuf.writeLong(databaseId.asLong());
 		byteBuf.writeByte(storageId);
 		byteBuf.writeByte(patternId);
 	}

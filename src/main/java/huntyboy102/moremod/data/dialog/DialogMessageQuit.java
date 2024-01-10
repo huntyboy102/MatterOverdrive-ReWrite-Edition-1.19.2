@@ -3,7 +3,7 @@ package huntyboy102.moremod.data.dialog;
 
 import com.google.gson.JsonObject;
 import huntyboy102.moremod.api.dialog.IDialogNpc;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.player.Player;
 
 public class DialogMessageQuit extends DialogMessage {
 	public DialogMessageQuit(JsonObject object) {
@@ -26,12 +26,12 @@ public class DialogMessageQuit extends DialogMessage {
 	}
 
 	@Override
-	public void onInteract(IDialogNpc npc, EntityPlayer player) {
-		player.closeScreen();
+	public void onInteract(IDialogNpc npc, Player player) {
+		player.closeContainer();
 	}
 
 	@Override
-	public boolean canInteract(IDialogNpc npc, EntityPlayer player) {
+	public boolean canInteract(IDialogNpc npc, Player player) {
 		return true;
 	}
 }

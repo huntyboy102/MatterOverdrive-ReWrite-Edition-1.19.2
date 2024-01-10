@@ -4,11 +4,11 @@ package huntyboy102.moremod.data.inventory;
 import javax.annotation.Nonnull;
 
 import huntyboy102.moremod.client.render.HoloIcon;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class Slot {
+public abstract class Slot {
 	@Nonnull
 	private ItemStack item = ItemStack.EMPTY;
 	private int id;
@@ -21,11 +21,9 @@ public class Slot {
 		this.isMainSlot = isMainSlot;
 	}
 
-	public boolean isValidForSlot(ItemStack item) {
-		return true;
-	}
+    public abstract boolean isValidForSlot(ItemStack item);
 
-	@SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
 	public HoloIcon getHoloIcon() {
 		return null;
 	}

@@ -5,9 +5,9 @@ import huntyboy102.moremod.api.dialog.IDialogMessage;
 import huntyboy102.moremod.api.dialog.IDialogNpc;
 import huntyboy102.moremod.gui.GuiDialog;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class DialogMessageBackTo extends DialogMessageBack {
 	IDialogMessage destination;
@@ -21,11 +21,11 @@ public class DialogMessageBackTo extends DialogMessageBack {
 		this.destination = destination;
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	@Override
-	protected void setAsGuiActiveMessage(IDialogNpc npc, EntityPlayer player) {
-		if (Minecraft.getMinecraft().currentScreen instanceof GuiDialog) {
-			((GuiDialog) Minecraft.getMinecraft().currentScreen).setCurrentMessage(destination);
+	protected void setAsGuiActiveMessage(IDialogNpc npc, Player player) {
+		if (Minecraft.getInstance().screen instanceof GuiDialog) {
+			((GuiDialog) Minecraft.getInstance().screen).setCurrentMessage(destination);
 		}
 	}
 }

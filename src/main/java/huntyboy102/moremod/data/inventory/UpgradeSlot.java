@@ -6,9 +6,9 @@ import huntyboy102.moremod.api.inventory.IUpgrade;
 import huntyboy102.moremod.api.inventory.UpgradeTypes;
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.proxy.ClientProxy;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Map;
 
@@ -40,7 +40,7 @@ public class UpgradeSlot extends Slot {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public HoloIcon getHoloIcon() {
 		return ClientProxy.holoIcons.getIcon("upgrade");
 	}

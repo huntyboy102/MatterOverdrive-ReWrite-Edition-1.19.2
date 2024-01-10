@@ -6,9 +6,9 @@ import com.google.common.collect.Multimap;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.data.MOAttributeModifier;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 import java.text.DecimalFormat;
@@ -55,7 +55,7 @@ public class BioticStatAttack extends AbstractBioticStat {
 	@Override
 	public Multimap<String, AttributeModifier> attributes(AndroidPlayer androidPlayer, int level) {
 		Multimap<String, AttributeModifier> multimap = HashMultimap.create();
-		multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
+		multimap.put(Attributes.ATTACK_DAMAGE.getDescriptionId(),
 				new MOAttributeModifier(modifierID, "Android Attack Damage", getAttackPower(level), 1).setSaved(false));
 		return multimap;
 	}
@@ -72,8 +72,8 @@ public class BioticStatAttack extends AbstractBioticStat {
 
 	@Override
 	public String getDetails(int level) {
-		return MOStringHelper.translateToLocal(getUnlocalizedDetails(), TextFormatting.GREEN
-				+ DecimalFormat.getPercentInstance().format(getAttackPower(level)) + TextFormatting.GRAY);
+		return MOStringHelper.translateToLocal(getUnlocalizedDetails(), ChatFormatting.GREEN
+				+ DecimalFormat.getPercentInstance().format(getAttackPower(level)) + ChatFormatting.GRAY);
 	}
 
 	private float getAttackPower(int level) {

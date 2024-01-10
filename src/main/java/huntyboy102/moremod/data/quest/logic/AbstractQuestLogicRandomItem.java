@@ -6,8 +6,8 @@ import com.google.gson.JsonObject;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.util.MOJsonHelper;
 import huntyboy102.moremod.data.quest.QuestItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +61,7 @@ public abstract class AbstractQuestLogicRandomItem extends AbstractQuestLogic {
 	}
 
 	@Override
-	public boolean canAccept(QuestStack questStack, EntityPlayer entityPlayer) {
+	public boolean canAccept(QuestStack questStack, Player entityPlayer) {
 		for (QuestItem item : items) {
 			if (item.canItemExist()) {
 				return true;
@@ -114,7 +114,7 @@ public abstract class AbstractQuestLogicRandomItem extends AbstractQuestLogic {
 
 	public void setItemType(QuestStack questStack, int itemType) {
 		initTag(questStack);
-		getTag(questStack).setByte("ItemType", (byte) itemType);
+		getTag(questStack).putByte("ItemType", (byte) itemType);
 	}
 
 	public AbstractQuestLogicRandomItem setRandomItem(boolean randomItem) {

@@ -4,13 +4,13 @@ package huntyboy102.moremod.data;
 import javax.annotation.Nonnull;
 
 import huntyboy102.moremod.util.MOInventoryHelper;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 
-public class ItemInventoryWrapper implements IInventory {
+public class ItemInventoryWrapper implements Container {
 	ItemStack inventory;
 	int size;
 	boolean dirty;
@@ -47,8 +47,8 @@ public class ItemInventoryWrapper implements IInventory {
 
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack stack) {
-		if (inventory.getTagCompound() == null) {
-			inventory.setTagCompound(new NBTTagCompound());
+		if (inventory.getTag() == null) {
+			inventory.setTag(new CompoundTag());
 		}
 
 		MOInventoryHelper.setInventorySlotContents(inventory, slot, stack);
@@ -65,17 +65,17 @@ public class ItemInventoryWrapper implements IInventory {
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean isUsableByPlayer(Player player) {
 		return true;
 	}
 
 	@Override
-	public void openInventory(EntityPlayer player) {
+	public void openInventory(Player player) {
 
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer player) {
+	public void closeInventory(Player player) {
 
 	}
 
@@ -113,7 +113,7 @@ public class ItemInventoryWrapper implements IInventory {
 
 	@Override
 	public String getName() {
-		return inventory.getDisplayName();
+		return inventory.getDescriptionId();
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public class ItemInventoryWrapper implements IInventory {
 	}
 
 	@Override
-	public ITextComponent getDisplayName() {
-		return inventory.getTextComponent();
+	public Component getDisplayName() {
+		return inventory.getHoverName();
 	}
 }

@@ -2,6 +2,7 @@
 package huntyboy102.moremod.data.biostats;
 
 import com.google.common.collect.Multimap;
+import com.mojang.blaze3d.shaders.Effect;
 import huntyboy102.moremod.api.events.bionicStats.MOEventBionicStat;
 import huntyboy102.moremod.client.sound.MOPositionedSound;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
@@ -12,15 +13,17 @@ import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.handler.ConfigurationHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.EnumSet;
 
@@ -36,12 +39,12 @@ public class BioticStatNightVision extends AbstractBioticStat implements IConfig
 	@Override
 	public String getDetails(int level) {
 		return MOStringHelper.translateToLocal(getUnlocalizedDetails(),
-				TextFormatting.YELLOW.toString() + ENERGY_PER_TICK + MOEnergyHelper.ENERGY_UNIT);
+				ChatFormatting.YELLOW.toString() + ENERGY_PER_TICK + MOEnergyHelper.ENERGY_UNIT);
 	}
 
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
-		if (!android.getPlayer().world.isRemote) {
+		if (!android.getPlayer().level.isClientSide) {
 			if (isActive(android, level)) {
 
 			}
@@ -50,15 +53,15 @@ public class BioticStatNightVision extends AbstractBioticStat implements IConfig
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void manageNightvision(AndroidPlayer android, int level) {
 		if (isActive(android, level)) {
-			android.getPlayer().addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, 500));
+			android.getPlayer().addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 500));
 		}
 	}
 
 	private void setActive(AndroidPlayer androidPlayer, int level, boolean active) {
-		androidPlayer.getPlayer().addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, 500));
+		androidPlayer.getPlayer().addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 500));
 		androidPlayer.getAndroidEffects().updateEffect(AndroidPlayer.EFFECT_NIGHTVISION, active);
 		androidPlayer.sync(EnumSet.of(AndroidPlayer.DataType.EFFECTS), true);
 	}
@@ -79,25 +82,25 @@ public class BioticStatNightVision extends AbstractBioticStat implements IConfig
 		}
 	}
 
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	private void playSound(AndroidPlayer android) {
 		if (!android.getAndroidEffects().getEffectBool(AndroidPlayer.EFFECT_NIGHTVISION)) {
 			MOPositionedSound sound = new MOPositionedSound(MatterOverdriveSounds.androidNightVision,
-					SoundCategory.PLAYERS, 0.05f + android.getPlayer().getRNG().nextFloat() * 0.1f,
-					0.95f + android.getPlayer().getRNG().nextFloat() * 0.1f);
+					SoundSource.PLAYERS, 0.05f + android.getPlayer().getRandom().nextFloat() * 0.1f,
+					0.95f + android.getPlayer().getRandom().nextFloat() * 0.1f);
 			sound.setAttenuationType(ISound.AttenuationType.NONE);
-			Minecraft.getMinecraft().getSoundHandler().playSound(sound);
+			Minecraft.getInstance().getSoundManager().play(sound);
 		} else {
-			Minecraft.getMinecraft().getSoundHandler()
-					.playSound(new MOPositionedSound(MatterOverdriveSounds.androidPowerDown, SoundCategory.PLAYERS,
-							0.05f + android.getPlayer().getRNG().nextFloat() * 0.1f,
-							0.95f + android.getPlayer().getRNG().nextFloat() * 0.1f)
+			Minecraft.getInstance().getSoundManager()
+					.play(new MOPositionedSound(MatterOverdriveSounds.androidPowerDown, SoundSource.PLAYERS,
+							0.05f + android.getPlayer().getRandom().nextFloat() * 0.1f,
+							0.95f + android.getPlayer().getRandom().nextFloat() * 0.1f)
 							.setAttenuationType(ISound.AttenuationType.NONE));
 		}
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public void onKeyPress(AndroidPlayer androidPlayer, int level, int keycode, boolean down) {
 
 	}

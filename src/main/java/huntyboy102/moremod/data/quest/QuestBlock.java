@@ -3,12 +3,16 @@ package huntyboy102.moremod.data.quest;
 
 import com.google.gson.JsonObject;
 import huntyboy102.moremod.util.MOJsonHelper;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraftforge.fml.common.Loader;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class QuestBlock {
-	IBlockState block;
+	BlockState block;
 	String blockName;
 	int blockMeta;
 	boolean hasMeta;
@@ -22,7 +26,7 @@ public class QuestBlock {
 		mod = MOJsonHelper.getString(object, "mod", null);
 	}
 
-	public QuestBlock(IBlockState block) {
+	public QuestBlock(BlockState block) {
 		this.block = block;
 	}
 
@@ -31,7 +35,7 @@ public class QuestBlock {
 		this.mod = mod;
 	}
 
-	public static QuestBlock fromBlock(IBlockState block) {
+	public static QuestBlock fromBlock(BlockState block) {
 		return new QuestBlock(block);
 	}
 
@@ -40,7 +44,7 @@ public class QuestBlock {
 	}
 
 	public boolean isModPresent() {
-		return Loader.isModLoaded(mod);
+		return ModList.get().isLoaded(mod);
 	}
 
 	public boolean canBlockExist() {
@@ -50,19 +54,24 @@ public class QuestBlock {
 		return true;
 	}
 
-	public IBlockState getBlockState() {
-		if (isModded() || block == null) {
-			if (hasMeta) {
-				return Block.getBlockFromName(blockName).getStateFromMeta(blockMeta);
-			}
-			return Block.getBlockFromName(blockName).getDefaultState();
 
-		} else {
-			return block;
+	public BlockState getBlockState() {
+		if (isModded() || block == null) {
+			ResourceLocation blockLocation = new ResourceLocation(blockName);
+			Block blockInstance = Registry.BLOCK.get(blockLocation);
+
+			if (blockInstance != null) {
+				if (hasMeta) {
+					return blockInstance.defaultBlockState().setValue(BlockStateProperties.LEVEL, blockMeta);
+				}
+				return blockInstance.defaultBlockState();
+			}
+
 		}
+		return block;
 	}
 
-	public boolean isTheSame(IBlockState blockState) {
+	public boolean isTheSame(BlockState blockState) {
 		if (hasMeta) {
 			return getBlockState().equals(blockState);
 		} else {

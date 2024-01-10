@@ -8,9 +8,9 @@ import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.MOEnergyHelper;
 import huntyboy102.moremod.util.WeaponHelper;
 import huntyboy102.moremod.Reference;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 
@@ -49,7 +49,7 @@ public class ModuleSlot extends Slot {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
+	@OnlyIn(Dist.CLIENT)
 	public HoloIcon getHoloIcon() {
 		switch (type) {
 		case Reference.MODULE_BATTERY:

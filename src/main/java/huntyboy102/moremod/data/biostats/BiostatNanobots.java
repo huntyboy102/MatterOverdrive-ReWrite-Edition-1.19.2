@@ -8,9 +8,9 @@ import huntyboy102.moremod.util.IConfigSubscriber;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.data.MOAttributeModifier;
 import huntyboy102.moremod.handler.ConfigurationHandler;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 import java.util.UUID;
@@ -28,8 +28,8 @@ public class BiostatNanobots extends AbstractBioticStat implements IConfigSubscr
 
 	@Override
 	public void onAndroidUpdate(AndroidPlayer android, int level) {
-		if (android.getPlayer().world.getWorldTime() % 20 == 0) {
-			if (android.getPlayer().getHealth() > 0 && !android.getPlayer().isDead
+		if (android.getPlayer().level.getDayTime() % 20 == 0) {
+			if (android.getPlayer().getHealth() > 0 && !android.getPlayer().isDeadOrDying()
 					&& android.getPlayer().getHealth() < android.getPlayer().getMaxHealth()
 					&& android.hasEnoughEnergyScaled(ENERGY_PER_REGEN)) {
 				android.getPlayer().heal(REGEN_AMOUNT_PER_TICK * 20);
@@ -43,8 +43,8 @@ public class BiostatNanobots extends AbstractBioticStat implements IConfigSubscr
 	@Override
 	public String getDetails(int level) {
 		return MOStringHelper.translateToLocal(getUnlocalizedDetails(),
-				TextFormatting.GREEN.toString() + (REGEN_AMOUNT_PER_TICK * 20),
-				TextFormatting.GREEN.toString() + "+" + getHealthBoost(level));
+				ChatFormatting.GREEN.toString() + (REGEN_AMOUNT_PER_TICK * 20),
+				ChatFormatting.GREEN.toString() + "+" + getHealthBoost(level));
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class BiostatNanobots extends AbstractBioticStat implements IConfigSubscr
 	@Override
 	public Multimap<String, AttributeModifier> attributes(AndroidPlayer androidPlayer, int level) {
 		Multimap<String, AttributeModifier> multimap = HashMultimap.create();
-		multimap.put(SharedMonsterAttributes.MAX_HEALTH.getName(),
+		multimap.put(Attributes.MAX_HEALTH.getDescriptionId(),
 				new MOAttributeModifier(modifierID, "Android Health", getHealthBoost(level), 0).setSaved(false));
 		return multimap;
 	}

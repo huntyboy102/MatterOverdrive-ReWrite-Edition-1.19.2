@@ -2,7 +2,7 @@
 package huntyboy102.moremod.data.recipes;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -60,7 +60,7 @@ public class RecipeManager<M, R extends Recipe<M>> {
 
 	public boolean isInput(ItemStack stack) {
 		return recipes.stream().flatMap(r -> r.getInputs().stream())
-				.anyMatch(s -> s.getItem() == stack.getItem() && s.getItemDamage() == stack.getItemDamage());
+				.anyMatch(s -> s.getItem() == stack.getItem() && s.getDamageValue() == stack.getDamageValue());
 	}
 
 	public List<R> getRecipes() {

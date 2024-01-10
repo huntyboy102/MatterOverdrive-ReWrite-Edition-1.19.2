@@ -18,7 +18,7 @@
 package huntyboy102.moremod.data.inventory;
 
 import huntyboy102.moremod.api.matter.IRecyclable;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Created by Simeon on 5/15/2015.

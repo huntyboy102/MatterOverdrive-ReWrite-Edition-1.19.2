@@ -1,8 +1,8 @@
 
 package huntyboy102.moremod.data.matter;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.nbt.CompoundTag;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -19,7 +19,7 @@ public class MatterEntryEntity extends MatterEntryAbstract<Class<? extends Entit
 	}
 
 	@Override
-	public void writeTo(NBTTagCompound tagCompound) {
+	public void writeTo(CompoundTag tagCompound) {
 
 	}
 
@@ -29,7 +29,7 @@ public class MatterEntryEntity extends MatterEntryAbstract<Class<? extends Entit
 	}
 
 	@Override
-	public void readFrom(NBTTagCompound tagCompound) {
+	public void readFrom(CompoundTag tagCompound) {
 
 	}
 

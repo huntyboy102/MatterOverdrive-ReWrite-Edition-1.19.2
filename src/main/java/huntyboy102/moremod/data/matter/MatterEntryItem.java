@@ -1,11 +1,11 @@
 
 package huntyboy102.moremod.data.matter;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -40,16 +40,16 @@ public class MatterEntryItem extends MatterEntryAbstract<Item, ItemStack> {
 	}
 
 	@Override
-	public void writeTo(NBTTagCompound tagCompound) {
-		NBTTagList handlers = new NBTTagList();
+	public void writeTo(CompoundTag tagCompound) {
+		ListTag handlers = new ListTag();
 		for (IMatterEntryHandler<?> handler : this.handlers) {
 			if (handler instanceof ItemStackHandlerCachable) {
-				NBTTagCompound handlerTag = new NBTTagCompound();
+				CompoundTag handlerTag = new CompoundTag();
 				((ItemStackHandlerCachable) handler).writeTo(handlerTag);
-				handlers.appendTag(handlerTag);
+				handlers.add(handlerTag);
 			}
 		}
-		tagCompound.setTag("Handlers", handlers);
+		tagCompound.put("Handlers", handlers);
 	}
 
 	@Override
@@ -64,12 +64,12 @@ public class MatterEntryItem extends MatterEntryAbstract<Item, ItemStack> {
 	}
 
 	@Override
-	public void readFrom(NBTTagCompound tagCompound) {
+	public void readFrom(CompoundTag tagCompound) {
 		clearAllCashed();
-		NBTTagList tagList = tagCompound.getTagList("Handlers", Constants.NBT.TAG_COMPOUND);
-		for (int i = 0; i < tagList.tagCount(); i++) {
+		ListTag tagList = tagCompound.getList("Handlers", Tag.TAG_COMPOUND);
+		for (int i = 0; i < tagList.size(); i++) {
 			ItemStackHandlerCachable genericHandler = new ItemStackHandlerCachable();
-			genericHandler.readFrom(tagList.getCompoundTagAt(i));
+			genericHandler.readFrom(tagList.getCompound(i));
 			handlers.add(genericHandler);
 		}
 	}

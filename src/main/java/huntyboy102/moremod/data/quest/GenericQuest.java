@@ -2,17 +2,20 @@
 package huntyboy102.moremod.data.quest;
 
 import com.google.gson.JsonObject;
+import huntyboy102.moremod.api.quest.IQuestReward;
+import huntyboy102.moremod.api.quest.QuestStack;
+import huntyboy102.moremod.api.quest.QuestState;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.entity.player.OverdriveExtendedProperties;
 import huntyboy102.moremod.util.MOStringHelper;
-import matteroverdrive.api.quest.*;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import huntyboy102.moremod.api.quest.*;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Random;
 
-public class GenericQuest extends Quest {
+public abstract class GenericQuest extends Quest {
 	protected IQuestLogic questLogic;
 
 	public GenericQuest(String title, JsonObject questObj, IQuestLogic questLogic) {
@@ -26,7 +29,7 @@ public class GenericQuest extends Quest {
 	}
 
 	@Override
-	public boolean canBeAccepted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public boolean canBeAccepted(QuestStack questStack, Player entityPlayer) {
 		OverdriveExtendedProperties extendedProperties = MOPlayerCapabilityProvider.GetExtendedCapability(entityPlayer);
 		if (extendedProperties != null) {
 			return questLogic.canAccept(questStack, entityPlayer) && !extendedProperties.hasCompletedQuest(questStack)
@@ -41,19 +44,19 @@ public class GenericQuest extends Quest {
 	}
 
 	@Override
-	public String getTitle(QuestStack questStack, EntityPlayer entityPlayer) {
+	public String getTitle(QuestStack questStack, Player entityPlayer) {
 		return questLogic.modifyTitle(questStack,
 				replaceVariables(MOStringHelper.translateToLocal("quest." + title + ".title"), entityPlayer));
 	}
 
 	@Override
-	public String getInfo(QuestStack questStack, EntityPlayer entityPlayer) {
+	public String getInfo(QuestStack questStack, Player entityPlayer) {
 		return questLogic.modifyInfo(questStack,
 				replaceVariables(MOStringHelper.translateToLocal("quest." + title + ".info"), entityPlayer));
 	}
 
 	@Override
-	public String getObjective(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public String getObjective(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return questLogic.modifyObjective(questStack, entityPlayer,
 				replaceVariables(MOStringHelper.translateToLocal("quest." + title + ".objective." + objectiveIndex),
 						entityPlayer),
@@ -61,15 +64,14 @@ public class GenericQuest extends Quest {
 	}
 
 	@Override
-	public int getObjectivesCount(QuestStack questStack, EntityPlayer entityPlayer) {
+	public int getObjectivesCount(QuestStack questStack, Player entityPlayer) {
 		return questLogic.modifyObjectiveCount(questStack, entityPlayer, 1);
 	}
 
 	@Override
-	public boolean isObjectiveCompleted(QuestStack questStack, EntityPlayer entityPlayer, int objectiveIndex) {
+	public boolean isObjectiveCompleted(QuestStack questStack, Player entityPlayer, int objectiveIndex) {
 		return questLogic.isObjectiveCompleted(questStack, entityPlayer, objectiveIndex);
 	}
-
 	@Override
 	public boolean areQuestStacksEqual(QuestStack questStackOne, QuestStack questStackTwo) {
 		if (questStackOne.getQuest() instanceof GenericQuest && questStackTwo.getQuest() instanceof GenericQuest) {
@@ -88,12 +90,12 @@ public class GenericQuest extends Quest {
 	}
 
 	@Override
-	public void initQuestStack(Random random, QuestStack questStack, EntityPlayer entityPlayer) {
+	public void initQuestStack(Random random, QuestStack questStack, Player entityPlayer) {
 
 	}
 
 	@Override
-	public QuestState onEvent(QuestStack questStack, Event event, EntityPlayer entityPlayer) {
+	public QuestState onEvent(QuestStack questStack, Event event, Player entityPlayer) {
 		QuestLogicState state = questLogic.onEvent(questStack, event, entityPlayer);
 		if (state == null) {
 			return null;
@@ -102,24 +104,24 @@ public class GenericQuest extends Quest {
 	}
 
 	@Override
-	public void onCompleted(QuestStack questStack, EntityPlayer entityPlayer) {
+	public void onCompleted(QuestStack questStack, Player entityPlayer) {
 		questLogic.onQuestCompleted(questStack, entityPlayer);
 	}
 
 	@Override
-	public int getXpReward(QuestStack questStack, EntityPlayer entityPlayer) {
+	public int getXpReward(QuestStack questStack, Player entityPlayer) {
 		return questLogic.modifyXP(questStack, entityPlayer, xpReward);
 	}
 
 	@Override
-	public void addToRewards(QuestStack questStack, EntityPlayer entityPlayer, List<IQuestReward> rewards) {
+	public void addToRewards(QuestStack questStack, Player entityPlayer, List<IQuestReward> rewards) {
 		rewards.addAll(questRewards);
 		questLogic.modifyRewards(questStack, entityPlayer, rewards);
 	}
 
-	public String replaceVariables(String text, EntityPlayer entityPlayer) {
+	public String replaceVariables(String text, Player entityPlayer) {
 		if (entityPlayer != null) {
-			return text.replace("$player", entityPlayer.getDisplayName().getFormattedText());
+			return text.replace("$player", entityPlayer.getDisplayName().getString());
 		}
 		return text;
 	}
@@ -131,4 +133,6 @@ public class GenericQuest extends Quest {
 	public void setQuestLogic(IQuestLogic questLogic) {
 		this.questLogic = questLogic;
 	}
+
+	public abstract void setCompleted(QuestStack questStack, Player entityPlayer);
 }
