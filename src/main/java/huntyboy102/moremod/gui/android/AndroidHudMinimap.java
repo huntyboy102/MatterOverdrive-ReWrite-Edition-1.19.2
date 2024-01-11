@@ -1,24 +1,27 @@
 
 package huntyboy102.moremod.gui.android;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector3f;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.data.MinimapEntityInfo;
 import huntyboy102.moremod.init.OverdriveBioticStats;
 import huntyboy102.moremod.util.RenderUtils;
+import huntyboy102.moremod.util.math.Cylinder;
+import huntyboy102.moremod.util.math.Sphere;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.IMerchant;
-import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.trading.Merchant;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.glu.Cylinder;
-import org.lwjgl.util.glu.Sphere;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -42,40 +45,41 @@ public class AndroidHudMinimap extends AndroidHudElement {
 	}
 
 	@Override
-	public void drawElement(AndroidPlayer androidPlayer, ScaledResolution resolution, float ticks) {
-		int x = getWidth(resolution, androidPlayer) / 2;
-		int y = getHeight(resolution, androidPlayer) / 2;
-		float scale = getScale(resolution);
+	public void drawElement(AndroidPlayer androidPlayer, float ticks) {
+		int x = mc.getWindow().getWidth();
+		int y = mc.getWindow().getHeight();
+		float scale = (float) mc.getWindow().getGuiScale();
 
-		GlStateManager.disableDepth();
-		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE);
+		PoseStack poseStack = new PoseStack();
 
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(x, y, -100);
-		GlStateManager.rotate(ROTATION, 1, 0, 0);
-		GlStateManager.scale(scale, scale, scale);
-		drawBackground(resolution);
+		RenderSystem.disableDepthTest();
+		RenderSystem.enableBlend();
+		RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		poseStack.pushPose();
+		poseStack.translate(x, y, -100);
+		poseStack.mulPose(Vector3f.XP.rotationDegrees(90));
+		poseStack.scale(scale, scale, scale);
+		drawBackground();
 
 		beginMask();
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 
-		for (Object entityObj : mc.world.loadedEntityList) {
-			if (entityObj instanceof EntityLivingBase) {
-				EntityLivingBase entityLivingBase = (EntityLivingBase) entityObj;
-				Vec3d pos = (entityLivingBase).getPositionEyes(ticks);
-				Vec3d playerPosition = mc.player.getPositionEyes(ticks);
+		for (Entity entity : mc.level.getEntitiesOfClass(Entity.class, new AABB(0, 0, 0, 0, 0, 0))) {
+			if (entity instanceof LivingEntity) {
+				LivingEntity entityLivingBase = (LivingEntity) entity;
+				Vec3 pos = (entityLivingBase).getEyePosition(ticks);
+				Vec3 playerPosition = mc.player.getEyePosition(ticks);
 				pos = pos.subtract(playerPosition);
-				pos = new Vec3d(pos.x * ZOOM, pos.y * ZOOM, pos.z * ZOOM);
+				pos = new Vec3(pos.x * ZOOM, pos.y * ZOOM, pos.z * ZOOM);
 
-				if (AndroidPlayer.isVisibleOnMinimap((EntityLivingBase) entityObj, mc.player, pos)) {
-
+				if (AndroidPlayer.isVisibleOnMinimap(entityLivingBase, mc.player, pos)) {
 					if (pos.length() < Math.min(256, (RADIUS + 16 / ZOOM))) {
 
-						GlStateManager.pushMatrix();
-						GlStateManager.translate(0, 0, -130);
+						poseStack.pushPose();
+						poseStack.translate(0, 0, -130);
 						drawEntity(entityLivingBase, scale, x, y, pos);
-						GlStateManager.popMatrix();
+						poseStack.popPose();
 
 					}
 				}
@@ -84,42 +88,45 @@ public class AndroidHudMinimap extends AndroidHudElement {
 
 		endMask();
 
-		GlStateManager.enableTexture2D();
-		GlStateManager.enableDepth();
-		GlStateManager.enableAlpha();
+		RenderSystem.enableTexture();
+		RenderSystem.enableDepthTest();
+		RenderSystem.enableBlend();
+		RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	private void beginMask() {
-		GlStateManager.pushMatrix();
-		GlStateManager.clear(GL_DEPTH_BUFFER_BIT);
-		GlStateManager.clearDepth(1f);
-		GlStateManager.depthFunc(GL11.GL_LESS);
-		GlStateManager.enableDepth();
-		GlStateManager.depthMask(true);
-		GlStateManager.colorMask(false, false, false, false);
-		GlStateManager.disableTexture2D();
-		GlStateManager.translate(0, 0, 1);
+		PoseStack poseStack = new PoseStack();
+		poseStack.pushPose();
+		RenderSystem.clear(GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+		RenderSystem.clearDepth(1f);
+		RenderSystem.depthFunc(GL11.GL_LESS);
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthMask(true);
+		RenderSystem.colorMask(false, false, false, false);
+		RenderSystem.disableTexture();
+		poseStack.translate(0, 0, 1);
 		RenderUtils.drawCircle(RADIUS, 32);
-		GlStateManager.enableTexture2D();
+		RenderSystem.enableTexture();
 
-		GlStateManager.depthMask(false);
-		GlStateManager.colorMask(true, true, true, true);
-		GlStateManager.enableDepth();
-		GlStateManager.depthFunc(GL11.GL_GREATER);
-		GlStateManager.popMatrix();
+		RenderSystem.depthMask(false);
+		RenderSystem.colorMask(true, true, true, true);
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthFunc(GL11.GL_GREATER);
+		poseStack.popPose();
 	}
 
 	private void endMask() {
-		GlStateManager.depthFunc(GL_LEQUAL);
-		GlStateManager.depthMask(true);
-		GlStateManager.disableDepth();
+		RenderSystem.depthFunc(GL_LEQUAL);
+		RenderSystem.depthMask(true);
+		RenderSystem.disableDepthTest();
 	}
 
-	private void drawBackground(ScaledResolution resolution) {
+	private void drawBackground() {
+		PoseStack poseStack = new PoseStack();
 		drawCompas();
 
-		GlStateManager.disableAlpha();
-		GlStateManager.disableTexture2D();
+		RenderSystem.disableBlend();
+		RenderSystem.disableTexture();
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glLineWidth(1);
@@ -127,57 +134,64 @@ public class AndroidHudMinimap extends AndroidHudElement {
 		RenderUtils.applyColorWithAlpha(baseColor, 0.5f * OPACITY);
 		RenderUtils.drawCircle(RADIUS, 32);
 
-		drawFov(resolution);
+		drawFov();
 
-		double radarPercent = (mc.world.getWorldTime() % AndroidPlayer.MINIMAP_SEND_TIMEOUT)
+		double radarPercent = (mc.level.getDayTime() % AndroidPlayer.MINIMAP_SEND_TIMEOUT)
 				/ (double) AndroidPlayer.MINIMAP_SEND_TIMEOUT;
 		RenderUtils.applyColorWithAlpha(baseColor, 0.8f * OPACITY * (float) radarPercent);
 		RenderUtils.drawCircle(radarPercent * RADIUS, 32);
 
 		RenderUtils.applyColorWithAlpha(baseColor, 0.5f * OPACITY);
 
-		GlStateManager.cullFace(GlStateManager.CullFace.FRONT);
+		glCullFace(GL_FRONT);
 		cylinder.draw(RADIUS, RADIUS, 5, 64, 1);
 		glNormal3f(0, 0, 1);
-		GlStateManager.cullFace(GlStateManager.CullFace.BACK);
+		glCullFace(GL_BACK);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		GlStateManager.pushMatrix();
+		poseStack.pushPose();
 		drawPlayer();
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 	}
 
 	private void drawCompas() {
-		int rad = 74;
-		mc.fontRenderer.drawString("S",
-				(int) (Math.sin(Math.toRadians(180 - mc.getRenderViewEntity().rotationYaw)) * rad),
-				(int) (Math.cos(Math.toRadians(180 - mc.getRenderViewEntity().rotationYaw)) * rad),
-				Reference.COLOR_MATTER.getColor());
-		mc.fontRenderer.drawString("N", (int) (Math.sin(Math.toRadians(-mc.getRenderViewEntity().rotationYaw)) * rad),
-				(int) (Math.cos(Math.toRadians(-mc.getRenderViewEntity().rotationYaw)) * 64),
-				Reference.COLOR_MATTER.getColor());
-		mc.fontRenderer.drawString("E",
-				(int) (Math.sin(Math.toRadians(90 - mc.getRenderViewEntity().rotationYaw)) * rad),
-				(int) (Math.cos(Math.toRadians(90 - mc.getRenderViewEntity().rotationYaw)) * rad),
-				Reference.COLOR_MATTER.getColor());
-		mc.fontRenderer.drawString("W",
-				(int) (Math.sin(Math.toRadians(-mc.getRenderViewEntity().rotationYaw - 90)) * rad),
-				(int) (Math.cos(Math.toRadians(-mc.getRenderViewEntity().rotationYaw - 90)) * rad),
-				Reference.COLOR_MATTER.getColor());
+		Minecraft mc = Minecraft.getInstance();
+		Player renderViewEntity = mc.player;
+
+		if (renderViewEntity != null) {
+			int rad = 74;
+			mc.font.draw("S",
+					(int) (Math.sin(Math.toRadians(180 - renderViewEntity.getYRot())) * rad),
+					(int) (Math.cos(Math.toRadians(180 - renderViewEntity.getYRot())) * rad),
+					Reference.COLOR_MATTER.getColor());
+			mc.font.draw("N",
+					(int) (Math.sin(Math.toRadians(-renderViewEntity.getYRot())) * rad),
+					(int) (Math.cos(Math.toRadians(-renderViewEntity.getYRot())) * 64),
+					Reference.COLOR_MATTER.getColor());
+			mc.font.draw("E",
+					(int) (Math.sin(Math.toRadians(90 - renderViewEntity.getYRot())) * rad),
+					(int) (Math.cos(Math.toRadians(90 - renderViewEntity.getYRot())) * rad),
+					Reference.COLOR_MATTER.getColor());
+			mc.font.draw("W",
+					(int) (Math.sin(Math.toRadians(-renderViewEntity.getYRot() - 90)) * rad),
+					(int) (Math.cos(Math.toRadians(-renderViewEntity.getYRot() - 90)) * rad),
+					Reference.COLOR_MATTER.getColor());
+		}
 	}
 
 	private void drawPlayer() {
+		PoseStack poseStack = new PoseStack();
 		RenderUtils.applyColor(Reference.COLOR_HOLO_GREEN);
-		GlStateManager.rotate(90, 0, 0, 1);
-		GlStateManager.rotate(90, 1, 0, 0);
-		GlStateManager.translate(0, 0, 0);
+		poseStack.mulPose(Vector3f.YP.rotationDegrees(90));
+		poseStack.mulPose(Vector3f.XP.rotationDegrees(90));
+		poseStack.translate(0, 0, 0);
 		RenderUtils.drawShip(0, 0, 0, 3);
 	}
 
-	private void drawFov(ScaledResolution resolution) {
-		double aspectRatio = resolution.getScaledWidth_double() / resolution.getScaledHeight_double();
+	private void drawFov() {
+		double aspectRatio = (double) mc.getWindow().getScreenWidth() / mc.getWindow().getScreenHeight();
 		float angleAdd = (float) 180;
-		float fovAngle = mc.gameSettings.fovSetting * 0.5f * (float) aspectRatio;
+		float fovAngle = mc.options.fov().get() * 0.5f * (float) aspectRatio;
 		glBegin(GL_LINE_STRIP);
 		glVertex3d(0, 0, 0);
 		glVertex3d(Math.sin(Math.toRadians(fovAngle + angleAdd)) * RADIUS,
@@ -188,23 +202,24 @@ public class AndroidHudMinimap extends AndroidHudElement {
 		glEnd();
 	}
 
-	private void drawEntity(EntityLivingBase entityLivingBase, float scale, int x, int y, Vec3d pos) {
-		GlStateManager.translate(x, y, 0);
-		GlStateManager.rotate(ROTATION, 1, 0, 0);
-		GlStateManager.scale(scale, scale, scale);
+	private void drawEntity(LivingEntity entityLivingBase, float scale, int x, int y, Vec3 pos) {
+		PoseStack poseStack = new PoseStack();
+		poseStack.translate(x, y, 0);
+		poseStack.mulPose(Vector3f.XP.rotationDegrees(ROTATION));
+		poseStack.scale(scale, scale, scale);
 		if (!entityLivingBase.equals(mc.player)) {
 			int size = getMinimapSize(entityLivingBase);
 			Color color = getMinimapColor(entityLivingBase);
-			float opacity = mc.player.canEntityBeSeen(entityLivingBase) ? 1 : 0.7f;
+			float opacity = mc.player.canBeSeenByAnyone() ? 1 : 0.7f;
 			opacity *= baseColor.getFloatA();
-			GlStateManager.enableTexture2D();
+			RenderSystem.enableTexture();
 			RenderUtils.applyColorWithAlpha(color, OPACITY * opacity);
-			GlStateManager.rotate(mc.getRenderViewEntity().rotationYaw + 180, 0, 0, -1);
-			GlStateManager.translate(pos.x, pos.z, 0);
-			GlStateManager.rotate(entityLivingBase.getRotationYawHead(), 0, 0, 1);
-			GlStateManager.disableTexture2D();
+			poseStack.mulPose( Vector3f.YP.rotationDegrees(mc.player.getYRot()+ 180));
+			poseStack.translate(pos.x, pos.z, 0);
+			poseStack.mulPose(Vector3f.YP.rotationDegrees(entityLivingBase.yHeadRot));
+			RenderSystem.disableTexture();
 
-			GlStateManager.pushMatrix();
+			poseStack.pushPose();
 			RenderUtils.applyColorWithAlpha(color, OPACITY * opacity);
 			RenderUtils.drawCircle(2, 18);
 
@@ -214,55 +229,60 @@ public class AndroidHudMinimap extends AndroidHudElement {
 				glVertex3d(0, 0, pos.y);
 				glEnd();
 
-				GlStateManager.translate(0, 0, pos.y);
+				poseStack.translate(0, 0, pos.y);
 				sphere.draw(2 * opacity, 6, 6);
 				glNormal3f(0, 0, 1);
 			}
-			GlStateManager.popMatrix();
+			poseStack.popPose();
 
 			RenderUtils.applyColorWithAlpha(color, 0.2f * OPACITY * opacity);
 			RenderUtils.drawCircle(size, 18);
 		}
 	}
 
-	private int getMinimapSize(EntityLivingBase entityLivingBase) {
-		if (entityLivingBase instanceof IMob && entityLivingBase instanceof EntityCreature) {
+	private int getMinimapSize(LivingEntity entityLivingBase) {
+		if (entityLivingBase instanceof Monster && entityLivingBase instanceof Mob) {
 			return 17;
 		} else {
 			return 4;
 		}
 	}
 
-	private Color getMinimapColor(EntityLivingBase entityLivingBase) {
-		if (entityLivingBase instanceof IMob && !entityLivingBase.isOnSameTeam(Minecraft.getMinecraft().player)) {
-			MinimapEntityInfo entityInfo = AndroidPlayer.getMinimapEntityInfo(entityLivingBase);
-			if (entityInfo != null && entityInfo.isAttacking()) {
-				return Reference.COLOR_GUI_ENERGY;
+	private Color getMinimapColor(LivingEntity entityLivingBase) {
+		Player player = Minecraft.getInstance().player;
+
+		if (player != null) {
+			if (entityLivingBase instanceof Monster && !entityLivingBase.isAlliedTo(player)) {
+				MinimapEntityInfo entityInfo = AndroidPlayer.getMinimapEntityInfo(entityLivingBase);
+				if (entityInfo != null && entityInfo.isAttacking()) {
+					return Reference.COLOR_GUI_ENERGY;
+				} else {
+					return Reference.COLOR_HOLO_RED;
+				}
+
+			} else if (entityLivingBase instanceof Player) {
+				return Reference.COLOR_HOLO_YELLOW;
+			} else if (entityLivingBase instanceof Merchant
+					|| entityLivingBase.isAlliedTo(player)) {
+				return Reference.COLOR_HOLO_GREEN;
 			} else {
-				return Reference.COLOR_HOLO_RED;
+				return Reference.COLOR_HOLO;
 			}
-
-		} else if (entityLivingBase instanceof EntityPlayer) {
-			return Reference.COLOR_HOLO_YELLOW;
-		} else if (entityLivingBase instanceof IMerchant
-				|| entityLivingBase.isOnSameTeam(Minecraft.getMinecraft().player)) {
-			return Reference.COLOR_HOLO_GREEN;
-		} else {
-			return Reference.COLOR_HOLO;
 		}
+		return Reference.COLOR_HOLO;
 	}
 
-	private float getScale(ScaledResolution resolution) {
-		return 1.5f - 0.2f * resolution.getScaleFactor();
-	}
-
-	@Override
-	public int getWidth(ScaledResolution resolution, AndroidPlayer androidPlayer) {
-		return (int) (width * getScale(resolution));
+	private double getScale() {
+		return 1.5f - 0.2f * mc.getWindow().getGuiScale();
 	}
 
 	@Override
-	public int getHeight(ScaledResolution resolution, AndroidPlayer androidPlayer) {
-		return (int) (height * getScale(resolution));
+	public int getWidth(AndroidPlayer androidPlayer) {
+		return (int) (width * getScale());
+	}
+
+	@Override
+	public int getHeight(AndroidPlayer androidPlayer) {
+		return (int) (height * getScale());
 	}
 }

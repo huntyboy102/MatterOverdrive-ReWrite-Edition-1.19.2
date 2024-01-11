@@ -5,17 +5,19 @@ import static org.lwjgl.opengl.GL11.GL_ONE;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector3f;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.android.IBioticStat;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.ItemStack;
 
 public class AndroidHudBionicStats extends AndroidHudElement {
 	private static final int STATS_PER_ROW = 6;
@@ -31,53 +33,57 @@ public class AndroidHudBionicStats extends AndroidHudElement {
 	}
 
 	@Override
-	public void drawElement(AndroidPlayer android, ScaledResolution resolution, float ticks) {
+	public void drawElement(AndroidPlayer android, float ticks) {
+		int screenWidth = mc.getWindow().getGuiScaledWidth();
+		int screenHeight = mc.getWindow().getGuiScaledHeight();
+
 		int count = 0;
 		for (int i = 0; i < android.getSizeInventory(); i++) {
 			if (!android.getStackInSlot(i).isEmpty()) {
-				drawAndroidPart(android.getStackInSlot(i), baseColor, getX(count, resolution, android),
-						getY(count, resolution, android));
+				drawAndroidPart(android.getStackInSlot(i), baseColor, getX(count, screenWidth, screenHeight, android),
+						getY(count, screenWidth, screenHeight, android));
 				count++;
 			}
 		}
 
 		for (Object object : android.getUnlockedNBT().getKeySet()) {
-			IBioticStat stat = MatterOverdrive.STAT_REGISTRY.getStat(object.toString());
+			IBioticStat stat = MatterOverdriveRewriteEdition.STAT_REGISTRY.getStat(object.toString());
 			if (stat != null) {
 				int level = android.getUnlockedLevel(stat);
 				if (stat.showOnHud(android, level)) {
 					if (!stat.isEnabled(android, level)) {
-						drawBioticStat(stat, android, level, Reference.COLOR_HOLO_RED, getX(count, resolution, android),
-								getY(count, resolution, android));
+						drawBioticStat(stat, android, level, Reference.COLOR_HOLO_RED, getX(count, screenWidth, screenHeight, android),
+								getY(count, screenWidth, screenHeight, android));
 					} else {
-						drawBioticStat(stat, android, level, baseColor, getX(count, resolution, android),
-								getY(count, resolution, android));
+						drawBioticStat(stat, android, level, baseColor, getX(count, screenWidth, screenHeight, android),
+								getY(count, screenWidth, screenHeight, android));
 					}
 
 					count++;
 				}
 			}
 		}
-		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE);
+		RenderSystem.enableBlend();
+		RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE);
 		RenderUtils.applyColorWithAlpha(baseColor);
+
+		PoseStack poseStack = new PoseStack();
 		if (getPosition().y == 1) {
-			mc.renderEngine.bindTexture(AndroidHudStats.top_element_bg);
-			RenderUtils.drawPlane(12 - 24 * getPosition().x, Math.ceil((count / (double) STATS_PER_ROW)) * 24 + 4, 0,
-					174, 11);
+			Minecraft.getInstance().getTextureManager().bindForSetup(AndroidHudStats.top_element_bg);
+			RenderUtils.drawPlane(12 - 24 * getPosition().x, Math.ceil((count / (double) STATS_PER_ROW)) * 24 + 4, 0, 174, 11);
 		} else if (getPosition().y == 0.5) {
-			GlStateManager.pushMatrix();
-			GlStateManager.translate(22 + (getWidth(resolution, android) - 24) * getPosition().x, 0, 0);
-			GlStateManager.rotate(90, 0, 0, 1);
-			mc.renderEngine.bindTexture(AndroidHudStats.top_element_bg);
+			poseStack.pushPose();
+			poseStack.translate(22 + (getWidth(screenWidth, screenHeight, android) - 24) * getPosition().x, 0, 0);
+			poseStack.mulPose(Vector3f.ZP.rotationDegrees(90));
+			Minecraft.getInstance().getTextureManager().bindForSetup(AndroidHudStats.top_element_bg);
 			RenderUtils.drawPlane(0, 0, 0, 174, 11);
-			GlStateManager.popMatrix();
+			poseStack.popPose();
 		} else {
-			mc.renderEngine.bindTexture(AndroidHudStats.top_element_bg);
+			Minecraft.getInstance().getTextureManager().bindForSetup(AndroidHudStats.top_element_bg);
 			RenderUtils.drawPlane(12 - 24 * getPosition().x, 10, 0, 174, 11);
 		}
 		lastHeightCount = count;
-		GlStateManager.enableBlend();
+		RenderSystem.enableBlend();
 	}
 
 	private int getTotalElementCount(AndroidPlayer android) {
@@ -89,7 +95,7 @@ public class AndroidHudBionicStats extends AndroidHudElement {
 		}
 
 		for (Object object : android.getUnlockedNBT().getKeySet()) {
-			IBioticStat stat = MatterOverdrive.STAT_REGISTRY.getStat(object.toString());
+			IBioticStat stat = MatterOverdriveRewriteEdition.STAT_REGISTRY.getStat(object.toString());
 			if (stat != null) {
 				int level = android.getUnlockedLevel(stat);
 				if (stat.showOnHud(android, level)) {
@@ -101,12 +107,13 @@ public class AndroidHudBionicStats extends AndroidHudElement {
 	}
 
 	private void drawAndroidPart(ItemStack stack, Color color, int x, int y) {
-		GlStateManager.enableBlend();
+		RenderSystem.enableBlend();
 		drawNormalBG(color, x, y);
-		GlStateManager.color(1, 1, 1, 0.5f);
-		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		RenderSystem.setShaderColor(1, 1, 1, 0.5f);
+		RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE);
 		RenderUtils.renderStack(x + 3, y + 3, stack);
-		GlStateManager.disableBlend();
+		RenderSystem.disableBlend();
 	}
 
 	private void drawBioticStat(IBioticStat stat, AndroidPlayer androidPlayer, int level, Color color, int x, int y) {
@@ -115,59 +122,59 @@ public class AndroidHudBionicStats extends AndroidHudElement {
 		} else {
 			drawNormalBG(color, x, y);
 		}
-		GlStateManager.enableBlend();
+		RenderSystem.enableBlend();
 		ClientProxy.holoIcons.renderIcon(stat.getIcon(level), x + 2, y + 2, 18, 18);
 		if (stat.getDelay(androidPlayer, level) > 0) {
 			String delay = MOStringHelper.formatRemainingTime(stat.getDelay(androidPlayer, level) / 20f, true);
-			int delayWidth = ClientProxy.moFontRender.getStringWidth(delay);
-			ClientProxy.moFontRender.drawString(delay, x + 22 - delayWidth,
+			int delayWidth = ClientProxy.moFontRender.width(delay);
+			ClientProxy.moFontRender.draw(delay, x + 22 - delayWidth,
 					y + 22 - ClientProxy.moFontRender.FONT_HEIGHT - 1, Reference.COLOR_HOLO.getColor());
 		}
-		GlStateManager.disableBlend();
+		RenderSystem.disableBlend();
 	}
 
 	private void drawNormalBG(Color color, int x, int y) {
-		GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		GlStateManager.color(0, 0, 0, backgroundAlpha);
+		RenderSystem.blendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		RenderSystem.setShaderColor(0, 0, 0, backgroundAlpha);
 		ClientProxy.holoIcons.renderIcon("android_feature_icon_bg_black", x, y, 22, 22);
-		GlStateManager.enableBlend();
-		GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_SRC_ALPHA, GL_ONE);
+		RenderSystem.enableBlend();
+		RenderSystem.blendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_SRC_ALPHA, GL_ONE);
 		RenderUtils.applyColorWithAlpha(color);
 		ClientProxy.holoIcons.renderIcon("android_feature_icon_bg", x, y, 22, 22);
-		GlStateManager.disableBlend();
+		RenderSystem.disableBlend();
 	}
 
 	private void drawActiveBG(Color color, int x, int y) {
-		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		GlStateManager.color(0, 0, 0, backgroundAlpha);
+		RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		RenderSystem.setShaderColor(0, 0, 0, backgroundAlpha);
 		ClientProxy.holoIcons.renderIcon("android_feature_icon_bg_black", x, y, 22, 22);
-		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE);
+		RenderSystem.enableBlend();
+		RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE);
 		RenderUtils.applyColorWithAlpha(color);
 		ClientProxy.holoIcons.renderIcon("android_feature_icon_bg_active", x, y, 22, 22);
-		GlStateManager.disableBlend();
+		RenderSystem.disableBlend();
 	}
 
-	private int getX(int count, ScaledResolution resolution, AndroidPlayer androidPlayer) {
+	private int getX(int count, int screenWidth, int screenHeight, AndroidPlayer androidPlayer) {
 		if (getPosition().y == 0.5) {
-			return Math.floorDiv(count, (getHeight(resolution, androidPlayer) / 24)) * 24 + 22
+			return Math.floorDiv(count, (getHeight(screenWidth, screenHeight, androidPlayer) / 24)) * 24 + 22
 					- (int) (44 * getPosition().x);
 		} else {
-			return 24 * (count % (getWidth(resolution, androidPlayer) / 24)) + 12 - (int) (22 * getPosition().x);
+			return 24 * (count % (getWidth(screenWidth, screenHeight, androidPlayer) / 24)) + 12 - (int) (22 * getPosition().x);
 		}
 	}
 
-	private int getY(int count, ScaledResolution resolution, AndroidPlayer androidPlayer) {
+	private int getY(int count, int screenWidth, int screenHeight, AndroidPlayer androidPlayer) {
 		if (getPosition().y == 0.5) {
-			return 24 * (count % (getHeight(resolution, androidPlayer) / 24));
+			return 24 * (count % (getHeight(screenWidth, screenHeight, androidPlayer) / 24));
 		} else {
-			return Math.floorDiv(count, (getWidth(resolution, androidPlayer) / 24)) * 24 + 22
+			return Math.floorDiv(count, (getWidth(screenWidth, screenHeight, androidPlayer) / 24)) * 24 + 22
 					- (int) (22 * getPosition().y);
 		}
 	}
 
 	@Override
-	public int getHeight(ScaledResolution resolution, AndroidPlayer androidPlayer) {
+	public int getHeight(int screenWidth, int screenHeight, AndroidPlayer androidPlayer) {
 		if (getPosition().y == 0.5) {
 			return width;
 		} else {
@@ -178,7 +185,7 @@ public class AndroidHudBionicStats extends AndroidHudElement {
 	}
 
 	@Override
-	public int getWidth(ScaledResolution resolution, AndroidPlayer androidPlayer) {
+	public int getWidth(int screenWidth, int screenHeight, AndroidPlayer androidPlayer) {
 		if (getPosition().y == 0.5) {
 			int count = getTotalElementCount(androidPlayer);
 			return (int) Math.ceil((count * 24d) / width) * 24;

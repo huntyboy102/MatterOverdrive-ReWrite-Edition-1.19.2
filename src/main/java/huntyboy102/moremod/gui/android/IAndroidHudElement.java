@@ -3,16 +3,15 @@ package huntyboy102.moremod.gui.android;
 
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.client.data.Color;
-import net.minecraft.client.gui.ScaledResolution;
 
 public interface IAndroidHudElement {
 	boolean isVisible(AndroidPlayer android);
 
-	void drawElement(AndroidPlayer androidPlayer, ScaledResolution resolution, float ticks);
+	void drawElement(AndroidPlayer androidPlayer, int screenWidth, int screenHeight, float ticks);
 
-	int getWidth(ScaledResolution resolution, AndroidPlayer androidPlayer);
+	int getWidth(int screenWidth, int screenHeight, AndroidPlayer androidPlayer);
 
-	int getHeight(ScaledResolution resolution, AndroidPlayer androidPlayer);
+	int getHeight(int screenWidth, int screenHeight, AndroidPlayer androidPlayer);
 
 	void setX(int x);
 

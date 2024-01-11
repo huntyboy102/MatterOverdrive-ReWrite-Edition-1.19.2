@@ -1,6 +1,9 @@
 
 package huntyboy102.moremod.gui.android;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector3f;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.inventory.IEnergyPack;
@@ -9,14 +12,12 @@ import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 import java.text.DecimalFormat;
 
@@ -36,12 +37,17 @@ public class AndroidHudStats extends AndroidHudElement {
 	}
 
 	@Override
-	public void drawElement(AndroidPlayer androidPlayer, ScaledResolution resolution, float ticks) {
-		GlStateManager.enableAlpha();
+	public void drawElement(AndroidPlayer androidPlayer, float ticks) {
+		int screenWidth = mc.getWindow().getGuiScaledWidth();
+		int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+		PoseStack poseStack = new PoseStack();
+
+		RenderSystem.enableBlend();
 
 		double energy_perc = (double) androidPlayer.getEnergyStored() / (double) androidPlayer.getMaxEnergyStored();
 		double health_perc = androidPlayer.getPlayer().getHealth()
-				/ androidPlayer.getPlayer().getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).getBaseValue();
+				/ androidPlayer.getPlayer().getAttribute(Attributes.MAX_HEALTH).getBaseValue();
 		int x = 0;
 		int y = 0;
 		if (this.getPosition().y > 0.5) {
@@ -52,11 +58,11 @@ public class AndroidHudStats extends AndroidHudElement {
 			x = 12 - (int) (24 * getPosition().x);
 			y = 12 - (int) (24 * getPosition().y);
 
-			GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE);
+			RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE);
 
 			RenderUtils.applyColorWithAlpha(baseColor);
-			mc.renderEngine.bindTexture(top_element_bg);
-			RenderUtils.drawPlane(x, y + (getHeight(resolution, androidPlayer) - 11) * getPosition().y, 0, 174, 11);
+			mc.getTextureManager().bindForSetup(top_element_bg);
+			RenderUtils.drawPlane(x, y + (getHeight(screenWidth, screenHeight, androidPlayer) - 11) * getPosition().y, 0, 174, 11);
 			y += 10 - 5 * getPosition().y;
 			x += 5;
 
@@ -84,15 +90,15 @@ public class AndroidHudStats extends AndroidHudElement {
 			x = 12 - (int) (24 * getPosition().x);
 
 			// drawBackground(x,y,androidPlayer,resolution);
-			GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE);
+			RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE);
 
 			RenderUtils.applyColorWithAlpha(baseColor);
-			GlStateManager.pushMatrix();
-			GlStateManager.translate(x + 11 + (getWidth(resolution, androidPlayer) - 11) * getPosition().x, y, 0);
-			GlStateManager.rotate(90, 0, 0, 1);
-			mc.renderEngine.bindTexture(top_element_bg);
+			poseStack.pushPose();
+			poseStack.translate(x + 11 + (getWidth(screenWidth, screenHeight, androidPlayer) - 11) * getPosition().x, y, 0);
+			poseStack.mulPose(Vector3f.YP.rotationDegrees(90));
+			mc.getTextureManager().bindForSetup(top_element_bg);
 			RenderUtils.drawPlane(0, 0, 0, 174, 11);
-			GlStateManager.popMatrix();
+			poseStack.popPose();
 
 			y += 86;
 			int ySize = 24 + 22 + 24;
@@ -107,26 +113,26 @@ public class AndroidHudStats extends AndroidHudElement {
 
 			x += 11;
 			renderIconWithPercent("health", health_perc,
-					x + (int) (((getWidth(resolution, androidPlayer) - getWidthIconWithPercent(health_perc, 18)) - 22)
+					x + (int) (((getWidth(screenWidth, screenHeight, androidPlayer) - getWidthIconWithPercent(health_perc, 18)) - 22)
 							* getPosition().x),
 					y, 0, 0, false, Reference.COLOR_HOLO_RED, baseColor, 18, 18);
 			y += 24;
 			renderIconWithPercent("battery", energy_perc,
-					x + (int) (((getWidth(resolution, androidPlayer) - getWidthIconWithPercent(energy_perc, 20)) - 22)
+					x + (int) (((getWidth(screenWidth, screenHeight, androidPlayer) - getWidthIconWithPercent(energy_perc, 20)) - 22)
 							* getPosition().x),
 					y - 2, 0, -2, false, Reference.COLOR_HOLO_RED, baseColor, 20, 20);
 			y += 22;
 			renderIconWithPercent("person", androidPlayer.getSpeedMultiply(),
-					x + (int) (((getWidth(resolution, androidPlayer)
+					x + (int) (((getWidth(screenWidth, screenHeight, androidPlayer)
 							- getWidthIconWithPercent(androidPlayer.getSpeedMultiply(), 16)) - 22) * getPosition().x),
 					y, 0, 1, false, baseColor, baseColor, 16, 16);
 			y += 24;
 			renderAmmoBox(androidPlayer,
-					x + (int) (((getWidth(resolution, androidPlayer) - ammoWidth) - 22) * getPosition().x), y, false,
+					x + (int) (((getWidth(screenWidth, screenHeight, androidPlayer) - ammoWidth) - 22) * getPosition().x), y, false,
 					baseColor);
 			y += ammoHeight;
 			renderHeat(androidPlayer,
-					x + (int) (((getWidth(resolution, androidPlayer) - heatWidth) - 22) * getPosition().x), y, false,
+					x + (int) (((getWidth(screenWidth, screenHeight, androidPlayer) - heatWidth) - 22) * getPosition().x), y, false,
 					baseColor);
 		} else if (getPosition() == AndroidHudPosition.MIDDLE_CENTER) {
 			renderIconWithPercent("health", health_perc, x - getWidthIconWithPercent(health_perc, 18) - 22, y - 8, 0, 0,
@@ -137,7 +143,7 @@ public class AndroidHudStats extends AndroidHudElement {
 	}
 
 	private int getWidthIconWithInfo(String info, int iconWidth) {
-		return iconWidth + ClientProxy.moFontRender.getStringWidth(info) + 4;
+		return iconWidth + ClientProxy.moFontRender.width(info) + 4;
 	}
 
 	private int getWidthIconWithPercent(double amount, int iconWidth) {
@@ -147,29 +153,29 @@ public class AndroidHudStats extends AndroidHudElement {
 	private int renderIconWithPercent(String icon, double amount, int x, int y, int iconOffsetX, int iconOffsetY,
 			boolean leftSided, Color fromColor, Color toColor, int iconWidth, int iconHeight) {
 		return this.renderIconWithInfo(icon, DecimalFormat.getPercentInstance().format(amount),
-				RenderUtils.lerp(fromColor, toColor, MathHelper.clamp((float) amount, 0, 1)), x, y, iconOffsetX,
+				RenderUtils.lerp(fromColor, toColor, Mth.clamp((float) amount, 0, 1)), x, y, iconOffsetX,
 				iconOffsetY, leftSided, iconWidth, iconHeight);
 	}
 
 	private int renderIconWithInfo(String icon, String info, Color color, int x, int y, int iconOffsetX,
 			int iconOffsetY, boolean leftSided, int iconWidth, int iconHeight) {
 		HoloIcon holoIcon = ClientProxy.holoIcons.getIcon(icon);
-		int infoWidth = ClientProxy.moFontRender.getStringWidth(info);
+		int infoWidth = ClientProxy.moFontRender.width(info);
 
-		GlStateManager.disableTexture2D();
-		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		GlStateManager.color(0, 0, 0, backgroundAlpha);
+		RenderSystem.disableTexture();
+		RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		RenderSystem.setShaderColor(0, 0, 0, backgroundAlpha);
 		RenderUtils.drawPlane(x, y - 1, 0, infoWidth + 2 + iconWidth + 2, 18 + 2);
-		GlStateManager.enableTexture2D();
-		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE);
+		RenderSystem.enableTexture();
+		RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE);
 		RenderUtils.applyColorWithAlpha(color);
 
 		if (!leftSided) {
 			ClientProxy.holoIcons.renderIcon(holoIcon, x + iconOffsetX, y + iconOffsetY, iconWidth, iconHeight);
-			ClientProxy.moFontRender.drawString(info, x + iconWidth + 2 + iconOffsetX,
+			ClientProxy.moFontRender.draw(info, x + iconWidth + 2 + iconOffsetX,
 					y + iconWidth / 2 - ClientProxy.moFontRender.FONT_HEIGHT / 2 + iconOffsetY, color.getColor());
 		} else {
-			ClientProxy.moFontRender.drawString(info, x + iconOffsetX,
+			ClientProxy.moFontRender.draw(info, x + iconOffsetX,
 					y + iconWidth / 2 - ClientProxy.moFontRender.FONT_HEIGHT / 2 + iconOffsetY, color.getColor());
 			ClientProxy.holoIcons.renderIcon(icon, x + infoWidth + 2 + iconOffsetX, y + iconOffsetY, iconWidth,
 					iconHeight);
@@ -178,12 +184,12 @@ public class AndroidHudStats extends AndroidHudElement {
 	}
 
 	private int renderAmmoBox(AndroidPlayer androidPlayer, int x, int y, boolean leftSided, Color baseColor) {
-		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND) != null
-				&& androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IWeapon) {
-			float percent = (float) ((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-					.getAmmo(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND))
-					/ (float) ((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-							.getMaxAmmo(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND));
+		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND) != null
+				&& androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof IWeapon) {
+			float percent = (float) ((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+					.getAmmo(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND))
+					/ (float) ((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+							.getMaxAmmo(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND));
 			int energyPackCount = getEnergyPackCount(androidPlayer.getPlayer());
 			return renderIconWithInfo("ammo",
 					DecimalFormat.getPercentInstance().format(percent) + " | " + Integer.toString(energyPackCount),
@@ -193,12 +199,12 @@ public class AndroidHudStats extends AndroidHudElement {
 	}
 
 	private int getAmmoBoxWidth(AndroidPlayer androidPlayer) {
-		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND) != null
-				&& androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IWeapon) {
-			float percent = (float) ((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-					.getAmmo(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND))
-					/ (float) ((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-							.getMaxAmmo(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND));
+		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND) != null
+				&& androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof IWeapon) {
+			float percent = (float) ((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+					.getAmmo(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND))
+					/ (float) ((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+							.getMaxAmmo(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND));
 			int energyPackCount = getEnergyPackCount(androidPlayer.getPlayer());
 			return getWidthIconWithInfo(
 					DecimalFormat.getPercentInstance().format(percent) + " | " + Integer.toString(energyPackCount), 18);
@@ -207,14 +213,14 @@ public class AndroidHudStats extends AndroidHudElement {
 	}
 
 	private int renderHeat(AndroidPlayer androidPlayer, int x, int y, boolean leftSided, Color baseColor) {
-		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND) != null
-				&& androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IWeapon) {
-			if (((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-					.getMaxHeat(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND)) > 0) {
-				float percent = ((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-						.getHeat(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND))
-						/ ((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-								.getMaxHeat(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND));
+		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND) != null
+				&& androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof IWeapon) {
+			if (((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+					.getMaxHeat(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND)) > 0) {
+				float percent = ((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+						.getHeat(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND))
+						/ ((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+								.getMaxHeat(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND));
 				return renderIconWithPercent("temperature", percent, x, y, 0, 0, leftSided, baseColor,
 						Reference.COLOR_HOLO_RED, 18, 18);
 			}
@@ -223,23 +229,37 @@ public class AndroidHudStats extends AndroidHudElement {
 	}
 
 	private int getHeatWidth(AndroidPlayer androidPlayer) {
-		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND) != null
-				&& androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IWeapon) {
-			if (((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-					.getMaxHeat(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND)) > 0) {
-				float percent = ((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-						.getHeat(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND))
-						/ ((IWeapon) androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem())
-								.getMaxHeat(androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND));
+		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND) != null
+				&& androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof IWeapon) {
+			if (((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+					.getMaxHeat(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND)) > 0) {
+				float percent = ((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+						.getHeat(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND))
+						/ ((IWeapon) androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem())
+								.getMaxHeat(androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND));
 				return getWidthIconWithPercent(percent, 18);
 			}
 		}
 		return 0;
 	}
 
-	private int getEnergyPackCount(EntityPlayer entityPlayer) {
+	private int getEnergyPackCount(Player entityPlayer) {
 		int energyPackCount = 0;
-		for (ItemStack stack : entityPlayer.inventory.mainInventory) {
+
+		// Check main hand
+		ItemStack mainHandStack = entityPlayer.getMainHandItem();
+		if (!mainHandStack.isEmpty() && mainHandStack.getItem() instanceof IEnergyPack) {
+			energyPackCount += mainHandStack.getCount();
+		}
+
+		// Check offhand
+		ItemStack offHandStack = entityPlayer.getOffhandItem();
+		if (!offHandStack.isEmpty() && offHandStack.getItem() instanceof IEnergyPack) {
+			energyPackCount += offHandStack.getCount();
+		}
+
+		// Check the rest of the inventory
+		for (ItemStack stack : entityPlayer.getInventory().items) {
 			if (!stack.isEmpty() && stack.getItem() instanceof IEnergyPack) {
 				energyPackCount += stack.getCount();
 			}
@@ -248,7 +268,7 @@ public class AndroidHudStats extends AndroidHudElement {
 	}
 
 	@Override
-	public int getWidth(ScaledResolution resolution, AndroidPlayer androidPlayer) {
+	public int getWidth(int screenWidth, int screenHeight, AndroidPlayer androidPlayer) {
 		if (getPosition() == AndroidHudPosition.MIDDLE_CENTER) {
 			return 0;
 		}
@@ -260,7 +280,7 @@ public class AndroidHudStats extends AndroidHudElement {
 	}
 
 	@Override
-	public int getHeight(ScaledResolution resolution, AndroidPlayer androidPlayer) {
+	public int getHeight(int screenWidth, int screenHeight, AndroidPlayer androidPlayer) {
 		if (getPosition() == AndroidHudPosition.MIDDLE_CENTER) {
 			return 0;
 		}
@@ -268,8 +288,8 @@ public class AndroidHudStats extends AndroidHudElement {
 		if (getPosition().y == 0.5) {
 			return width;
 		}
-		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND) != null
-				&& androidPlayer.getPlayer().getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IWeapon) {
+		if (androidPlayer.getPlayer() != null && androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND) != null
+				&& androidPlayer.getPlayer().getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof IWeapon) {
 			return height + 20;
 		} else {
 			return height;

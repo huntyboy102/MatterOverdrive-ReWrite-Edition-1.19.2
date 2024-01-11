@@ -5,7 +5,6 @@ import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.data.Color;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 
 public abstract class AndroidHudElement implements IAndroidHudElement {
 	protected Minecraft mc;
@@ -23,20 +22,12 @@ public abstract class AndroidHudElement implements IAndroidHudElement {
 		this.name = name;
 		this.width = width;
 		this.height = height;
-		mc = Minecraft.getMinecraft();
+		mc = Minecraft.getInstance();
 		baseColor = Reference.COLOR_HOLO;
 		hudPosition = this.defaultPosition = defaultPosition;
 	}
 
-	@Override
-	public int getWidth(ScaledResolution resolution, AndroidPlayer androidPlayer) {
-		return width;
-	}
-
-	@Override
-	public int getHeight(ScaledResolution resolution, AndroidPlayer androidPlayer) {
-		return height;
-	}
+	public abstract void drawElement(AndroidPlayer androidPlayer, float ticks);
 
 	@Override
 	public void setX(int x) {
@@ -72,5 +63,13 @@ public abstract class AndroidHudElement implements IAndroidHudElement {
 
 	public void setBackgroundAlpha(float alpha) {
 		this.backgroundAlpha = alpha;
+	}
+
+	public int getHeight(int screenWidth, int screenHeight, AndroidPlayer androidPlayer) {
+		return width;
+	}
+
+	public int getWidth(int screenWidth, int screenHeight, AndroidPlayer androidPlayer) {
+		return height;
 	}
 }
