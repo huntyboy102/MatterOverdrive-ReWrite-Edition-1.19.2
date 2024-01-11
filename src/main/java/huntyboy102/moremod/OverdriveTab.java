@@ -3,12 +3,12 @@ package huntyboy102.moremod;
 
 import huntyboy102.moremod.util.MOLog;
 import huntyboy102.moremod.util.StackUtils;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.CreativeModeTab;
 
 import java.util.concurrent.Callable;
 
-public class OverdriveTab extends CreativeTabs {
+public class OverdriveTab extends CreativeModeTab {
     private ItemStack itemstack = ItemStack.EMPTY;
     private Callable<ItemStack> stackCallable;
 
@@ -32,9 +32,14 @@ public class OverdriveTab extends CreativeTabs {
                     MOLog.error(e.getMessage(), e);
                 }
             } else {
-                itemstack = new ItemStack(MatterOverdrive.ITEMS.matter_scanner);
+                itemstack = new ItemStack(MatterOverdriveRewriteEdition.ITEMS.matter_scanner);
             }
         }
         return itemstack;
+    }
+
+    @Override
+    public ItemStack makeIcon() {
+        return null;
     }
 }
