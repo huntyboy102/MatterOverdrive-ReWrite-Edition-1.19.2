@@ -6,8 +6,11 @@ import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 
 import java.util.List;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector3f;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.android.IBioticStat;
 import huntyboy102.moremod.client.render.HoloIcon;
@@ -18,16 +21,15 @@ import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.network.packet.server.PacketUnlockBioticStat;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 public class ElementBioStat extends MOElementButton {
 	private IBioticStat stat;
 	private AndroidPlayer player;
 	private int level;
-	private EnumFacing direction;
+	private Direction direction;
 	private boolean strongConnection;
 	private ResourceLocation strongConnectionTex = new ResourceLocation(Reference.PATH_ELEMENTS + "connection.png");
 	private ResourceLocation strongConnectionBrokenTex = new ResourceLocation(
@@ -47,9 +49,7 @@ public class ElementBioStat extends MOElementButton {
 	public boolean isEnabled() {
 
 		if (stat.canBeUnlocked(player, level)) {
-			if (player.getUnlockedLevel(stat) < stat.maxLevel()) {
-				return true;
-			}
+            return player.getUnlockedLevel(stat) < stat.maxLevel();
 		}
 		return false;
 	}
@@ -67,12 +67,12 @@ public class ElementBioStat extends MOElementButton {
 	}
 
 	protected void ResetColor() {
-		GlStateManager.color(1, 1, 1);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 
 	@Override
 	public void addTooltip(List<String> list, int mouseX, int mouseY) {
-		stat.onTooltip(player, MathHelper.clamp(level, 0, stat.maxLevel()), list, mouseX, mouseY);
+		stat.onTooltip(player, Mth.clamp(level, 0, stat.maxLevel()), list, mouseX, mouseY);
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class ElementBioStat extends MOElementButton {
 		if (super.intersectsWith(mouseX, mouseY)) {
 			if (stat.canBeUnlocked(player, level + 1) && level < stat.maxLevel()) {
 				MOGuiBase.playSound(MatterOverdriveSounds.guiBioticStatUnlock, 1, 1);
-				MatterOverdrive.NETWORK.sendToServer(new PacketUnlockBioticStat(stat.getUnlocalizedName(), ++level));
+				MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketUnlockBioticStat(stat.getUnlocalizedName(), ++level));
 			}
 		}
 		super.onAction(mouseX, mouseY, mouseButton);
@@ -94,25 +94,27 @@ public class ElementBioStat extends MOElementButton {
 
 	@Override
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
-		GlStateManager.enableBlend();
+		PoseStack poseStack = new PoseStack();
+
+		RenderSystem.enableBlend();
 		ApplyColor();
 		super.drawBackground(mouseX, mouseY, gameTicks);
 		drawIcon(stat.getIcon(level), posX + 3, posY + 3);
 		if (direction != null) {
-			GlStateManager.pushMatrix();
-			GlStateManager.translate(posX, posY, 0);
-			GlStateManager.translate(sizeX / 2, sizeY / 2, 0);
-			GlStateManager.translate(direction.getXOffset() * (sizeX * 0.75), -direction.getYOffset() * (sizeY * 0.75),
+			poseStack.pushPose();
+			poseStack.translate(posX, posY, 0);
+			poseStack.translate(sizeX / 2, sizeY / 2, 0);
+			poseStack.translate(direction.getStepX() * (sizeX * 0.75), -direction.getStepY() * (sizeY * 0.75),
 					0);
-			if (direction == EnumFacing.EAST) {
-				GlStateManager.rotate(90, 0, 0, 1);
-			} else if (direction == EnumFacing.WEST) {
-				GlStateManager.rotate(-90, 0, 0, 1);
-			} else if (direction == EnumFacing.DOWN) {
-				GlStateManager.rotate(180, 0, 0, 1);
+			if (direction == Direction.EAST) {
+				poseStack.mulPose(Vector3f.YP.rotationDegrees(90));
+			} else if (direction == Direction.WEST) {
+				poseStack.mulPose(Vector3f.YP.rotationDegrees(-90));
+			} else if (direction == Direction.DOWN) {
+				poseStack.mulPose(Vector3f.XP.rotationDegrees(180));
 			}
 			if (strongConnection) {
-				GlStateManager.translate(-3.5, -26, 0);
+				poseStack.translate(-3.5, -26, 0);
 				if (stat.isLocked(player, level)) {
 					RenderUtils.bindTexture(strongConnectionBrokenTex);
 				} else {
@@ -120,13 +122,13 @@ public class ElementBioStat extends MOElementButton {
 				}
 				RenderUtils.drawPlane(7, 30);
 			} else {
-				GlStateManager.translate(-3.5, -3.5, 0);
+				poseStack.translate(-3.5, -3.5, 0);
 				ClientProxy.holoIcons.renderIcon("up_arrow", 0, 0);
 			}
-			GlStateManager.popMatrix();
+			poseStack.popPose();
 		}
 		ResetColor();
-		GlStateManager.disableBlend();
+		RenderSystem.disableBlend();
 	}
 
 	public void drawForeground(int x, int y) {
@@ -139,10 +141,10 @@ public class ElementBioStat extends MOElementButton {
 
 	public void drawIcon(HoloIcon icon, int x, int y) {
 		if (icon != null) {
-			GlStateManager.enableBlend();
-			GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			RenderSystem.enableBlend();
+			RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			ClientProxy.holoIcons.renderIcon(icon, x, y, 16, 16);
-			GlStateManager.disableBlend();
+			RenderSystem.disableBlend();
 		}
 	}
 
@@ -154,11 +156,11 @@ public class ElementBioStat extends MOElementButton {
 		this.strongConnection = strongConnection;
 	}
 
-	public EnumFacing getDirection() {
+	public Direction getDirection() {
 		return direction;
 	}
 
-	public void setDirection(EnumFacing direction) {
+	public void setDirection(Direction direction) {
 		this.direction = direction;
 	}
 }

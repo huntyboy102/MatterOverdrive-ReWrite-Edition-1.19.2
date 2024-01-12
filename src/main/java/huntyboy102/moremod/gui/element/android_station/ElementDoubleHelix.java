@@ -14,18 +14,19 @@ import static org.lwjgl.opengl.GL11.glPolygonMode;
 
 import java.util.List;
 
-import org.lwjgl.util.glu.Project;
+import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.gui.element.MOElementBase;
 import huntyboy102.moremod.proxy.ClientProxy;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import org.lwjgl.opengl.GLUtil;
 
 public class ElementDoubleHelix extends MOElementBase {
 	private float size;
@@ -56,90 +57,93 @@ public class ElementDoubleHelix extends MOElementBase {
 
 	@Override
 	public void drawBackground(int var1, int var2, float var3) {
-		GlStateManager.enableBlend();
-		ScaledResolution scaledresolution = new ScaledResolution(gui.mc);
-		GlStateManager.matrixMode(GL_PROJECTION);
-		GlStateManager.pushMatrix();
-		GlStateManager.loadIdentity();
-		GlStateManager.viewport(
-				(scaledresolution.getScaledWidth() - getWidth()) / 2 * scaledresolution.getScaleFactor(),
-				(scaledresolution.getScaledHeight() - getHeight()) / 2 * scaledresolution.getScaleFactor(),
-				getWidth() * scaledresolution.getScaleFactor(), getHeight() * scaledresolution.getScaleFactor());
-		Project.gluPerspective(fov, (float) getWidth() / (float) getHeight(), 1f, 30f);
-		// GlStateManager.scale(0.8,0.8,0.8);
+		PoseStack poseStack = new PoseStack();
+
+		RenderSystem.enableBlend();
+		Window scaledresolution = Minecraft.getInstance().getWindow();
+		poseStack.matrixMode(GL_PROJECTION);
+		poseStack.pushPose();
+		RenderSystem.loadIdentity();
+		RenderSystem.viewport(
+				(scaledresolution.getGuiScaledWidth() - getWidth()) / 2 * scaledresolution.getGuiScale(),
+				(scaledresolution.getGuiScaledHeight() - getHeight()) / 2 * scaledresolution.getGuiScale(),
+				getWidth() * scaledresolution.getGuiScale(), getHeight() * scaledresolution.getGuiScale());
+		GLUtil.gluPerspective(fov, (float) getWidth() / (float) getHeight(), 1f, 30f);
+		// GlStateManager.scale(0.8, 0.8, 0.8);
 		//
-		GlStateManager.matrixMode(GL_MODELVIEW);
-		GlStateManager.pushMatrix();
-		GlStateManager.loadIdentity();
+		RenderSystem.matrixMode(GL_MODELVIEW);
+		poseStack.pushPose();
+		RenderSystem.loadIdentity();
 
-		GlStateManager.clear(GL_DEPTH_BUFFER_BIT);
-		GlStateManager.pushMatrix();
-		GlStateManager.disableTexture2D();
-		GlStateManager.enableDepth();
-		GlStateManager.depthMask(true);
-		GlStateManager.disableLighting();
+		RenderSystem.clear(GL_DEPTH_BUFFER_BIT);
+		poseStack.pushPose();
+		RenderSystem.disableTexture();
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthMask(true);
+		RenderSystem.disableLighting();
 
-		GlStateManager.translate(-1.5, 0.95, -2.35f);
-		GlStateManager.scale(0.01, 0.01, 0.01);
-		GlStateManager.translate(posX, -posY, 0);
-		GlStateManager.scale(size, size, size);
-		GlStateManager.rotate(Minecraft.getMinecraft().world.getWorldTime(), 1, 0, 0);
-		GlStateManager.rotate(-90, 0, 0, 1);
-		GlStateManager.enableRescaleNormal();
+		poseStack.translate(-1.5, 0.95, -2.35f);
+		poseStack.scale(0.01, 0.01, 0.01);
+		poseStack.translate(posX, -posY, 0);
+		poseStack.scale(size, size, size);
+		poseStack.mulPose(Minecraft.getInstance().level.getDayTime(), 1, 0, 0);
+		poseStack.mulPose(-90, 0, 0, 1);
+		RenderSystem.enableRescaleNormal();
 
 		List<BakedQuad> quadList = ClientProxy.renderHandler.doubleHelixModel.getQuads(null, null, 0);
+		//TODO: What the fuck?
 		/*
-		 * Tessellator.getInstance().getBuffer().begin(GL_QUADS,
+		 * Tesselator.getInstance().getBuffer().begin(GL_QUADS,
 		 * ClientProxy.renderHandler.doubleHelixModel.getFormat()); for (BakedQuad quad
 		 * : quadList) {
-		 * Tessellator.getInstance().getBuffer().addVertexData(quad.getVertexData());
-		 * //LightUtil.renderQuadColorSlow(Tessellator.getInstance().getBuffer(),quad,
+		 * Tesselator.getInstance().getBuffer().addVertexData(quad.getVertexData());
+		 * //LightUtil.renderQuadColorSlow(Tesselator.getInstance().getBuffer(),quad,
 		 * color);
-		 * //LightUtil.renderQuadColor(Tessellator.getInstance().getBuffer(),quad,new
-		 * Color(color).getColor()+0x00ff); } Tessellator.getInstance().draw();
+		 * //LightUtil.renderQuadColor(Tesselator.getInstance().getBuffer(),quad,new
+		 * Color(color).getColor()+0x00ff); } Tesselator.getInstance().draw();
 		 */
 		// GlStateManager.colorMask(true,false,false,true);
 
 		if (pointColor != null) {
 			glPointSize(1);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-			Tessellator.getInstance().getBuffer().begin(GL_QUADS, DefaultVertexFormats.ITEM);
+			Tesselator.getInstance().getBuilder().begin(GL_QUADS, DefaultVertexFormat.ITEM);
 			tesseleteHelix(-1, 3, quadList, pointColor.getColor());
-			Tessellator.getInstance().draw();
+			Tesselator.getInstance().draw();
 		}
 
 		if (lineColor != null) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			Tessellator.getInstance().getBuffer().begin(GL_QUADS, DefaultVertexFormats.ITEM);
+			Tesselator.getInstance().getBuilder().begin(GL_QUADS, DefaultVertexFormat.ITEM);
 			tesseleteHelix(-1, 3, quadList, lineColor.getColor());
-			Tessellator.getInstance().draw();
+			Tesselator.getInstance().draw();
 		}
 
 		if (fillColor != null) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			Tessellator.getInstance().getBuffer().begin(GL_QUADS, DefaultVertexFormats.ITEM);
+			Tesselator.getInstance().getBuilder().begin(GL_QUADS, DefaultVertexFormat.ITEM);
 			tesseleteHelix(-1, 3, quadList, fillColor.getColor());
-			Tessellator.getInstance().draw();
+			Tesselator.getInstance().draw();
 		}
-		GlStateManager.disableRescaleNormal();
+		RenderSystem.disableRescaleNormal();
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		GlStateManager.enableTexture2D();
-		GlStateManager.popMatrix();
+		RenderSystem.enableTexture();
+		poseStack.popPose();
 
-		GlStateManager.matrixMode(GL_PROJECTION);
-		GlStateManager.viewport(0, 0, gui.mc.displayWidth, gui.mc.displayHeight);
-		GlStateManager.popMatrix();
-		GlStateManager.matrixMode(GL_MODELVIEW);
-		GlStateManager.popMatrix();
-		GlStateManager.disableBlend();
+		RenderSystem.matrixMode(GL_PROJECTION);
+		RenderSystem.viewport(0, 0, gui.mc.displayWidth, gui.mc.displayHeight);
+		poseStack.popPose();
+		RenderSystem.matrixMode(GL_MODELVIEW);
+		poseStack.popPose();
+		RenderSystem.disableBlend();
 	}
 
 	private void tesseleteHelix(int fromSegment, int toSegment, List<BakedQuad> quadList, int color) {
 		for (int i = fromSegment; i < toSegment; i++) {
 			for (BakedQuad quad : quadList) {
-				Tessellator.getInstance().getBuffer().addVertexData(quad.getVertexData());
-				Tessellator.getInstance().getBuffer().putColor4(color);
-				Tessellator.getInstance().getBuffer().putPosition(0, 129.7 * i, 0);
+				Tesselator.getInstance().getBuilder().vertex(quad.getVertexData());
+				Tesselator.getInstance().getBuilder().color(color);
+				Tesselator.getInstance().getBuilder().putPosition(0, 129.7 * i, 0);
 			}
 		}
 	}
