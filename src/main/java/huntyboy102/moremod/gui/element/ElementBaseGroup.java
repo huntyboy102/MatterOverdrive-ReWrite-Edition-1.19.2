@@ -1,11 +1,12 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.gui.GuiElementList;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.gui.events.ITextHandler;
-import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -53,12 +54,14 @@ public class ElementBaseGroup extends MOElementBase implements IButtonHandler, G
 
 	@Override
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
+		PoseStack poseStack = new PoseStack();
+
 		mouseX -= posX;
 		mouseY -= posY;
 
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(this.posX, this.posY, 0);
-		GlStateManager.color(1, 1, 1);
+		poseStack.pushPose();
+		poseStack.translate(this.posX, this.posY, 0);
+		RenderSystem.setShaderColor(1, 1, 1,1 );
 		for (int i = getElements().size(); i-- > 0;) {
 			MOElementBase c = getElements().get(i);
 
@@ -66,15 +69,17 @@ public class ElementBaseGroup extends MOElementBase implements IButtonHandler, G
 				c.drawBackground(mouseX, mouseY, gameTicks);
 			}
 		}
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 	}
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
+		PoseStack poseStack = new PoseStack();
+
 		mouseX -= posX;
 		mouseY -= posY;
 
-		GlStateManager.pushMatrix();
+		poseStack.pushPose();
 		GL11.glTranslatef(this.posX, this.posY, 0);
 		GL11.glColor3f(1, 1, 1);
 		for (int i = getElements().size(); i-- > 0;) {
@@ -83,7 +88,7 @@ public class ElementBaseGroup extends MOElementBase implements IButtonHandler, G
 				c.drawForeground(mouseX, mouseY);
 			}
 		}
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 	}
 
 	@Override

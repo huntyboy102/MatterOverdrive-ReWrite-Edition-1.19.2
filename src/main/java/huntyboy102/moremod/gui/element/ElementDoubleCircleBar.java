@@ -1,11 +1,11 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.gui.MOGuiBase;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -45,39 +45,33 @@ public class ElementDoubleCircleBar extends MOElementBase {
 	@Override
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
 		gui.bindTexture(BACK);
-		GlStateManager.color(1, 1, 1, 1);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 		gui.drawSizedTexturedModalRect(posX, posY, 0, 0, sizeX, sizeY, 135, 135);
 
 		// left
 		gui.bindTexture(BG);
-		GlStateManager.alphaFunc(GL_GREATER, 1 - progressLeft);
 		if (colorLeft != null) {
-			GlStateManager.color(colorLeft.getFloatR(), colorLeft.getFloatG(), colorLeft.getFloatB(),
+			RenderSystem.setShaderColor(colorLeft.getFloatR(), colorLeft.getFloatG(), colorLeft.getFloatB(),
 					colorLeft.getFloatA());
 		}
 		gui.drawSizedTexturedModalRect(posX, posY, 0, 0, sizeX / 2, sizeY, 135, 135);
-		GlStateManager.alphaFunc(GL_GREATER, 0.2f);
 
 		// right
 		gui.bindTexture(BG);
-		GlStateManager.alphaFunc(GL_GREATER, 1 - progressRight);
 		if (colorRight != null) {
-			GlStateManager.color(colorRight.getFloatR(), colorRight.getFloatG(), colorRight.getFloatB(),
+			RenderSystem.setShaderColor(colorRight.getFloatR(), colorRight.getFloatG(), colorRight.getFloatB(),
 					colorRight.getFloatA());
 		}
 		gui.drawSizedTexturedModalRect(posX + 135 / 2, posY, 135 / 2, 0, sizeX / 2, sizeY, 135, 135);
-		GlStateManager.alphaFunc(GL_GREATER, 0.2f);
 	}
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
-		GlStateManager.disableAlpha();
-		GlStateManager.enableBlend();
+		RenderSystem.enableBlend();
 		gui.bindTexture(OVERLAY);
-		GlStateManager.color(1, 1, 1, 1);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 		gui.drawSizedTexturedModalRect(posX, posY, 0, 0, sizeX, sizeY, 135, 135);
-		GlStateManager.disableBlend();
-		GlStateManager.enableAlpha();
+		RenderSystem.disableBlend();
 	}
 
 	public void setColorLeft(Color color) {

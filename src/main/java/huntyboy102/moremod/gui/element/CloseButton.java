@@ -17,7 +17,7 @@ public class CloseButton extends MOElementButton {
 
 	@Override
 	public void onAction(int mouseX, int mouseY, int mouseButton) {
-		Minecraft.getMinecraft().player.closeScreen();
+		Minecraft.getInstance().player.closeContainer();
 		super.onAction(mouseX, mouseY, mouseButton);
 	}
 
