@@ -4,7 +4,7 @@ package huntyboy102.moremod.gui.element.starmap;
 import java.util.HashMap;
 import java.util.Map;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.starmap.GalacticPosition;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.client.render.HoloIcon;
@@ -19,8 +19,8 @@ import huntyboy102.moremod.starmap.data.Star;
 import huntyboy102.moremod.tile.TileEntityMachineStarMap;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.ChatFormatting;
 
 public class ElementStarEntry extends ElementAbstractStarMapEntry<Star> {
 
@@ -33,14 +33,14 @@ public class ElementStarEntry extends ElementAbstractStarMapEntry<Star> {
 		String name = spaceBody.getSpaceBodyName();
 		GuiStarMap guiStarMap = (GuiStarMap) gui;
 		if (guiStarMap.getMachine().getGalaxyPosition().equals(star)) {
-			name = "@ " + TextFormatting.ITALIC + name;
+			name = "@ " + ChatFormatting.ITALIC + name;
 		}
 
-		if (Minecraft.getMinecraft().player.capabilities.isCreativeMode
-				|| GalaxyClient.getInstance().canSeeStarInfo(star, Minecraft.getMinecraft().player)) {
+		if (Minecraft.getInstance().player.getAbilities().instabuild
+				|| GalaxyClient.getInstance().canSeeStarInfo(star, Minecraft.getInstance().player)) {
 			RenderUtils.drawString(name, posX + 16, posY + 10, color, multiply);
 		} else {
-			RenderUtils.drawString(Minecraft.getMinecraft().standardGalacticFontRenderer, name, posX + 16, posY + 10,
+			RenderUtils.drawString(Minecraft.getInstance().standardGalacticFontRenderer, name, posX + 16, posY + 10,
 					color, multiply);
 		}
 	}
@@ -54,7 +54,7 @@ public class ElementStarEntry extends ElementAbstractStarMapEntry<Star> {
 		icons.put(shipIcon, 0);
 		icons.put(factoryIcon, 0);
 		for (Planet planet : star.getPlanets()) {
-			if (planet.isOwner(Minecraft.getMinecraft().player)) {
+			if (planet.isOwner(Minecraft.getInstance().player)) {
 				if (planet.isHomeworld()) {
 					icons.put(homeIcon, -1);
 				}
@@ -64,26 +64,26 @@ public class ElementStarEntry extends ElementAbstractStarMapEntry<Star> {
 	}
 
 	@Override
-	protected boolean canTravelTo(Star star, EntityPlayer player) {
+	protected boolean canTravelTo(Star star, Player player) {
 		return false;
 	}
 
 	@Override
-	protected boolean canView(Star spaceBody, EntityPlayer player) {
+	protected boolean canView(Star spaceBody, Player player) {
 		return true;
 	}
 
 	@Override
 	protected void onTravelPress() {
 		TileEntityMachineStarMap starMap = ((GuiStarMap) gui).getMachine();
-		MatterOverdrive.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
 				new GalacticPosition(spaceBody), starMap.getDestination()));
 	}
 
 	@Override
 	protected void onSelectPress() {
 		TileEntityMachineStarMap starMap = ((GuiStarMap) gui).getMachine();
-		MatterOverdrive.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
 				starMap.getGalaxyPosition(), new GalacticPosition(spaceBody)));
 	}
 
@@ -93,7 +93,7 @@ public class ElementStarEntry extends ElementAbstractStarMapEntry<Star> {
 
 	@Override
 	protected Color getSpaceBodyColor(Star star) {
-		return StarMapRendererStars.getStarColor(star, Minecraft.getMinecraft().player);
+		return StarMapRendererStars.getStarColor(star, Minecraft.getInstance().player);
 	}
 
 	@Override

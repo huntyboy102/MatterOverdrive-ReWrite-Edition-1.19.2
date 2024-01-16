@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.api.starmap.GalacticPosition;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.client.render.HoloIcon;
@@ -18,8 +18,8 @@ import huntyboy102.moremod.starmap.data.Planet;
 import huntyboy102.moremod.tile.TileEntityMachineStarMap;
 import huntyboy102.moremod.util.StarmapHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.ChatFormatting;
 
 public class ElementPlanetEntry extends ElementAbstractStarMapEntry<Planet> {
 	public ElementPlanetEntry(GuiStarMap gui, ElementGroupList groupList, int width, int height, Planet spaceBody) {
@@ -31,7 +31,7 @@ public class ElementPlanetEntry extends ElementAbstractStarMapEntry<Planet> {
 		String name = spaceBody.getSpaceBodyName();
 		GuiStarMap guiStarMap = (GuiStarMap) gui;
 		if (guiStarMap.getMachine().getGalaxyPosition().equals(planet)) {
-			name = "@ " + TextFormatting.ITALIC + name;
+			name = "@ " + ChatFormatting.ITALIC + name;
 		}
 
 		StarmapHelper.drawPlanetInfo(planet, name, posX + 16, posY + 10, multiply);
@@ -43,7 +43,7 @@ public class ElementPlanetEntry extends ElementAbstractStarMapEntry<Planet> {
 		HoloIcon shipIcon = ClientProxy.holoIcons.getIcon("icon_shuttle");
 		icons.put(shipIcon, 0);
 
-		if (planet.isOwner(Minecraft.getMinecraft().player)) {
+		if (planet.isOwner(Minecraft.getInstance().player)) {
 			if (planet.isHomeworld()) {
 				icons.put(ClientProxy.holoIcons.getIcon("home_icon"), -1);
 			}
@@ -58,12 +58,12 @@ public class ElementPlanetEntry extends ElementAbstractStarMapEntry<Planet> {
 	}
 
 	@Override
-	protected boolean canTravelTo(Planet planet, EntityPlayer player) {
+	protected boolean canTravelTo(Planet planet, Player player) {
 		return !((GuiStarMap) gui).getMachine().getGalaxyPosition().equals(planet);
 	}
 
 	@Override
-	protected boolean canView(Planet planet, EntityPlayer player) {
+	protected boolean canView(Planet planet, Player player) {
 		return !planet.hasOwner() || planet.isOwner(player);
 	}
 
@@ -105,14 +105,14 @@ public class ElementPlanetEntry extends ElementAbstractStarMapEntry<Planet> {
 	@Override
 	protected void onTravelPress() {
 		TileEntityMachineStarMap starMap = ((GuiStarMap) gui).getMachine();
-		MatterOverdrive.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
 				new GalacticPosition(spaceBody), starMap.getDestination()));
 	}
 
 	@Override
 	protected void onSelectPress() {
 		TileEntityMachineStarMap starMap = ((GuiStarMap) gui).getMachine();
-		MatterOverdrive.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
 				starMap.getGalaxyPosition(), new GalacticPosition(spaceBody)));
 	}
 }

@@ -5,14 +5,14 @@ import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.gui.element.IMOListBoxElement;
 import huntyboy102.moremod.gui.element.MOElementListBox;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.player.Player;
 
 public class ListElementQuest implements IMOListBoxElement {
 	private QuestStack questStack;
-	private EntityPlayer entityPlayer;
+	private Player entityPlayer;
 	private int width;
 
-	public ListElementQuest(EntityPlayer entityPlayer, QuestStack questStack, int width) {
+	public ListElementQuest(Player entityPlayer, QuestStack questStack, int width) {
 		this.questStack = questStack;
 		this.entityPlayer = entityPlayer;
 		this.width = width;
@@ -25,7 +25,7 @@ public class ListElementQuest implements IMOListBoxElement {
 
 	@Override
 	public int getHeight() {
-		return Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT + 6;
+		return Minecraft.getInstance().font.lineHeight + 6;
 	}
 
 	@Override
@@ -42,9 +42,9 @@ public class ListElementQuest implements IMOListBoxElement {
 	public void draw(MOElementListBox listBox, int x, int y, int backColor, int textColor, boolean selected,
 			boolean BG) {
 
-		int textWidth = Minecraft.getMinecraft().fontRenderer.getStringWidth(getName());
+		int textWidth = Minecraft.getInstance().font.width(getName());
 		if (selected) {
-			listBox.getFontRenderer().drawString("\u2023 " + getName(), x + width / 2 - textWidth / 2 - 8, y,
+			listBox.getFontRenderer().drawString("‣ " + getName(), x + width / 2 - textWidth / 2 - 8, y,
 					textColor);
 		} else {
 			listBox.getFontRenderer().drawString(getName(), x + width / 2 - textWidth / 2, y, textColor);

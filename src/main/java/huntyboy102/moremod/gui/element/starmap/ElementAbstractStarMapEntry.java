@@ -1,6 +1,7 @@
 
 package huntyboy102.moremod.gui.element.starmap;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.client.render.HoloIcon;
@@ -13,10 +14,9 @@ import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.starmap.data.SpaceBody;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import org.lwjgl.opengl.GL11;
 
 import java.util.List;
@@ -55,18 +55,17 @@ public abstract class ElementAbstractStarMapEntry<T extends SpaceBody> extends M
 
 	@Override
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
-		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		GlStateManager.disableAlpha();
+		RenderSystem.enableBlend();
+		RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		float multiply = getMultiply(spaceBody);
 
 		RenderUtils.applyColorWithMultipy(getSpaceBodyColor(spaceBody), multiply);
 		if (isSelected(spaceBody)) {
 			getBG(spaceBody).render(posX, posY, sizeX - 64, sizeY);
-			if (canView(spaceBody, Minecraft.getMinecraft().player)) {
+			if (canView(spaceBody, Minecraft.getInstance().player)) {
 				BG_MIDDLE_NORMAL.render(posX + sizeX - 64, posY, 32, sizeY);
 			}
-			if (canTravelTo(spaceBody, Minecraft.getMinecraft().player)) {
+			if (canTravelTo(spaceBody, Minecraft.getInstance().player)) {
 				BG_FLIPPED.render(posX + sizeX - 32, posY, 32, sizeY);
 			}
 			RenderUtils.applyColorWithMultipy(getSpaceBodyColor(spaceBody), multiply * 0.75f);
@@ -78,8 +77,7 @@ public abstract class ElementAbstractStarMapEntry<T extends SpaceBody> extends M
 				getBG(spaceBody).render(posX, posY, sizeX - 64, sizeY);
 			}
 		}
-		GlStateManager.enableAlpha();
-		GlStateManager.disableBlend();
+		RenderSystem.disableBlend();
 	}
 
 	protected ScaleTexture getBG(T spaceBody) {
@@ -102,7 +100,7 @@ public abstract class ElementAbstractStarMapEntry<T extends SpaceBody> extends M
 			drawElementName(spaceBody, color, multiply);
 			int iconsX = 0;
 
-			if (canTravelTo(spaceBody, Minecraft.getMinecraft().player)) {
+			if (canTravelTo(spaceBody, Minecraft.getInstance().player)) {
 				multiply = 0.5f;
 				if (intersectsWith(mouseX, mouseY) && mouseX > sizeX - 32 && mouseX < sizeX) {
 					multiply = 1f;
@@ -114,7 +112,7 @@ public abstract class ElementAbstractStarMapEntry<T extends SpaceBody> extends M
 				iconsX += 32;
 			}
 
-			if (canView(spaceBody, Minecraft.getMinecraft().player)) {
+			if (canView(spaceBody, Minecraft.getInstance().player)) {
 				multiply = 0.5f;
 				if (intersectsWith(mouseX, mouseY) && mouseX > sizeX - 64 && mouseX < sizeX - 32) {
 					multiply = 1f;
@@ -177,9 +175,9 @@ public abstract class ElementAbstractStarMapEntry<T extends SpaceBody> extends M
 	@Override
 	public void addTooltip(List<String> var1, int mouseX, int mouseY) {
 		if (isSelected(spaceBody)) {
-			if (canTravelTo(spaceBody, Minecraft.getMinecraft().player) && mouseX > sizeX - 32 && mouseX < sizeX) {
+			if (canTravelTo(spaceBody, Minecraft.getInstance().player) && mouseX > sizeX - 32 && mouseX < sizeX) {
 				var1.add("Travel To");
-			} else if (canView(spaceBody, Minecraft.getMinecraft().player) && mouseX > sizeX - 64
+			} else if (canView(spaceBody, Minecraft.getInstance().player) && mouseX > sizeX - 64
 					&& mouseX < sizeX - 32) {
 				var1.add("Enter");
 			}
@@ -191,13 +189,13 @@ public abstract class ElementAbstractStarMapEntry<T extends SpaceBody> extends M
 
 		if (isSelected(spaceBody)) {
 			if (mouseX > sizeX - 32 && mouseX < sizeX) {
-				if (canTravelTo(spaceBody, Minecraft.getMinecraft().player)) {
+				if (canTravelTo(spaceBody, Minecraft.getInstance().player)) {
 					onTravelPress();
 				} else {
 					return false;
 				}
 			} else if (mouseX > sizeX - 64 && mouseX < sizeX - 32) {
-				if (canView(spaceBody, Minecraft.getMinecraft().player)) {
+				if (canView(spaceBody, Minecraft.getInstance().player)) {
 					onViewPress();
 				}
 			}
@@ -212,9 +210,9 @@ public abstract class ElementAbstractStarMapEntry<T extends SpaceBody> extends M
 		return false;
 	}
 
-	protected abstract boolean canTravelTo(T spaceBody, EntityPlayer player);
+	protected abstract boolean canTravelTo(T spaceBody, Player player);
 
-	protected abstract boolean canView(T spaceBody, EntityPlayer player);
+	protected abstract boolean canView(T spaceBody, Player player);
 
 	protected void playSound() {
 		SoundEvent event = getSound();

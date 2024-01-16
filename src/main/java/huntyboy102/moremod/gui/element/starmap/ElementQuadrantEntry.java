@@ -1,7 +1,7 @@
 
 package huntyboy102.moremod.gui.element.starmap;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.starmap.GalacticPosition;
 import huntyboy102.moremod.client.data.Color;
@@ -15,7 +15,7 @@ import huntyboy102.moremod.starmap.data.Star;
 import huntyboy102.moremod.tile.TileEntityMachineStarMap;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,7 @@ public class ElementQuadrantEntry extends ElementAbstractStarMapEntry<Quadrant> 
 		HashMap<HoloIcon, Integer> icons = new HashMap<>();
 		HoloIcon homeIcon = ClientProxy.holoIcons.getIcon("home_icon");
 		for (Star star : spaceBody.getStars()) {
-			if (star.isClaimed(Minecraft.getMinecraft().player) >= 2) {
+			if (star.isClaimed(Minecraft.getInstance().player) >= 2) {
 				icons.put(homeIcon, -1);
 			}
 		}
@@ -43,12 +43,12 @@ public class ElementQuadrantEntry extends ElementAbstractStarMapEntry<Quadrant> 
 	}
 
 	@Override
-	protected boolean canTravelTo(Quadrant quadrant, EntityPlayer player) {
+	protected boolean canTravelTo(Quadrant quadrant, Player player) {
 		return false;
 	}
 
 	@Override
-	protected boolean canView(Quadrant spaceBody, EntityPlayer player) {
+	protected boolean canView(Quadrant spaceBody, Player player) {
 		return true;
 	}
 
@@ -81,14 +81,14 @@ public class ElementQuadrantEntry extends ElementAbstractStarMapEntry<Quadrant> 
 	@Override
 	protected void onTravelPress() {
 		TileEntityMachineStarMap starMap = ((GuiStarMap) gui).getMachine();
-		MatterOverdrive.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
 				new GalacticPosition(spaceBody), starMap.getDestination()));
 	}
 
 	@Override
 	protected void onSelectPress() {
 		TileEntityMachineStarMap starMap = ((GuiStarMap) gui).getMachine();
-		MatterOverdrive.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketStarMapClientCommands(starMap, starMap.getZoomLevel(),
 				starMap.getGalaxyPosition(), new GalacticPosition(spaceBody)));
 	}
 }
