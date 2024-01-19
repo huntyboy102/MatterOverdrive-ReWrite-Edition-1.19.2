@@ -3,7 +3,7 @@ package huntyboy102.moremod.gui.element;
 
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class ElementGroup2DScroll extends ElementBaseGroup {
 	int scrollX;
@@ -96,8 +96,8 @@ public class ElementGroup2DScroll extends ElementBaseGroup {
 	}
 
 	public void setScroll(int scrollX, int scrollY) {
-		scrollX = MathHelper.clamp(scrollX, -maxScrollX, -minScrollX);
-		scrollY = MathHelper.clamp(scrollY, minScrollY, maxScrollY);
+		scrollX = Mth.clamp(scrollX, -maxScrollX, -minScrollX);
+		scrollY = Mth.clamp(scrollY, minScrollY, maxScrollY);
 		int scrollDeltaX = scrollX - this.scrollX;
 		int scrollDeltaY = this.scrollY - scrollY;
 		this.scrollX = scrollX;

@@ -4,12 +4,14 @@ package huntyboy102.moremod.gui.element;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.api.network.MatterNetworkTask;
 import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.matter_network.MatterNetworkTaskQueue;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.network.chat.Component;
 
 public class ElementTaskList extends MOElementListBox {
 	MatterNetworkTaskQueue<? extends MatterNetworkTask> taskQueue;
@@ -56,7 +58,8 @@ public class ElementTaskList extends MOElementListBox {
 	@Override
 	public void DrawElement(int i, int x, int y, int selectedLineColor, int selectedTextColor, boolean selected,
 			boolean BG) {
-		GlStateManager.color(1, 1, 1);
+		PoseStack poseStack = new PoseStack();
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 
 		if (selected) {
 			if (i == 0) {
@@ -66,12 +69,12 @@ public class ElementTaskList extends MOElementListBox {
 
 				MOElementButton.HOVER_TEXTURE_DARK.render(x + 60, y + (getElementHeight(i) / 2) - 2, 50,
 						(getElementHeight(i) / 2) - 4);
-				Minecraft.getMinecraft().fontRenderer.drawStringWithShadow("top", x + 76, y + 24, 0xFFFFFF);
+				Minecraft.getInstance().font.drawShadow(poseStack, "top", x + 76, y + 24, 0xFFFFFF);
 			}
 
 			MOElementButton.HOVER_TEXTURE_DARK.render(x + 6, y + (getElementHeight(i) / 2) - 2, 50,
 					(getElementHeight(i) / 2) - 4);
-			Minecraft.getMinecraft().fontRenderer.drawStringWithShadow("remove", x + 13, y + 24, 0xFFFFFF);
+			Minecraft.getInstance().font.drawShadow(poseStack, "remove", x + 13, y + 24, 0xFFFFFF);
 		} else {
 			if (i == 0) {
 				MOElementButton.NORMAL_TEXTURE.render(x, y, getElementWidth(i), getElementHeight(i));
@@ -81,17 +84,19 @@ public class ElementTaskList extends MOElementListBox {
 		}
 
 		MatterNetworkTask task = taskQueue.getAt(i);
-		Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(task.getName(), x + 8, y + 7, 0xFFFFFF);
+		Minecraft.getInstance().font.drawShadow(poseStack, task.getName(), x + 8, y + 7, 0xFFFFFF);
 	}
 
 	@Override
 	public void drawElementTooltip(int index, int mouseX, int mouseY) {
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(-posX, 0, 0);
+		PoseStack poseStack = new PoseStack();
+
+		poseStack.pushPose();
+		poseStack.translate(-posX, 0, 0);
 		List<String> tooltip = new ArrayList<String>();
 		taskQueue.getAt(index).addInfo(tooltip);
 		gui.setTooltip(tooltip);
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 	}
 
 	@Override

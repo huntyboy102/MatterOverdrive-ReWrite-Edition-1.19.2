@@ -1,13 +1,13 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.data.ScaleTexture;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -61,7 +61,7 @@ public class ElementProgress extends MOElementBase {
 
 	@Override
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
-		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderUtils.bindTexture(texture);
 		drawTexturedModalRect(this.posX, this.posY, this.bgU, this.bgV, this.sizeX, this.sizeY);
 
@@ -69,7 +69,7 @@ public class ElementProgress extends MOElementBase {
 		// drawTexturedModalRect(this.fillX,this.fillY,this.fillU,this.fillV,,this.fillSizeY);
 
 		if (this.isShowText()) {
-			this.drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.text, this.posX + this.textX,
+			this.drawCenteredString(Minecraft.getInstance().font, this.text, this.posX + this.textX,
 					this.posY + this.textY, this.textColor);
 		}
 	}

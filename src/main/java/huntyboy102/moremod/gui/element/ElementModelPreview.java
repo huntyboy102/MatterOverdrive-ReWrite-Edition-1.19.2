@@ -3,12 +3,14 @@ package huntyboy102.moremod.gui.element;
 
 import java.util.List;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector3f;
 import huntyboy102.moremod.gui.MOGuiBase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.item.ItemStack;
 
 public class ElementModelPreview extends MOElementBase {
 	ItemStack itemStack;
@@ -43,32 +45,31 @@ public class ElementModelPreview extends MOElementBase {
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
+		PoseStack poseStack = new PoseStack();
+
 		if (itemStack != null) {
-			GlStateManager.pushMatrix();
+			poseStack.pushPose();
 			Transform();
-			GlStateManager.disableCull();
-			RenderHelper.enableGUIStandardItemLighting();
-			Minecraft.getMinecraft().getRenderItem().renderItem(itemStack, ItemCameraTransforms.TransformType.GUI);
-			RenderHelper.disableStandardItemLighting();
-			GlStateManager.popMatrix();
+
+			Minecraft minecraft = Minecraft.getInstance();
+			ItemRenderer itemRenderer = minecraft.getItemRenderer();
+			MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
+
+			itemRenderer.renderGuiItem(itemStack, 15728880, OverlayTexture.NO_OVERLAY);
+
+			bufferSource.endBatch();
+			poseStack.popPose();
 		}
 	}
 
 	public void Transform() {
-		GlStateManager.translate(posX, posY, 80);
-		GlStateManager.rotate(-90, 0, 1, 0);
-		GlStateManager.rotate(210, 0, 0, 1);
-		GlStateManager.rotate(-25, 0, 1, 0);
-		GlStateManager.scale(120, 120, 120);
-		// GlStateManager.translate(0,-0.7,0);
-		// GlStateManager.translate(0.2,0.2,0.2);
+		PoseStack poseStack = new PoseStack();
+		poseStack.translate(posX, posY, 80);
+		poseStack.mulPose(Vector3f.YP.rotation(-90));
+		poseStack.mulPose(Vector3f.ZP.rotation(210));
+		poseStack.mulPose(Vector3f.YP.rotation(-25));
+		poseStack.scale(120, 120, 120);
 	}
-
-	/*
-	 * public IItemRenderer getRenderer() { return renderer; }
-	 * 
-	 * public void setRenderer(IItemRenderer renderer) { this.renderer = renderer; }
-	 */
 
 	public ItemStack getItemStack() {
 		return itemStack;

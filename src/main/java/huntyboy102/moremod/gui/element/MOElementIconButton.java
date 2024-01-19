@@ -7,7 +7,6 @@ import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.renderer.GlStateManager;
 
 public class MOElementIconButton extends MOElementButton {
 	HoloIcon icon;
@@ -30,7 +29,6 @@ public class MOElementIconButton extends MOElementButton {
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
 		if (icon != null) {
-			GlStateManager.enableAlpha();
 			ClientProxy.holoIcons.bindSheet();
 			if (iconColor != null) {
 				RenderUtils.applyColorWithAlpha(iconColor);

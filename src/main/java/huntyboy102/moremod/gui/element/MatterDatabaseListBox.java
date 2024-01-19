@@ -1,16 +1,17 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.items.MatterScanner;
 import huntyboy102.moremod.data.matter_network.ItemPattern;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
 
@@ -98,7 +99,7 @@ public class MatterDatabaseListBox extends MOElementListBox {
 		@Override
 		public void draw(MOElementListBox listBox, int x, int y, int backColor, int textColor, boolean selected,
 				boolean BG) {
-			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 			if (BG) {
 				if (selected) {
@@ -116,11 +117,11 @@ public class MatterDatabaseListBox extends MOElementListBox {
 
 		public void drawToolTop(MOElementListBox listBox, int x, int y) {
 			ItemStack item = itemComp.toItemStack(false);
-			List<String> tooltip = item.getTooltip(Minecraft.getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL);
-			tooltip.add("Progress: " + itemComp.getProgress() + "%");
-			tooltip.add("Matter: " + MatterHelper.getMatterAmountFromItem(item) + MatterHelper.MATTER_UNIT);
+			List<Component> tooltip = item.getTooltipLines(Minecraft.getInstance().player, TooltipFlag.Default.NORMAL);
+			tooltip.add(Component.nullToEmpty("Progress: " + itemComp.getProgress() + "%"));
+			tooltip.add(Component.nullToEmpty("Matter: " + MatterHelper.getMatterAmountFromItem(item) + MatterHelper.MATTER_UNIT));
 			((MatterDatabaseListBox) listBox).getGui().setTooltip(tooltip);
-			GlStateManager.color(1, 1, 1, 1);
+			RenderSystem.setShaderColor(1, 1, 1, 1);
 		}
 	}
 

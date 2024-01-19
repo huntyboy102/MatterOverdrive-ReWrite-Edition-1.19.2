@@ -1,10 +1,10 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.RenderUtils;
 import huntyboy102.moremod.util.math.MOMathHelper;
-import net.minecraft.client.renderer.GlStateManager;
 
 public class ElementScrollGroup extends ElementBaseGroup {
 	int contentTotalHeight;
@@ -45,7 +45,7 @@ public class ElementScrollGroup extends ElementBaseGroup {
 		// drawStencil(posX, posY, sizeX + posX, sizeY + posY, 1);
 		RenderUtils.beginDepthMasking();
 		super.drawForeground(mouseX, mouseY);
-		GlStateManager.disableTexture2D();
+		RenderSystem.disableTexture();
 		RenderUtils.applyColor(scrollerColor);
 		if (contentTotalHeight - sizeY > 0) {
 			int maxScroll = contentTotalHeight - sizeY;
@@ -54,7 +54,7 @@ public class ElementScrollGroup extends ElementBaseGroup {
 			int scrollerY = sizeY - scrollerSize;
 			RenderUtils.drawPlane(posX + sizeX - 1, posY + scrollerY * scrollPercent, 0, 1, scrollerSize);
 		}
-		GlStateManager.enableTexture2D();
+		RenderSystem.enableTexture();
 
 		RenderUtils.endDepthMask();
 	}

@@ -1,13 +1,13 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.data.ScaleTexture;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.init.MatterOverdriveSounds;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public class SidePannel extends ElementBaseGroup {
 	private static boolean isOpen;
@@ -48,7 +48,7 @@ public class SidePannel extends ElementBaseGroup {
 	public void drawBackground(int mouseX, int mouseY, float ticks) {
 		if (openable) {
 			if (isOpen) {
-				GlStateManager.color(1, 1, 1);
+				RenderSystem.setShaderColor(1, 1, 1, 1);
 				BACKGROUND_TEXTURE.render(posX, posY, 37, sizeY);
 				button.setPosition(32, 0);
 			} else {

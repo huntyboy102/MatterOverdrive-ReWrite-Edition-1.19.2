@@ -1,14 +1,14 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.guide.MOGuideEntry;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -42,14 +42,14 @@ public class ElementGuideEntry extends MOElementBase {
 
 	@Override
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
-		GlStateManager.color(1, 1, 1);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 		gui.bindTexture(BG);
 		gui.drawSizedTexturedModalRect(this.posX, this.posY, 0, 0, 22, 22, 22, 22);
 	}
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
-		int iconIndex = (int) ((Minecraft.getMinecraft().world.getWorldTime() / 20) % entry.getStackIcons().length);
+		int iconIndex = (int) ((Minecraft.getInstance().level.getDayTime() / 20) % entry.getStackIcons().length);
 		RenderUtils.renderStack(this.posX + 3, this.posY + 3, entry.getStackIcons()[iconIndex]);
 
 		if (showLabel) {

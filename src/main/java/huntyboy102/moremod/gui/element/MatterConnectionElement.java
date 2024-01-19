@@ -1,14 +1,14 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class MatterConnectionElement extends MOElementBase {
 
 	@Override
 	public void addTooltip(List<String> list, int mouseX, int mouseY) {
-		list.add(MOStringHelper.translateToLocal(Item.getItemById(id).getTranslationKey() + ".name") + " [" + count
+		list.add(MOStringHelper.translateToLocal(Item.byId(id).getTranslationKey() + ".name") + " [" + count
 				+ "]");
 	}
 
@@ -47,14 +47,14 @@ public class MatterConnectionElement extends MOElementBase {
 
 	@Override
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
-		GlStateManager.color(1, 1, 1);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 		RenderUtils.bindTexture(texture);
 		gui.drawSizedTexturedModalRect(posX, posY, 0, 0, 22, 22, 22, 22);
 	}
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
-		RenderUtils.renderStack(posX + 2, posY + 2, new ItemStack(Item.getItemById(id)));
+		RenderUtils.renderStack(posX + 2, posY + 2, new ItemStack(Item.byId(id)));
 		gui.getFontRenderer().drawStringWithShadow(Integer.toString(count), posX + 8, posY + 24, 0xFFFFFF);
 	}
 }

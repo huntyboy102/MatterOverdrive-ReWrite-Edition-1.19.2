@@ -1,12 +1,13 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.data.ScaleTexture;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
 public class MOElementButtonScaled extends MOElementButton {
@@ -29,7 +30,7 @@ public class MOElementButtonScaled extends MOElementButton {
 		if (color != null) {
 			RenderUtils.applyColor(color);
 		} else {
-			GlStateManager.color(1, 1, 1, 1);
+			RenderSystem.setShaderColor(1, 1, 1, 1);
 		}
 		if (isEnabled()) {
 			if (!isDown) {
@@ -54,16 +55,18 @@ public class MOElementButtonScaled extends MOElementButton {
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
+		PoseStack poseStack = new PoseStack();
+
 		if (text != null && !text.isEmpty()) {
 			if (icon != null) {
-				int width = getFontRenderer().getStringWidth(text) - icon.getOriginalWidth();
-				getFontRenderer().drawString(text, posX + sizeX / 2 - (width / 2), posY + sizeY / 2 - 3, labelColor);
+				int width = getFontRenderer().width(text) - icon.getOriginalWidth();
+				getFontRenderer().draw(poseStack, text, posX + sizeX / 2 - (width / 2), posY + sizeY / 2 - 3, labelColor);
 				RenderUtils.applyColor(getTextColor());
 				ClientProxy.holoIcons.renderIcon(icon, posX + sizeX / 2 - icon.getOriginalWidth() - width / 2,
 						posY + sizeY / 2 - icon.getOriginalHeight() / 2);
 			} else {
-				int width = getFontRenderer().getStringWidth(text);
-				getFontRenderer().drawString(text, posX + sizeX / 2 - (width / 2), posY + sizeY / 2 - 3, labelColor);
+				int width = getFontRenderer().width(text);
+				getFontRenderer().draw(poseStack, text, posX + sizeX / 2 - (width / 2), posY + sizeY / 2 - 3, labelColor);
 			}
 		} else {
 			if (icon != null) {

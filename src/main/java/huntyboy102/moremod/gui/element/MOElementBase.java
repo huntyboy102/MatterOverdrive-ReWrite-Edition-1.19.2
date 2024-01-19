@@ -1,15 +1,16 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.gui.Font;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public abstract class MOElementBase {
 	protected int texW = 256;
 	protected int texH = 256;
 	protected String name;
-	private FontRenderer fontRenderer;
+	private Font fontRenderer;
 	private boolean visible = true;
 	private boolean enabled = true;
 	private Color color = new Color(255, 255, 255);
@@ -65,7 +66,7 @@ public abstract class MOElementBase {
 	}
 
 	protected void ResetColor() {
-		GlStateManager.color(1, 1, 1);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 
 	protected int getGlobalX() {
@@ -145,36 +146,36 @@ public abstract class MOElementBase {
 	}
 
 	public void drawStencil(int xStart, int yStart, int xEnd, int yEnd, int flag) {
-		GlStateManager.disableTexture2D();
+		RenderSystem.disableTexture();
 		glStencilFunc(GL_ALWAYS, flag, flag);
 		glStencilOp(GL_ZERO, GL_ZERO, GL_REPLACE);
 		glStencilMask(flag);
-		GlStateManager.colorMask(false, false, false, false);
-		GlStateManager.depthMask(false);
+		RenderSystem.colorMask(false, false, false, false);
+		RenderSystem.depthMask(false);
 		glClearStencil(0);
-		GlStateManager.clear(GL_STENCIL_BUFFER_BIT);
+		RenderSystem.clear(GL_STENCIL_BUFFER_BIT, true);
 
-		BufferBuilder vb = Tessellator.getInstance().getBuffer();
-		vb.begin(GL_QUADS, DefaultVertexFormats.POSITION);
-		vb.pos(xStart, yEnd, 0).endVertex();
-		vb.pos(xEnd, yEnd, 0).endVertex();
-		vb.pos(xEnd, yStart, 0).endVertex();
-		vb.pos(xStart, yStart, 0).endVertex();
-		Tessellator.getInstance().draw();
+		BufferBuilder vb = Tesselator.getInstance().getBuilder();
+		vb.begin(GL_QUADS, DefaultVertexFormat.POSITION);
+		vb.vertex(xStart, yEnd, 0).endVertex();
+		vb.vertex(xEnd, yEnd, 0).endVertex();
+		vb.vertex(xEnd, yStart, 0).endVertex();
+		vb.vertex(xStart, yStart, 0).endVertex();
+		Tesselator.getInstance().end();
 
-		GlStateManager.enableTexture2D();
+		RenderSystem.enableTexture();
 		glStencilFunc(GL_EQUAL, flag, flag);
 		glStencilMask(0);
-		GlStateManager.colorMask(true, true, true, false);
-		GlStateManager.depthMask(true);
+		RenderSystem.colorMask(true, true, true, false);
+		RenderSystem.depthMask(true);
 	}
 
 	public void drawTexturedModalRect(int var1, int var2, int var3, int var4, int var5, int var6) {
 		this.gui.drawSizedTexturedModalRect(var1, var2, var3, var4, var5, var6, (float) this.texW, (float) this.texH);
 	}
 
-	public void drawCenteredString(FontRenderer var1, String var2, int var3, int var4, int var5) {
-		var1.drawStringWithShadow(var2, var3 - var1.getStringWidth(var2) / 2, var4, var5);
+	public void drawCenteredString(Font var1, String var2, int var3, int var4, int var5) {
+		var1.drawShadow(new PoseStack(), var2, var3 - var1.width(var2) / 2, var4, var5);
 	}
 
 	public boolean onMousePressed(int var1, int var2, int var3) {
@@ -197,11 +198,11 @@ public abstract class MOElementBase {
 				&& var2 <= this.posY + this.sizeY;
 	}
 
-	public FontRenderer getFontRenderer() {
+	public Font getFontRenderer() {
 		return this.fontRenderer == null ? this.gui.getFontRenderer() : this.fontRenderer;
 	}
 
-	public MOElementBase setFontRenderer(FontRenderer var1) {
+	public MOElementBase setFontRenderer(Font var1) {
 		this.fontRenderer = var1;
 		return this;
 	}

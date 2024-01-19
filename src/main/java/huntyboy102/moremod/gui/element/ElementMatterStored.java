@@ -6,8 +6,8 @@ import huntyboy102.moremod.api.matter.IMatterHandler;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.ChatFormatting;
 
 import java.util.List;
 
@@ -75,15 +75,15 @@ public class ElementMatterStored extends MOElementBase {
 		}
 
 		if (drain > 0) {
-			list.add(TextFormatting.GREEN + "+" + MatterHelper.formatMatter(drain));
+			list.add(ChatFormatting.GREEN + "+" + MatterHelper.formatMatter(drain));
 		} else if (drain < 0) {
-			list.add(TextFormatting.RED + MatterHelper.formatMatter(drain));
+			list.add(ChatFormatting.RED + MatterHelper.formatMatter(drain));
 		}
 
 		if (drainPerTick > 0) {
-			list.add(TextFormatting.GREEN + "+" + MatterHelper.formatMatter(drainPerTick) + "/t");
+			list.add(ChatFormatting.GREEN + "+" + MatterHelper.formatMatter(drainPerTick) + "/t");
 		} else if (drainPerTick < 0) {
-			list.add(TextFormatting.RED + MatterHelper.formatMatter(drainPerTick) + "/t");
+			list.add(ChatFormatting.RED + MatterHelper.formatMatter(drainPerTick) + "/t");
 		}
 	}
 

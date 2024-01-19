@@ -1,10 +1,11 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.gui.MOGuiBase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
 public class ElementStates extends MOElementButtonScaled {
@@ -17,10 +18,10 @@ public class ElementStates extends MOElementButtonScaled {
 		super(gui, buttonHandler, posX, posY, name, 0, 0);
 		this.name = name;
 		this.states = states;
-		this.sizeY = Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT + 10;
+		this.sizeY = Minecraft.getInstance().font.lineHeight + 10;
 		for (String state : states) {
-			if (this.sizeX < Minecraft.getMinecraft().fontRenderer.getStringWidth(state)) {
-				this.sizeX = Minecraft.getMinecraft().fontRenderer.getStringWidth(state);
+			if (this.sizeX < Minecraft.getInstance().font.width(state)) {
+				this.sizeX = Minecraft.getInstance().font.width(state);
 			}
 		}
 		this.sizeX += 16;
@@ -41,13 +42,15 @@ public class ElementStates extends MOElementButtonScaled {
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
+		PoseStack poseStack = new PoseStack();
 		super.drawForeground(mouseX, mouseY);
-		GlStateManager.color(1, 1, 1, 1);
-		GlStateManager.enableAlpha();
-		GlStateManager.alphaFunc(GL11.GL_GREATER, 0.5f);
-		GlStateManager.cullFace(GlStateManager.CullFace.BACK);
-		getFontRenderer().drawString(label, posX + sizeX + 4, posY - getFontRenderer().FONT_HEIGHT / 2 + sizeY / 2,
+		RenderSystem.setShaderColor(1, 1, 1, 1);
+		RenderSystem.enableBlend();
+		RenderSystem.blendFunc(GL11.GL_GREATER, GL11.GL_LESS);
+		RenderSystem.enableCull();
+		getFontRenderer().draw(poseStack, label, posX + sizeX + 4, posY - getFontRenderer().lineHeight / 2 + sizeY / 2,
 				getTextColor());
+		RenderSystem.disableCull();
 	}
 
 	@Override

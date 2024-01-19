@@ -1,19 +1,22 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.math.MOMathHelper;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.util.Mth;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 import java.util.Random;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ElementScanProgress extends MOElementBase {
 	private static float NoiseSize = 0.1f;
 	Random random = new Random();
@@ -44,15 +47,17 @@ public class ElementScanProgress extends MOElementBase {
 
 	@Override
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(posX, posY, 0);
+		PoseStack poseStack = new PoseStack();
+
+		poseStack.pushPose();
+		poseStack.translate(posX, posY, 0);
 
 		gui.bindTexture(texture);
 		this.drawTexturedModalRect(0, 0, 0, 0, 117, 47);
 		Color color = new Color(191, 228, 230);
 
 		random.setSeed(seed);
-		int progress = MathHelper.floor(this.progress * 26);
+		int progress = Mth.floor(this.progress * 26);
 
 		int marginsTop = 8;
 		int marginsLeft = 7;
@@ -84,8 +89,8 @@ public class ElementScanProgress extends MOElementBase {
 			values[i] = MOMathHelper.Lerp(values[i], newValue, 0.05f);
 		}
 
-		GlStateManager.popMatrix();
-		GlStateManager.color(1, 1, 1);
+		poseStack.popPose();
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 	}
 
 	public void setSeed(int seed) {

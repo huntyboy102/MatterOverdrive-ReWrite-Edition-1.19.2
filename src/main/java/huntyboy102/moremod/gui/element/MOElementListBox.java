@@ -1,13 +1,14 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.gui.events.IListHandler;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.RenderShape;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -137,14 +138,14 @@ public class MOElementListBox extends MOElementBase {
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
 		int heightDrawn = 0;
 		int nextElement = _firstIndexDisplayed;
+		PoseStack poseStack = new PoseStack();
 
-		GlStateManager.disableLighting();
-		GlStateManager.pushMatrix();
+		poseStack.pushPose();
 
 		RenderUtils.beginStencil();
 		drawStencil(getContentLeft(), getContentTop(), getContentRight(), getContentBottom(), 1);
 
-		GlStateManager.translate(-scrollHoriz, 0, 0);
+		poseStack.translate(-scrollHoriz, 0, 0);
 
 		int e = getElementCount();
 		while (nextElement < e && heightDrawn <= getContentHeight()) {
@@ -164,21 +165,21 @@ public class MOElementListBox extends MOElementBase {
 
 		RenderUtils.endStencil();
 
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 	}
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
 		int heightDrawn = 0;
 		int nextElement = _firstIndexDisplayed;
+		PoseStack poseStack = new PoseStack();
 
-		GlStateManager.disableLighting();
-		GlStateManager.pushMatrix();
+		poseStack.pushPose();
 
 		RenderUtils.beginStencil();
 		drawStencil(getContentLeft(), getContentTop(), getContentRight(), getContentBottom(), 1);
 
-		GlStateManager.translate(-scrollHoriz, 0, 0);
+		poseStack.translate(-scrollHoriz, 0, 0);
 
 		int e = getElementCount();
 		while (nextElement < e && heightDrawn <= getContentHeight()) {
@@ -205,7 +206,7 @@ public class MOElementListBox extends MOElementBase {
 
 		RenderUtils.endStencil();
 
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 	}
 
 	@Override
@@ -329,7 +330,7 @@ public class MOElementListBox extends MOElementBase {
 
 	public IMOListBoxElement getSelectedElement() {
 		if (_selectedIndex < getElementCount()) {
-			return getElement(MathHelper.clamp(_selectedIndex, 0, _elements.size()));
+			return getElement(Mth.clamp(_selectedIndex, 0, _elements.size()));
 		} else {
 			return null;
 		}

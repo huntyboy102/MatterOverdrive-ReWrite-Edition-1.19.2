@@ -13,8 +13,10 @@ import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.data.ScaleTexture;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+
+import static net.minecraft.core.Registry.REGISTRY;
 
 public class MOElementButton extends MOElementBase {
 	public static final ScaleTexture NORMAL_TEXTURE = new ScaleTexture(
@@ -82,8 +84,8 @@ public class MOElementButton extends MOElementBase {
 
 	public SoundEvent getSound() {
 		if (sounds != null && sounds.length > 0) {
-			if (SoundEvent.REGISTRY.containsKey(sounds[rand.nextInt(sounds.length)])) {
-				return SoundEvent.REGISTRY.getObject(sounds[rand.nextInt(sounds.length)]);
+			if (REGISTRY.SOUND_EVENT.containsKey(sounds[rand.nextInt(sounds.length)])) {
+				return REGISTRY.SOUND_EVENT.get(sounds[rand.nextInt(sounds.length)]);
 			}
 		}
 		return null;

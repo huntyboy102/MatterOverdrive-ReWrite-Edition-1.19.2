@@ -6,9 +6,9 @@ import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.data.ScaleTexture;
 import huntyboy102.moremod.gui.MOGuiBase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import org.lwjgl.input.Keyboard;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
 
 public class ElementIntegerField extends ElementBaseGroup implements IButtonHandler {
 	private IButtonHandler buttonHandler;
@@ -24,7 +24,7 @@ public class ElementIntegerField extends ElementBaseGroup implements IButtonHand
 	public ElementIntegerField(MOGuiBase gui, IButtonHandler buttonHandler, int posX, int posY, int height, int min,
 			int max) {
 		this(gui, buttonHandler, posX, posY,
-				32 + Minecraft.getMinecraft().fontRenderer.getStringWidth(Integer.toString(max)) + 10, height, min,
+				32 + Minecraft.getInstance().font.width(Integer.toString(max)) + 10, height, min,
 				max);
 	}
 
@@ -70,20 +70,20 @@ public class ElementIntegerField extends ElementBaseGroup implements IButtonHand
 	}
 
 	public int getNumber() {
-		return MathHelper.clamp(number, min, max);
+		return Mth.clamp(number, min, max);
 	}
 
 	public void setNumber(int number) {
-		this.number = MathHelper.clamp(number, min, max);
+		this.number = Mth.clamp(number, min, max);
 	}
 
 	@Override
 	public void handleElementButtonClick(MOElementBase element, String buttonName, int mouseButton) {
 		if (buttonName.equals("Inc")) {
 			int value = 1;
-			if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
+			if (isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
 				value = 64;
-			} else if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
+			} else if (isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL)) {
 				value = 16;
 			}
 
@@ -91,15 +91,20 @@ public class ElementIntegerField extends ElementBaseGroup implements IButtonHand
 			buttonHandler.handleElementButtonClick(this, getName(), value);
 		} else if (buttonName.equals("Dec")) {
 			int value = -1;
-			if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
+			if (isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
 				value = -64;
-			} else if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
+			} else if (isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL)) {
 				value = -16;
 			}
 
 			setNumber(getNumber() + value);
 			buttonHandler.handleElementButtonClick(this, getName(), value);
 		}
+	}
+
+	private boolean isKeyDown(int key) {
+		long windowHandle = Minecraft.getInstance().getWindow().getWindow();
+		return GLFW.glfwGetKey(windowHandle, key) == GLFW.GLFW_PRESS;
 	}
 
 	@Override

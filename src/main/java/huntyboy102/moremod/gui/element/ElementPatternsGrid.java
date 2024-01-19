@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 import huntyboy102.moremod.data.matter_network.ItemPatternMapping;
 import huntyboy102.moremod.gui.MOGuiBase;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public class ElementPatternsGrid extends ElementGrid {
 	String filter = "";

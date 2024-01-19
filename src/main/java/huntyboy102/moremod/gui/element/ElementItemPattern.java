@@ -2,7 +2,10 @@ package huntyboy102.moremod.gui.element;
 
 import java.util.List;
 
-import org.lwjgl.input.Keyboard;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.TooltipFlag;
 
 import huntyboy102.moremod.data.ScaleTexture;
 import huntyboy102.moremod.data.matter_network.ItemPatternMapping;
@@ -12,11 +15,8 @@ import huntyboy102.moremod.util.MatterDatabaseHelper;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.ChatFormatting;
 
 public class ElementItemPattern extends ElementSlot {
 	protected ScaleTexture texture;
@@ -35,14 +35,14 @@ public class ElementItemPattern extends ElementSlot {
 		if (patternMapping != null) {
 			itemStack.setCount(amount);
 			RenderHelper.enableGUIStandardItemLighting();
-			GlStateManager.disableLighting();
-			GlStateManager.enableRescaleNormal();
-			GlStateManager.enableColorMaterial();
-			GlStateManager.enableLighting();
+			RenderSystem.disableLighting();
+			RenderSystem.enableRescaleNormal();
+			RenderSystem.enableColorMaterial();
+			RenderSystem.enableLighting();
 			RenderUtils.renderStack(posX + 3, posY + 3, 100, itemStack, true);
-			GlStateManager.disableLighting();
-			GlStateManager.depthMask(true);
-			GlStateManager.enableDepth();
+			RenderSystem.disableLighting();
+			RenderSystem.depthMask(true);
+			RenderSystem.enableDepthTest();
 		}
 	}
 
@@ -52,18 +52,22 @@ public class ElementItemPattern extends ElementSlot {
 	}
 
 	@Override
-	public void addTooltip(List<String> list, int mouseX, int mouseY) {
+	public void addTooltip(List<String> list, ItemStack itemStack, int mouseX, int mouseY) {
 		if (patternMapping != null) {
 			if (itemStack != null) {
-				list.addAll(itemStack.getTooltip(Minecraft.getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL));
-				String name = list.get(0);
+				List<Component> tooltip = itemStack.getTooltipLines(Minecraft.getInstance().player, TooltipFlag.Default.NORMAL);
+
+				String name = tooltip.get(0).getString();
 				int matterValue = MatterHelper.getMatterAmountFromItem(itemStack);
-				String matter = TextFormatting.BLUE + MOStringHelper.translateToLocal("gui.tooltip.matter") + ": "
-						+ TextFormatting.GOLD + MatterHelper.formatMatter(matterValue);
+				String matter = ChatFormatting.BLUE + MOStringHelper.translateToLocal("gui.tooltip.matter") + ": "
+						+ ChatFormatting.GOLD + MatterHelper.formatMatter(matterValue);
+
 				int progress = patternMapping.getItemPattern().getProgress();
 				name = MatterDatabaseHelper.getPatternInfoColor(progress) + name + " [" + progress + "%]";
-				list.set(0, name);
-				if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
+				tooltip.set(0, name);
+
+				if (Screen.hasShiftDown()) {
+					list.addAll(tooltip);
 				} else {
 					list.add(matter);
 				}
@@ -79,7 +83,7 @@ public class ElementItemPattern extends ElementSlot {
 		this.patternMapping = patternMapping;
 		if (patternMapping != null) {
 			itemStack = patternMapping.getItemPattern().toItemStack(false);
-			this.name = itemStack.getDisplayName();
+			this.name = itemStack.getDisplayName().getString();
 		} else {
 			itemStack = null;
 		}

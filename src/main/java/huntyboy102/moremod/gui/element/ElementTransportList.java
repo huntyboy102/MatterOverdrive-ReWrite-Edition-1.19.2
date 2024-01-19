@@ -1,12 +1,12 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.machines.transporter.TileEntityMachineTransporter;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.transport.TransportLocation;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.gui.events.IListHandler;
-import net.minecraft.client.renderer.GlStateManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,10 +42,12 @@ public class ElementTransportList extends MOElementListBox {
 
 	@Override
 	public void drawElementTooltip(int index, int mouseX, int mouseY) {
+		PoseStack poseStack = new PoseStack();
+
 		TransportLocation position = transporter.getPositions().get(index);
 
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(-posX, 0, 0);
+		poseStack.pushPose();
+		poseStack.translate(-posX, 0, 0);
 		List<String> tooltip = new ArrayList<>();
 
 		if (!transporter.isLocationValid(position)) {
@@ -55,7 +57,7 @@ public class ElementTransportList extends MOElementListBox {
 		}
 
 		gui.setTooltip(tooltip);
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 	}
 
 	@Override

@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.gui.MOGuiBase;
-import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.Font;
 
 public class ElementTextList extends MOElementBase {
 	boolean isUnicode;
@@ -41,7 +42,7 @@ public class ElementTextList extends MOElementBase {
 	}
 
 	@Override
-	public FontRenderer getFontRenderer() {
+	public Font getFontRenderer() {
 		return gui.getFontRenderer();
 	}
 
@@ -50,10 +51,10 @@ public class ElementTextList extends MOElementBase {
 		boolean unicode = getFontRenderer().getUnicodeFlag();
 		getFontRenderer().setUnicodeFlag(isUnicode);
 		for (int i = 0; i < lines.size(); i++) {
-			getFontRenderer().drawString(lines.get(i), posX, posY + i * getLineHeight(), textColor);
+			getFontRenderer().draw(new PoseStack(), lines.get(i), posX, posY + i * getLineHeight(), textColor);
 		}
 		getFontRenderer().setUnicodeFlag(unicode);
-		sizeY = lines.size() * getFontRenderer().FONT_HEIGHT;
+		sizeY = lines.size() * getFontRenderer().lineHeight;
 	}
 
 	public int getLinesHeight() {
@@ -61,7 +62,7 @@ public class ElementTextList extends MOElementBase {
 	}
 
 	public int getLineHeight() {
-		return getFontRenderer().FONT_HEIGHT;
+		return getFontRenderer().lineHeight;
 	}
 
 	public void addLine(String line) {

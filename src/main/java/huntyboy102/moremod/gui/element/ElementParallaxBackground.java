@@ -1,10 +1,10 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.util.RenderUtils;
-import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
 import java.util.List;
@@ -41,10 +41,9 @@ public class ElementParallaxBackground extends MOElementBase implements IParalla
 
 	@Override
 	public void drawBackground(int var1, int var2, float var3) {
-		GlStateManager.enableBlend();
-		GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_SRC_ALPHA,
+		RenderSystem.enableBlend();
+		RenderSystem.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_SRC_ALPHA,
 				GL11.GL_ONE_MINUS_SRC_ALPHA);
-		GlStateManager.disableAlpha();
 		RenderUtils.applyColorWithAlpha(color);
 		RenderUtils.bindTexture(texture);
 
@@ -63,9 +62,7 @@ public class ElementParallaxBackground extends MOElementBase implements IParalla
 						(float) getWidth() / (float) texW, (float) getHeight() / (float) texH);
 			}
 		}
-
-		GlStateManager.enableAlpha();
-		GlStateManager.disableBlend();
+		RenderSystem.disableBlend();
 	}
 
 	@Override

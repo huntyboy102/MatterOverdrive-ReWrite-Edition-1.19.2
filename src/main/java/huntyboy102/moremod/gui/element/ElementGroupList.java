@@ -5,7 +5,7 @@ import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.gui.events.IListHandler;
 import huntyboy102.moremod.util.RenderUtils;
 import huntyboy102.moremod.util.math.MOMathHelper;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class ElementGroupList extends ElementBaseGroup {
 
@@ -37,7 +37,7 @@ public class ElementGroupList extends ElementBaseGroup {
 		}
 
 		smoothScroll = (int) MOMathHelper.Lerp(smoothScroll, scroll, smoothScrollMultiply);
-		selectedIndex = MathHelper.clamp(selectedIndex, 0, elements.size() - 1);
+		selectedIndex = Mth.clamp(selectedIndex, 0, elements.size() - 1);
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class ElementGroupList extends ElementBaseGroup {
 	}
 
 	public void setSelectedIndex(int selectedIndex) {
-		int newSelectedIndex = MathHelper.clamp(selectedIndex, 0, elements.size() - 1);
+		int newSelectedIndex = Mth.clamp(selectedIndex, 0, elements.size() - 1);
 		if (newSelectedIndex != this.selectedIndex) {
 			this.selectedIndex = newSelectedIndex;
 			listHandler.ListSelectionChange(getName(), selectedIndex);

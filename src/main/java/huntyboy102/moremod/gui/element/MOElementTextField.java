@@ -1,6 +1,8 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.client.render.HoloIcon;
@@ -11,14 +13,11 @@ import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ChatAllowedCharacters;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.client.MinecraftForgeClient;
-import org.lwjgl.input.Keyboard;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 import java.util.List;
@@ -147,12 +146,12 @@ public class MOElementTextField extends MOElementBase {
 
 	public int getContentHeight() {
 
-		FontRenderer font = getFontRenderer();
-		int height = font.FONT_HEIGHT;
+		Font font = getFontRenderer();
+		int height = font.lineHeight;
 		if (multiline) {
 			for (int i = 0; i < textLength; ++i) {
 				if (text[i] == '\n') {
-					height += font.FONT_HEIGHT;
+					height += font.lineHeight;
 				}
 			}
 		}
@@ -161,12 +160,12 @@ public class MOElementTextField extends MOElementBase {
 
 	public int getVisibleHeight() {
 
-		FontRenderer font = getFontRenderer();
-		int height = font.FONT_HEIGHT;
+		Font font = getFontRenderer();
+		int height = font.lineHeight;
 		if (multiline) {
 			for (int i = 0; i < textLength; ++i) {
 				if (text[i] == '\n') {
-					height += font.FONT_HEIGHT;
+					height += font.lineHeight;
 				}
 			}
 		}
@@ -175,22 +174,22 @@ public class MOElementTextField extends MOElementBase {
 
 	public int getContentWidth() {
 
-		FontRenderer font = getFontRenderer();
+		Font font = getFontRenderer();
 		int width = 0;
 		for (int i = 0; i < textLength; ++i) {
-			width += font.getCharWidth(text[i]);
+			width += font.width(String.valueOf(text[i]));
 		}
 		return width;
 	}
 
 	public int getVisibleWidth() {
 
-		FontRenderer font = getFontRenderer();
+		Font font = getFontRenderer();
 		int width = 0, endX = sizeX - 1, maxWidth = 0;
 		if (multiline) {
 			for (int i = 0; i < textLength; ++i) {
 				char c = text[i];
-				int charW = font.getCharWidth(c);
+				int charW = font.width(String.valueOf(c));
 				if (c == '\n') {
 					maxWidth = Math.max(maxWidth, width);
 					width = 0;
@@ -206,7 +205,7 @@ public class MOElementTextField extends MOElementBase {
 		} else {
 			for (int i = renderStartX; i < textLength; ++i) {
 				char c = text[i];
-				int charW = font.getCharWidth(c);
+				int charW = font.width(String.valueOf(c));
 				maxWidth += charW;
 				if (maxWidth >= endX) {
 					maxWidth = endX;
@@ -253,7 +252,7 @@ public class MOElementTextField extends MOElementBase {
 
 	public boolean isAllowedCharacter(char charTyped) {
 
-		return (multiline && charTyped == '\n') || ChatAllowedCharacters.isAllowedCharacter(charTyped);
+		return (multiline && charTyped == '\n') || isAllowedCharacter(charTyped);
 	}
 
 	protected boolean onEnter() {
@@ -311,7 +310,7 @@ public class MOElementTextField extends MOElementBase {
 
 	protected void findRenderStart() {
 
-		caret = MathHelper.clamp(caret, 0, textLength);
+		caret = Mth.clamp(caret, 0, textLength);
 		if (selectionStart == selectionEnd) {
 			selectionStart = selectionEnd = caret;
 		}
@@ -328,13 +327,13 @@ public class MOElementTextField extends MOElementBase {
 			return;
 		}
 
-		FontRenderer font = getFontRenderer();
+		Font font = getFontRenderer();
 		int endX = sizeX - 2;
 
 		for (int i = renderStartX, width = 0; i < caret; ++i) {
-			width += font.getCharWidth(text[i]);
+			width += font.width(String.valueOf(text[i]));
 			while (width >= endX) {
-				width -= font.getCharWidth(text[renderStartX++]);
+				width -= font.width(String.valueOf(text[renderStartX++]));
 				if (renderStartX >= textLength) {
 					return;
 				}
@@ -365,30 +364,31 @@ public class MOElementTextField extends MOElementBase {
 	}
 
 	protected void findRenderStartML() {
-
 		if (caret == textLength && textLength == 0) {
 			renderStartX = renderStartY = 0;
 			return;
 		}
-		FontRenderer font = getFontRenderer();
+
+		Font font = getFontRenderer();
 		int widthLeft = 0;
 		int breaksAbove = 0;
+
 		for (int i = caret; i-- > 0;) {
 			char c = text[i];
 			if (c == '\n') {
 				for (; i > 0; --i) {
 					c = text[i];
 					if (c == '\n') {
-						breaksAbove += font.FONT_HEIGHT;
+						breaksAbove += font.lineHeight;
 					}
 				}
 				break;
 			}
-			widthLeft += font.getCharWidth(c);
+			widthLeft += font.width(String.valueOf(c));
 		}
 		caretX = widthLeft;
 
-		int pos = Math.max(0, (sizeY - 2) / font.FONT_HEIGHT) * font.FONT_HEIGHT;
+		int pos = Math.max(0, (sizeY - 2) / font.lineHeight) * font.lineHeight;
 		if (caret > 0 && text[caret - 1] == '\n') {
 			renderStartX = 0;
 			if (caret == textLength) {
@@ -398,10 +398,10 @@ public class MOElementTextField extends MOElementBase {
 		}
 
 		while ((breaksAbove - renderStartY) < 0) {
-			renderStartY -= font.FONT_HEIGHT;
+			renderStartY -= font.lineHeight;
 		}
 		while ((breaksAbove - renderStartY) >= pos) {
-			renderStartY += font.FONT_HEIGHT;
+			renderStartY += font.lineHeight;
 		}
 
 		int dir = prevCaret > caret ? 1 : -1;
@@ -410,12 +410,12 @@ public class MOElementTextField extends MOElementBase {
 			if (c == '\n') {
 				break;
 			}
-			renderStartX -= font.getCharWidth(c);
+			renderStartX -= font.width(String.valueOf(c));
 		}
 		renderStartX &= ~renderStartX >> 31;
 		pos = sizeX - 2 - 3;
 		for (int i = 0; (widthLeft - renderStartX) >= pos; ++i) {
-			renderStartX += font.getCharWidth(text[caret - i]);
+			renderStartX += font.width(String.valueOf(text[caret - i]));
 		}
 		prevCaret = caret;
 	}
@@ -508,267 +508,263 @@ public class MOElementTextField extends MOElementBase {
 			return true;
 		case 3: // ^C
 			if (selectionStart != selectionEnd) {
-				GuiScreen.setClipboardString(getSelectedText());
+				Minecraft.getInstance().keyboardHandler.setClipboard(getSelectedText());
 			}
 			return true;
 		case 24: // ^X
 			if (selectionStart != selectionEnd) {
-				GuiScreen.setClipboardString(getSelectedText());
+				Minecraft.getInstance().keyboardHandler.setClipboard(getSelectedText());
 				clearSelection();
 			}
 
 			return true;
 		case 22: // ^V
-			writeText(GuiScreen.getClipboardString());
+			writeText(Minecraft.getInstance().keyboardHandler.getClipboard());
 
 			return true;
 		default:
 			switch (keyTyped) {
-			case Keyboard.KEY_ESCAPE:
-				setFocused(false);
-				return !isFocused();
-			case Keyboard.KEY_RETURN:
-			case Keyboard.KEY_NUMPADENTER:
-				return onEnter();
-			case Keyboard.KEY_INSERT:
-				if (GuiScreen.isShiftKeyDown()) {
-					writeText(GuiScreen.getClipboardString());
-				} else {
-					caretInsert = !caretInsert;
-				}
+				case GLFW.GLFW_KEY_ESCAPE:
+					setFocused(false);
+					return !isFocused();
+				case GLFW.GLFW_KEY_ENTER:
+				case GLFW.GLFW_KEY_KP_ENTER:
+					return onEnter();
+				case GLFW.GLFW_KEY_INSERT:
+					if (Screen.hasShiftDown()) {
+						writeText(Minecraft.getInstance().keyboardHandler.getClipboard());
+					} else {
+						caretInsert = !caretInsert;
+					}
 
-				return true;
-			case Keyboard.KEY_CLEAR: // mac only (clear selection)
-				clearSelection();
+					return true;
+				case GLFW.GLFW_KEY_DELETE: // delete
+					boolean changed = false;
+					if (!Screen.hasShiftDown()) {
+						if (selectionStart != selectionEnd) {
+							clearSelection();
+						} else if (Screen.hasControlDown()) {
+							int size = seekNextCaretLocation(caret, true) - caret;
+							selectionStart = caret;
+							selectionEnd = caret + size;
+							clearSelection();
+						} else {
+							if (caret < textLength && textLength > 0) {
+								--textLength;
+								System.arraycopy(text, caret + 1, text, caret, textLength - caret);
+								changed = true;
+							}
+							findRenderStart();
 
-				return true;
-			case Keyboard.KEY_DELETE: // delete
-				boolean changed = false;
-				if (!GuiScreen.isShiftKeyDown()) {
+							onCharacterEntered(changed);
+						}
+
+						return true;
+					}
+					// continue.. (shift+delete = backspace)
+				case GLFW.GLFW_KEY_BACKSPACE: // backspace
+					changed = false;
+					boolean calledEntered = true, onBreak = false;
 					if (selectionStart != selectionEnd) {
 						clearSelection();
-					} else if (GuiScreen.isCtrlKeyDown()) {
-						int size = seekNextCaretLocation(caret, true) - caret;
-						selectionStart = caret;
-						selectionEnd = caret + size;
+					} else if (Screen.hasControlDown()) {
+						int size = seekNextCaretLocation(caret, false) - caret;
+						selectionStart = caret + size;
+						selectionEnd = caret;
 						clearSelection();
 					} else {
-						if (caret < textLength && textLength > 0) {
+						calledEntered = false;
+						if (caret > 0 && textLength > 0) {
+							if (caret != textLength) {
+								System.arraycopy(text, caret, text, caret - 1, textLength - caret);
+							}
+							onBreak = text[--caret] == '\n';
 							--textLength;
-							System.arraycopy(text, caret + 1, text, caret, textLength - caret);
 							changed = true;
 						}
-						findRenderStart();
+					}
+					int old = caret;
+					if (!onBreak) {
+						for (int i = 3; i-- > 0 && caret > 1 && text[caret - 1] != '\n'; --caret) {
+						}
+					}
+					findRenderStart();
+					caret = old;
 
+					if (!calledEntered) {
 						onCharacterEntered(changed);
 					}
 
 					return true;
-				}
-				// continue.. (shift+delete = backspace)
-			case Keyboard.KEY_BACK: // backspace
-				changed = false;
-				boolean calledEntered = true, onBreak = false;
-				if (selectionStart != selectionEnd) {
-					clearSelection();
-				} else if (GuiScreen.isCtrlKeyDown()) {
-					int size = seekNextCaretLocation(caret, false) - caret;
-					selectionStart = caret + size;
-					selectionEnd = caret;
-					clearSelection();
-				} else {
-					calledEntered = false;
-					if (caret > 0 && textLength > 0) {
-						if (caret != textLength) {
-							System.arraycopy(text, caret, text, caret - 1, textLength - caret);
+				case GLFW.GLFW_KEY_HOME: // home
+					int begin = 0;
+					if (!Screen.hasControlDown()) {
+						for (int i = caret - 1; i > 0; --i) {
+							if (text[i] == '\n') {
+								begin = Math.min(i + 1, textLength);
+								break;
+							}
 						}
-						onBreak = text[--caret] == '\n';
-						--textLength;
-						changed = true;
 					}
-				}
-				int old = caret;
-				if (!onBreak) {
-					for (int i = 3; i-- > 0 && caret > 1 && text[caret - 1] != '\n'; --caret) {
+
+					if (Screen.hasShiftDown()) {
+						if (caret >= selectionEnd) {
+							selectionEnd = selectionStart;
+						}
+						selectionStart = begin;
+					} else {
+						selectionStart = selectionEnd = begin;
 					}
-				}
-				findRenderStart();
-				caret = old;
+					caret = begin;
+					findRenderStart();
 
-				if (!calledEntered) {
-					onCharacterEntered(changed);
+					return true;
+				case GLFW.GLFW_KEY_END: // end
+					int end = textLength;
+					if (!Screen.hasControlDown()) {
+						for (int i = caret; i < textLength; ++i) {
+							if (text[i] == '\n') {
+								end = i;
+								break;
+							}
+						}
+					}
+
+					if (Screen.hasShiftDown()) {
+						if (caret <= selectionStart) {
+							selectionStart = selectionEnd;
+						}
+						selectionEnd = end;
+					} else {
+						selectionStart = selectionEnd = end;
+					}
+					caret = end;
+					findRenderStart();
+
+					return true;
+				case GLFW.GLFW_KEY_LEFT: // left arrow
+				case GLFW.GLFW_HAT_RIGHT: // right arrow
+					int size = keyTyped == 203 ? -1 : 1;
+					boolean shiftCaret = false;
+					if (Screen.hasControlDown()) {
+						size = seekNextCaretLocation(caret, keyTyped == 205) - caret;
+					} else if (MOStringHelper.isAltKeyDown() && Screen.hasControlDown()) {
+						caret = seekNextCaretLocation(caret, keyTyped == 205);
+						selectionStart = selectionEnd = caret;
+						size = seekNextCaretLocation(caret, keyTyped != 205) - caret;
+						shiftCaret = true;
+					}
+
+					if (!Screen.hasShiftDown()) {
+						selectionStart = selectionEnd = caret;
+					}
+
+				{
+					int t = caret;
+					caret = Mth.clamp(caret + size, 0, textLength);
+					size = caret - t;
 				}
 
-				return true;
-			case Keyboard.KEY_HOME: // home
-				int begin = 0;
-				if (!GuiScreen.isCtrlKeyDown()) {
-					for (int i = caret - 1; i > 0; --i) {
-						if (text[i] == '\n') {
-							begin = Math.min(i + 1, textLength);
+					if (Screen.hasShiftDown()) {
+						if (caret == selectionStart + size) {
+							selectionStart = caret;
+						} else if (caret == selectionEnd + size) {
+							selectionEnd = caret;
+						}
+
+						if (selectionStart > selectionEnd) {
+							int t = selectionStart;
+							selectionStart = selectionEnd;
+							selectionEnd = t;
+						}
+					}
+
+					if (shiftCaret) {
+						caret = caret - size;
+					}
+					findRenderStart();
+
+					return true;
+				case GLFW.GLFW_KEY_UP:
+				case GLFW.GLFW_KEY_DOWN:
+					if (!multiline) {
+						return false;
+					}
+
+					if (!Screen.hasShiftDown()) {
+						selectionStart = selectionEnd = caret;
+					}
+					int dir = keyTyped == GLFW.GLFW_KEY_UP ? -1 : 1;
+					end = dir == -1 ? 0 : textLength;
+					int i = caret, pos = caretX;
+					old = i;
+					for (; i != end; i += dir) {
+						if ((dir == -1 ? i != caret : true) && text[i] == '\n') {
+							if (i != end) {
+								i += dir;
+							} else {
+								return true;
+							}
 							break;
 						}
 					}
-				}
-
-				if (GuiScreen.isShiftKeyDown()) {
-					if (caret >= selectionEnd) {
-						selectionEnd = selectionStart;
-					}
-					selectionStart = begin;
-				} else {
-					selectionStart = selectionEnd = begin;
-				}
-				caret = begin;
-				findRenderStart();
-
-				return true;
-			case Keyboard.KEY_END: // end
-				int end = textLength;
-				if (!GuiScreen.isCtrlKeyDown()) {
-					for (int i = caret; i < textLength; ++i) {
-						if (text[i] == '\n') {
-							end = i;
-							break;
+					l: if (dir == -1) {
+						for (; i > 0 && text[i] != '\n'; --i) {
 						}
-					}
-				}
-
-				if (GuiScreen.isShiftKeyDown()) {
-					if (caret <= selectionStart) {
-						selectionStart = selectionEnd;
-					}
-					selectionEnd = end;
-				} else {
-					selectionStart = selectionEnd = end;
-				}
-				caret = end;
-				findRenderStart();
-
-				return true;
-			case Keyboard.KEY_LEFT: // left arrow
-			case Keyboard.KEY_RIGHT: // right arrow
-				int size = keyTyped == 203 ? -1 : 1;
-				boolean shiftCaret = false;
-				if (GuiScreen.isCtrlKeyDown()) {
-					size = seekNextCaretLocation(caret, keyTyped == 205) - caret;
-				} else if (MOStringHelper.isAltKeyDown() && GuiScreen.isShiftKeyDown()) {
-					caret = seekNextCaretLocation(caret, keyTyped == 205);
-					selectionStart = selectionEnd = caret;
-					size = seekNextCaretLocation(caret, keyTyped != 205) - caret;
-					shiftCaret = true;
-				}
-
-				if (!GuiScreen.isShiftKeyDown()) {
-					selectionStart = selectionEnd = caret;
-				}
-
-			{
-				int t = caret;
-				caret = MathHelper.clamp(caret + size, 0, textLength);
-				size = caret - t;
-			}
-
-				if (GuiScreen.isShiftKeyDown()) {
-					if (caret == selectionStart + size) {
-						selectionStart = caret;
-					} else if (caret == selectionEnd + size) {
-						selectionEnd = caret;
-					}
-
-					if (selectionStart > selectionEnd) {
-						int t = selectionStart;
-						selectionStart = selectionEnd;
-						selectionEnd = t;
-					}
-				}
-
-				if (shiftCaret) {
-					caret = caret - size;
-				}
-				findRenderStart();
-
-				return true;
-			case Keyboard.KEY_UP:
-			case Keyboard.KEY_DOWN:
-				if (!multiline) {
-					return false;
-				}
-
-				if (!GuiScreen.isShiftKeyDown()) {
-					selectionStart = selectionEnd = caret;
-				}
-				int dir = keyTyped == Keyboard.KEY_UP ? -1 : 1;
-				end = dir == -1 ? 0 : textLength;
-				int i = caret, pos = caretX;
-				old = i;
-				for (; i != end; i += dir) {
-					if ((dir == -1 ? i != caret : true) && text[i] == '\n') {
-						if (i != end) {
-							i += dir;
-						} else {
-							return true;
+						if (i == 0) {
+							if (text[0] == '\n') {
+								caret = 0;
+								findRenderStart();
+								caretX = pos;
+							}
+							break l;
 						}
-						break;
+						++i;
 					}
-				}
-				l: if (dir == -1) {
-					for (; i > 0 && text[i] != '\n'; --i) {
-					}
-					if (i == 0) {
-						if (text[0] == '\n') {
-							caret = 0;
+					Font font = getFontRenderer();
+					for (int width = 0; i <= textLength; ++i) {
+						char c = i < textLength ? text[i] : 0;
+						if (i == textLength || c == '\n' || width >= pos) {
+							caret = i;
 							findRenderStart();
 							caretX = pos;
+							break;
+						} else {
+							width += font.width(String.valueOf(c));
 						}
-						break l;
-					}
-					++i;
-				}
-				FontRenderer font = getFontRenderer();
-				for (int width = 0; i <= textLength; ++i) {
-					char c = i < textLength ? text[i] : 0;
-					if (i == textLength || c == '\n' || width >= pos) {
-						caret = i;
-						findRenderStart();
-						caretX = pos;
-						break;
-					} else {
-						width += font.getCharWidth(c);
-					}
-				}
-
-				size = caret - old;
-
-				if (GuiScreen.isShiftKeyDown()) {
-					if (selectionStart == selectionEnd) {
-						selectionStart = selectionEnd = old;
-					}
-					if (caret == selectionStart + size) {
-						selectionStart = caret;
-					} else if (caret == selectionEnd + size) {
-						selectionEnd = caret;
 					}
 
-					if (selectionStart > selectionEnd) {
-						int t = selectionStart;
-						selectionStart = selectionEnd;
-						selectionEnd = t;
-					}
-				}
+					size = caret - old;
 
-				return true;
-			default:
-				if (isAllowedCharacter(charTyped)) {
-					boolean typed = insertCharacter(charTyped);
-					clearSelection();
-					findRenderStart();
-					onCharacterEntered(typed);
+					if (Screen.hasShiftDown()) {
+						if (selectionStart == selectionEnd) {
+							selectionStart = selectionEnd = old;
+						}
+						if (caret == selectionStart + size) {
+							selectionStart = caret;
+						} else if (caret == selectionEnd + size) {
+							selectionEnd = caret;
+						}
+
+						if (selectionStart > selectionEnd) {
+							int t = selectionStart;
+							selectionStart = selectionEnd;
+							selectionEnd = t;
+						}
+					}
+
 					return true;
-				} else {
-					return false;
+				default:
+					if (isAllowedCharacter(charTyped)) {
+						boolean typed = insertCharacter(charTyped);
+						clearSelection();
+						findRenderStart();
+						onCharacterEntered(typed);
+						return true;
+					} else {
+						return false;
+					}
 				}
-			}
 		}
 	}
 
@@ -782,11 +778,11 @@ public class MOElementTextField extends MOElementBase {
 				selectionStart = selectionEnd = caret = 0;
 				break l;
 			}
-			FontRenderer font = getFontRenderer();
+			Font font = getFontRenderer();
 			int posX = mouseX - this.posX - 1, posY = mouseY - this.posY - 1;
 			s: if (!multiline) {
 				for (int i = renderStartX, width = 0;;) {
-					int charW = font.getCharWidth(text[i]);
+					int charW = font.width(String.valueOf(text[i]));
 					if ((width += charW) > posX || ++i >= textLength) {
 						selectionStart = selectionEnd = caret = i;
 						break;
@@ -797,7 +793,7 @@ public class MOElementTextField extends MOElementBase {
 				posY += renderStartY;
 				int maxX = 0;
 				boolean found = false;
-				for (int i = 0, width = 0, height = font.FONT_HEIGHT; i < textLength;) {
+				for (int i = 0, width = 0, height = font.lineHeight; i < textLength;) {
 					char c = text[i];
 					int charW = 0;
 					if (c == '\n') {
@@ -807,9 +803,9 @@ public class MOElementTextField extends MOElementBase {
 						}
 						found = false;
 						width = 0;
-						height += font.FONT_HEIGHT;
+						height += font.lineHeight;
 					} else {
-						charW = font.getCharWidth(c);
+						charW = font.width(String.valueOf(c));
 					}
 					if (!found) {
 						maxX = i;
@@ -835,14 +831,7 @@ public class MOElementTextField extends MOElementBase {
 
 	@Override
 	public void update(int mouseX, int mouseY, float partialTicks) {
-
-		caretCounter = (byte) (Minecraft.getMinecraft().ingameGUI.getUpdateCounter() & 0xFF);
-		// if (selecting) {
-		// FontRenderer font = getFontRenderer();
-		// int pos = mouseX - posX - 1;
-		// for (int i = renderStart, width = 0; i < textLength; ++i) {
-		// }
-		// }
+		caretCounter = (byte) (Minecraft.getInstance().gui.getGuiTicks() & 0xFF);
 	}
 
 	@Override
@@ -866,6 +855,7 @@ public class MOElementTextField extends MOElementBase {
 
 		boolean enableStencil = this.enableStencil;
 		int bit = -1;
+
 		l: if (enableStencil) {
 			bit = MinecraftForgeClient.reserveStencilBit();
 			if (bit == -1) {
@@ -876,14 +866,14 @@ public class MOElementTextField extends MOElementBase {
 			drawStencil(posX + 1, posY + 1, posX + sizeX - 1, posY + sizeY - 1, 1 << bit);
 		}
 
-		FontRenderer font = getFontRenderer();
+		Font font = getFontRenderer();
 		char[] text = this.text;
 		int startX = posX + 1 - (multiline ? renderStartX : 0), endX = sizeX - 1;
-		int startY = posY + 1 - renderStartY, endY = startY + font.FONT_HEIGHT;
-		int drawY = renderStartY + Math.max(0, (sizeY - 2) / font.FONT_HEIGHT) * font.FONT_HEIGHT;
+		int startY = posY + 1 - renderStartY, endY = startY + font.lineHeight;
+		int drawY = renderStartY + Math.max(0, (sizeY - 2) / font.lineHeight) * font.lineHeight;
 		if (enableStencil) {
 			if (sizeY - (drawY - renderStartY) > 2) {
-				drawY += font.FONT_HEIGHT;
+				drawY += font.lineHeight;
 			}
 		}
 		int drawX = endX + (multiline ? renderStartX : 0);
@@ -894,7 +884,7 @@ public class MOElementTextField extends MOElementBase {
 			if (!end) {
 				c = text[i];
 				if (draw) {
-					charW = multiline && c == '\n' ? 2 : font.getCharWidth(c);
+					charW = multiline && c == '\n' ? 2 : font.width(String.valueOf(c));
 				}
 				int tWidth = width + charW;
 				if (multiline) {
@@ -932,7 +922,7 @@ public class MOElementTextField extends MOElementBase {
 							selectedLineColor);
 				}
 				if (c != '\n') {
-					font.drawString(String.valueOf(c), startX + width, startY + height,
+					font.draw(new PoseStack(), String.valueOf(c), startX + width, startY + height,
 							selected ? selectedTextColor : textColor);
 				}
 			}
@@ -943,14 +933,14 @@ public class MOElementTextField extends MOElementBase {
 					caretEnd = width + charW;
 				}
 
-				GlStateManager.enableBlend();
-				GlStateManager.blendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ZERO);
+				RenderSystem.enableBlend();
+				RenderSystem.blendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ZERO);
 				gui.drawSizedRect(startX + width, startY - 1 + height, startX + caretEnd, endY + height, -1);
-				GlStateManager.disableBlend();
+				RenderSystem.disableBlend();
 			}
 
 			if (c == '\n') {
-				height += font.FONT_HEIGHT;
+				height += font.lineHeight;
 				charW = width = 0;
 				if (height > drawY) {
 					break;

@@ -1,13 +1,13 @@
 
 package huntyboy102.moremod.gui.element;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import java.util.List;
@@ -69,12 +69,12 @@ public class ElementSlot extends MOElementBase {
 
 	public void drawSlotIcon(HoloIcon icon, int x, int y) {
 		if (icon != null && canDrawIcon(icon)) {
-			GlStateManager.enableBlend();
+			RenderSystem.enableBlend();
 			ApplyColor();
-			GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 			ClientProxy.holoIcons.bindSheet();
 			ClientProxy.holoIcons.renderIcon(icon, x, y);
-			GlStateManager.disableBlend();
+			RenderSystem.disableBlend();
 			ResetColor();
 		}
 	}
