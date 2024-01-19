@@ -1,15 +1,17 @@
 
 package huntyboy102.moremod.gui.pages;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.gui.events.ITextHandler;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.data.Bounds;
 import huntyboy102.moremod.data.ScaleTexture;
 import huntyboy102.moremod.gui.GuiMatterScanner;
 import huntyboy102.moremod.gui.MOGuiBase;
-import matteroverdrive.gui.element.*;
+import huntyboy102.moremod.gui.element.*;
 import huntyboy102.moremod.guide.GuideCategory;
 import huntyboy102.moremod.guide.MOGuideEntry;
 import huntyboy102.moremod.guide.MatterOverdriveGuide;
@@ -18,10 +20,9 @@ import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.RenderUtils;
 import huntyboy102.moremod.util.math.MOMathHelper;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class PageGuideEntries extends ElementBaseGroup implements ITextHandler {
 	private MOElementTextField searchField;
 	private PageGuideDescription pageGuideDescription;
 	private ItemStack dataPadStack;
-	private EnumHand hand;
+	private InteractionHand hand;
 	private boolean mouseIsDown;
 	private int lastMouseX;
 	private int lastMouseY;
@@ -97,7 +98,7 @@ public class PageGuideEntries extends ElementBaseGroup implements ITextHandler {
 		elements.add(orderButtonElement);
 		elements.add(searchField);
 		searchField.setText(searchFilter);
-		orderButtonElement.setSelectedState(MatterOverdrive.ITEMS.dataPad.getOrdering(dataPadStack));
+		orderButtonElement.setSelectedState(MatterOverdriveRewriteEdition.ITEMS.dataPad.getOrdering(dataPadStack));
 		elements.addAll(guideEntries);
 	}
 
@@ -177,33 +178,31 @@ public class PageGuideEntries extends ElementBaseGroup implements ITextHandler {
 	public void drawBackground(int mouseX, int mouseY, float gameTicks) {
 		// begin depth masking by clearing depth buffer
 		// and enabling depth masking. this is where the mask will be drawn
-		GlStateManager.clear(GL_DEPTH_BUFFER_BIT);
-		GlStateManager.clearDepth(1f);
-		GlStateManager.depthFunc(GL11.GL_LESS);
-		GlStateManager.enableDepth();
-		GlStateManager.depthMask(true);
-		GlStateManager.colorMask(false, false, false, false);
-		GlStateManager.disableTexture2D();
+		RenderSystem.clear(GL_DEPTH_BUFFER_BIT, true);
+		RenderSystem.clearDepth(1f);
+		RenderSystem.depthFunc(GL11.GL_LESS);
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthMask(true);
+		RenderSystem.colorMask(false, false, false, false);
+		RenderSystem.disableTexture();
 		// draws an invisible square mask that will sit on top of everything
 		RenderUtils.drawPlane(posX, posY, 200, sizeX, sizeY);
-		GlStateManager.enableTexture2D();
+		RenderSystem.enableTexture();
 
 		// disable the drawing of the mask and start the drawing of the masked elements
 		// while still having the depth test active
-		GlStateManager.depthMask(false);
-		GlStateManager.colorMask(true, true, true, false);
-		GlStateManager.enableDepth();
-		GlStateManager.depthFunc(GL11.GL_GREATER);
+		RenderSystem.depthMask(false);
+		RenderSystem.colorMask(true, true, true, false);
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthFunc(GL11.GL_GREATER);
 		gui.bindTexture(this.background);
 		double aspect = (double) sizeY / (double) sizeX;
-		GlStateManager.enableBlend();
-		GlStateManager.disableAlpha();
-		GlStateManager.color(1, 1, 1, 0.1f);
+		RenderSystem.enableBlend();
+		RenderSystem.setShaderColor(1, 1, 1, 0.1f);
 		RenderUtils.drawPlaneWithUV(posX, posY, 0, sizeX, sizeY, 0.5 - scrollX * 0.001, 0.5 - (double) scrollY * 0.0003,
 				0.5, 0.5 * aspect);
 		RenderUtils.drawPlaneWithUV(posX, posY, 0, sizeX, sizeY, 0.2 - scrollX * 0.001, 0.2 - (double) scrollY * 0.0005,
 				0.3, 0.3 * aspect);
-		GlStateManager.enableAlpha();
 		super.drawBackground(mouseX, mouseY, gameTicks);
 
 		if (orderButtonElement.getSelectedState() > 1) {
@@ -214,8 +213,8 @@ public class PageGuideEntries extends ElementBaseGroup implements ITextHandler {
 				groupBackground.render(14 + b.getMinX(), 14 + b.getMinY(), b.getWidth(), b.getHeight());
 				String groupName = MOStringHelper
 						.translateToLocal(String.format("guide.group.%s.name", group.getKey()));
-				int groupNameWidth = getFontRenderer().getStringWidth(groupName);
-				getFontRenderer().drawString(groupName,
+				int groupNameWidth = getFontRenderer().width(groupName);
+				getFontRenderer().draw(new PoseStack(), groupName,
 						14 + scrollX + b.getMinX() + b.getWidth() / 2 - groupNameWidth / 2, 10 + b.getMinY(),
 						Reference.COLOR_MATTER.getColor());
 				getFontRenderer().setUnicodeFlag(false);
@@ -224,30 +223,30 @@ public class PageGuideEntries extends ElementBaseGroup implements ITextHandler {
 
 		// reset the depth check function to prevent the masking of other elements as
 		// well as the depth testing
-		GlStateManager.depthFunc(GL_LEQUAL);
-		GlStateManager.disableDepth();
+		RenderSystem.depthFunc(GL_LEQUAL);
+		RenderSystem.disableDepthTest();
 	}
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
-		GlStateManager.clear(GL_DEPTH_BUFFER_BIT);
-		GlStateManager.clearDepth(1f);
-		GlStateManager.depthFunc(GL11.GL_LESS);
-		GlStateManager.enableDepth();
-		GlStateManager.depthMask(true);
-		GlStateManager.colorMask(false, false, false, false);
-		GlStateManager.disableTexture2D();
+		RenderSystem.clear(GL_DEPTH_BUFFER_BIT, true);
+		RenderSystem.clearDepth(1f);
+		RenderSystem.depthFunc(GL11.GL_LESS);
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthMask(true);
+		RenderSystem.colorMask(false, false, false, false);
+		RenderSystem.disableTexture();
 		RenderUtils.drawPlane(posX, posY, 400, sizeX, sizeY);
-		GlStateManager.enableTexture2D();
+		RenderSystem.enableTexture();
 
-		GlStateManager.depthMask(false);
-		GlStateManager.colorMask(true, true, true, false);
-		GlStateManager.enableDepth();
-		GlStateManager.depthFunc(GL11.GL_GREATER);
+		RenderSystem.depthMask(false);
+		RenderSystem.colorMask(true, true, true, false);
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthFunc(GL11.GL_GREATER);
 		super.drawForeground(mouseX, mouseY);
-		GlStateManager.depthFunc(GL_LEQUAL);
-		GlStateManager.disableDepth();
-		GlStateManager.depthMask(false);
+		RenderSystem.depthFunc(GL_LEQUAL);
+		RenderSystem.disableDepthTest();
+		RenderSystem.depthMask(false);
 	}
 
 	@Override
@@ -304,17 +303,17 @@ public class PageGuideEntries extends ElementBaseGroup implements ITextHandler {
 	public void handleElementButtonClick(MOElementBase element, String buttonName, int mouseButton) {
 		if (element instanceof ElementGuideEntry) {
 			pageGuideDescription.OpenGuide(((ElementGuideEntry) element).getEntry().getId(), false);
-			MatterOverdrive.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
+			MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
 			gui.setPage(1);
 		} else if (element.equals(orderButtonElement)) {
-			MatterOverdrive.ITEMS.dataPad.setOrdering(dataPadStack, orderButtonElement.getSelectedState());
-			MatterOverdrive.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
+			MatterOverdriveRewriteEdition.ITEMS.dataPad.setOrdering(dataPadStack, orderButtonElement.getSelectedState());
+			MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
 		} else if (element instanceof ElementGuideCategory) {
 			setActiveCategory(((ElementGuideCategory) element).getCategory().getName());
 		}
 	}
 
-	public void setDataPadStack(EnumHand hand, ItemStack dataPadStack) {
+	public void setDataPadStack(InteractionHand hand, ItemStack dataPadStack) {
 		this.dataPadStack = dataPadStack;
 		this.hand = hand;
 	}
@@ -325,7 +324,7 @@ public class PageGuideEntries extends ElementBaseGroup implements ITextHandler {
 	}
 
 	public GuideCategory getActiveCategory() {
-		String category = MatterOverdrive.ITEMS.dataPad.getCategory(dataPadStack);
+		String category = MatterOverdriveRewriteEdition.ITEMS.dataPad.getCategory(dataPadStack);
 		GuideCategory cat = MatterOverdriveGuide.getCategory(category);
 		if (cat == null) {
 			return MatterOverdriveGuide.getCategory("general");
@@ -334,8 +333,8 @@ public class PageGuideEntries extends ElementBaseGroup implements ITextHandler {
 	}
 
 	private void setActiveCategory(String category) {
-		MatterOverdrive.ITEMS.dataPad.setCategory(dataPadStack, category);
-		MatterOverdrive.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
+		MatterOverdriveRewriteEdition.ITEMS.dataPad.setCategory(dataPadStack, category);
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
 		gui.setPage(0);
 		groups.clear();
 	}

@@ -1,18 +1,20 @@
 
 package huntyboy102.moremod.gui.pages;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.data.matter_network.ItemPattern;
 import huntyboy102.moremod.gui.MOGuiBase;
-import matteroverdrive.gui.element.*;
+import huntyboy102.moremod.gui.element.*;
 import huntyboy102.moremod.util.MatterDatabaseHelper;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.ItemStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.lwjgl.opengl.GL11;
 
 import java.util.List;
@@ -77,19 +79,19 @@ public class PageScanInfo extends ElementBaseGroup {
 		ItemStack item = pattern.toItemStack(false);
 
 		if (item != null) {
-			GlStateManager.enableAlpha();
-			GlStateManager.alphaFunc(GL11.GL_GREATER, 0.5f);
-			List<String> infos = item.getTooltip(null, ITooltipFlag.TooltipFlags.NORMAL);
+			RenderSystem.enableBlend();
+			GL11.glAlphaFunc(GL11.GL_GREATER, 0.5f);
+			List<Component> infos = item.getTooltipLines(null, TooltipFlag.Default.NORMAL);
 
 			if (MatterHelper.CanScan(item)) {
-				String text = "Matter: " + String.valueOf(MatterHelper.getMatterAmountFromItem(item))
+				String text = "Matter: " + MatterHelper.getMatterAmountFromItem(item)
 						+ MatterHelper.MATTER_UNIT;
-				infos.add(text);
+				infos.add(Component.nullToEmpty(text));
 			}
 
 			RenderUtils.DrawMultilineInfo(infos, 50, 98, 8, 200, Color.WHITE.getColor());
 		} else {
-			Minecraft.getMinecraft().fontRenderer.drawStringWithShadow("No Item Selected!", 80, 90,
+			Minecraft.getInstance().font.drawShadow(new PoseStack(), "No Item Selected!", 80, 90,
 					new Color(255, 150, 50).getColor());
 		}
 	}

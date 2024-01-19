@@ -1,12 +1,12 @@
 
 package huntyboy102.moremod.gui.pages.starmap;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.container.ContainerStarMap;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.gui.element.ElementBaseGroup;
 import huntyboy102.moremod.tile.TileEntityMachineStarMap;
 import huntyboy102.moremod.util.StarmapHelper;
-import net.minecraft.client.renderer.GlStateManager;
 
 public class PagePlanetMenu extends ElementBaseGroup {
 
@@ -25,15 +25,17 @@ public class PagePlanetMenu extends ElementBaseGroup {
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
+		PoseStack poseStack = new PoseStack();
+
 		super.drawForeground(mouseX, mouseY);
 		if (starMap.getPlanet() != null) {
-			GlStateManager.pushMatrix();
-			int width = getFontRenderer().getStringWidth(starMap.getPlanet().getSpaceBodyName());
-			GlStateManager.translate(sizeY / 2 + width / 2, 16, 0);
-			GlStateManager.scale(1, 1, 1);
+			poseStack.pushPose();
+			int width = getFontRenderer().width(starMap.getPlanet().getSpaceBodyName());
+			poseStack.translate(sizeY / 2 + width / 2, 16, 0);
+			poseStack.scale(1, 1, 1);
 			StarmapHelper.drawPlanetInfo(starMap.getPlanet(), starMap.getPlanet().getSpaceBodyName(), 12 - width / 2,
 					4);
-			GlStateManager.popMatrix();
+			poseStack.popPose();
 		}
 	}
 

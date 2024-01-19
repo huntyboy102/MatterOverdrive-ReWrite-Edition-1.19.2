@@ -16,10 +16,10 @@ import huntyboy102.moremod.util.MOStringHelper;
 import huntyboy102.moremod.util.MatterHelper;
 import huntyboy102.moremod.util.RenderUtils;
 import huntyboy102.moremod.util.StackUtils;
-import net.minecraft.inventory.Container;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.util.Mth;
+import net.minecraft.ChatFormatting;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,7 +89,7 @@ public class PageUpgrades extends ElementBaseGroup {
 		for (final Map.Entry<UpgradeTypes, Double> entry : upgradesMap.entrySet()) {
 			if (guiMachine.getMachine().isAffectedByUpgrade(entry.getKey())) {
 				if (entry.getKey() == UpgradeTypes.Muffler) {
-					infos.add(TextFormatting.GREEN + "Muffling");
+					infos.add(ChatFormatting.GREEN + "Muffling");
 				} else {
 					infos.add(MOStringHelper.toInfo(entry.getKey(), entry.getValue()));
 				}
@@ -114,7 +114,7 @@ public class PageUpgrades extends ElementBaseGroup {
 				ElementInventorySlot slotElement = new ElementInventorySlot(gui,
 						(MOSlot) container.inventorySlots.get(i), 22, 22, "big");
 				slotElement.setIcon(customInventory.getSlot(container.inventorySlots.get(i).getSlotIndex()).getHoloIcon());
-				int xStart = 12 + sizeX / 2 - MathHelper.clamp(upgradeCount * 24, 0, 5 * 24) / 2;
+				int xStart = 12 + sizeX / 2 - Mth.clamp(upgradeCount * 24, 0, 5 * 24) / 2;
 				slotElement.setPosition(xStart + (upgradeSlotIndex % 5) * 24, 52 + (upgradeSlotIndex / 5) * 24);
 				this.addElement(slotElement);
 				upgradeSlotIndex++;

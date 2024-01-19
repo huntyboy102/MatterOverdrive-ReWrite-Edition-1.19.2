@@ -46,7 +46,7 @@ public class ElementStates extends MOElementButtonScaled {
 		super.drawForeground(mouseX, mouseY);
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 		RenderSystem.enableBlend();
-		RenderSystem.blendFunc(GL11.GL_GREATER, GL11.GL_LESS);
+		GL11.glAlphaFunc(GL11.GL_GREATER, 0.5F);
 		RenderSystem.enableCull();
 		getFontRenderer().draw(poseStack, label, posX + sizeX + 4, posY - getFontRenderer().lineHeight / 2 + sizeY / 2,
 				getTextColor());

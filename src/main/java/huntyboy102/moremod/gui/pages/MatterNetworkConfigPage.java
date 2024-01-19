@@ -1,6 +1,7 @@
 
 package huntyboy102.moremod.gui.pages;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.gui.element.ElementInventorySlot;
 import huntyboy102.moremod.gui.element.MOElementButton;
 import huntyboy102.moremod.gui.element.MOElementTextField;
@@ -41,7 +42,7 @@ public class MatterNetworkConfigPage extends AutoConfigPage implements ITextHand
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
 		super.drawForeground(mouseX, mouseY);
-		getFontRenderer().drawString("Destination Address:", posX, posY + 28, 0xFFFFFF);
+		getFontRenderer().draw(new PoseStack(), "Destination Address:", posX, posY + 28, 0xFFFFFF);
 	}
 
 	@Override

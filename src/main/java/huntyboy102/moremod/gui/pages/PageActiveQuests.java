@@ -1,34 +1,34 @@
 
 package huntyboy102.moremod.gui.pages;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import huntyboy102.moremod.entity.player.OverdriveExtendedProperties;
 import huntyboy102.moremod.gui.element.list.ListElementQuest;
 import huntyboy102.moremod.gui.events.IListHandler;
 import huntyboy102.moremod.items.DataPad;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.api.quest.IQuestReward;
 import huntyboy102.moremod.api.quest.QuestStack;
 import huntyboy102.moremod.data.quest.rewards.ItemStackReward;
 import huntyboy102.moremod.gui.GuiAndroidHud;
 import huntyboy102.moremod.gui.GuiDataPad;
-import matteroverdrive.gui.element.*;
+import huntyboy102.moremod.gui.element.*;
 import huntyboy102.moremod.network.packet.server.PacketDataPadCommands;
 import huntyboy102.moremod.network.packet.server.PacketQuestActions;
 import huntyboy102.moremod.util.RenderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.client.gui.Font;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.ChatFormatting;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PageActiveQuests extends ElementBaseGroup implements IListHandler {
-	EnumHand hand;
+	InteractionHand hand;
 	ItemStack dataPadStack;
 	MOElementListBox quests;
 	ElementTextList questInfo;
@@ -53,8 +53,8 @@ public class PageActiveQuests extends ElementBaseGroup implements IListHandler {
 	}
 
 	@Override
-	public FontRenderer getFontRenderer() {
-		return Minecraft.getMinecraft().fontRenderer;
+	public Font getFontRenderer() {
+		return Minecraft.getInstance().font;
 	}
 
 	@Override
@@ -80,22 +80,22 @@ public class PageActiveQuests extends ElementBaseGroup implements IListHandler {
 	public void drawForeground(int mouseX, int mouseY) {
 		super.drawForeground(mouseX, mouseY);
 
-		GlStateManager.enableBlend();
+		RenderSystem.enableBlend();
 		RenderUtils.applyColorWithAlpha(Reference.COLOR_HOLO, 0.2f);
-		Minecraft.getMinecraft().getTextureManager().bindTexture(GuiAndroidHud.top_element_bg);
+		Minecraft.getInstance().getTextureManager().bindForSetup(GuiAndroidHud.top_element_bg);
 		RenderUtils.drawPlane(60, sizeY / 2 - 10, 0, 174, 11);
 	}
 
 	@Override
 	public void ListSelectionChange(String name, int selected) {
-		if (dataPadStack.getTagCompound() == null) {
-			dataPadStack.setTagCompound(new NBTTagCompound());
+		if (dataPadStack.getTag() == null) {
+			dataPadStack.setTag(new CompoundTag());
 		}
 
 		((DataPad) dataPadStack.getItem()).setSelectedActiveQuest(dataPadStack, selected);
 		questInfoGroup.setScroll(0);
 		loadSelectedQuestInfo();
-		MatterOverdrive.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
 	}
 
 	private void loadSelectedQuestInfo() {
@@ -110,7 +110,7 @@ public class PageActiveQuests extends ElementBaseGroup implements IListHandler {
 				return;
 			}
 
-			String info = selectedQuest.getInfo(Minecraft.getMinecraft().player).replace("/n/", "\n");
+			String info = selectedQuest.getInfo(Minecraft.getInstance().player).replace("/n/", "\n");
 			if (info != null) {
 				List<String> list = getFontRenderer().listFormattedStringToWidth(info, sizeX - 32);
 				for (String s : list) {
@@ -118,16 +118,16 @@ public class PageActiveQuests extends ElementBaseGroup implements IListHandler {
 				}
 				questInfo.addLine("");
 			}
-			for (int i = 0; i < selectedQuest.getObjectivesCount(Minecraft.getMinecraft().player); i++) {
-				List<String> objectiveLines = MatterOverdrive.QUEST_FACTORY
-						.getFormattedQuestObjective(Minecraft.getMinecraft().player, selectedQuest, i, sizeX + 60);
+			for (int i = 0; i < selectedQuest.getObjectivesCount(Minecraft.getInstance().player); i++) {
+				List<String> objectiveLines = MatterOverdriveRewriteEdition.QUEST_FACTORY
+						.getFormattedQuestObjective(Minecraft.getInstance().player, selectedQuest, i, sizeX + 60);
 				questInfo.addLines(objectiveLines);
 			}
 			questInfo.addLine("");
-			questInfo.addLine(TextFormatting.GOLD
-					+ String.format("Rewards: +%sxp", selectedQuest.getXP(Minecraft.getMinecraft().player)));
+			questInfo.addLine(ChatFormatting.GOLD
+					+ String.format("Rewards: +%sxp", selectedQuest.getXP(Minecraft.getInstance().player)));
 			List<IQuestReward> rewards = new ArrayList<>();
-			selectedQuest.addRewards(rewards, Minecraft.getMinecraft().player);
+			selectedQuest.addRewards(rewards, Minecraft.getInstance().player);
 			questRewards.getElements().clear();
 			questRewards.setSize(questRewards.getWidth(), rewards.size() > 0 ? 20 : 0);
 			for (int i = 0; i < rewards.size(); i++) {
@@ -143,7 +143,7 @@ public class PageActiveQuests extends ElementBaseGroup implements IListHandler {
 				}
 			}
 			((GuiDataPad) gui).completeQuestButton
-					.setEnabled(QuestStack.canComplete(Minecraft.getMinecraft().player, selectedQuest));
+					.setEnabled(QuestStack.canComplete(Minecraft.getInstance().player, selectedQuest));
 			((GuiDataPad) gui).abandonQuestButton.setEnabled(true);
 		} else {
 			((GuiDataPad) gui).completeQuestButton.setEnabled(false);
@@ -151,32 +151,32 @@ public class PageActiveQuests extends ElementBaseGroup implements IListHandler {
 		}
 	}
 
-	public void setDataPadStack(EnumHand hand, ItemStack dataPadStack) {
+	public void setDataPadStack(InteractionHand hand, ItemStack dataPadStack) {
 		this.dataPadStack = dataPadStack;
 		this.hand = hand;
-		if (dataPadStack.getTagCompound() != null) {
+		if (dataPadStack.getTag() != null) {
 			quests.setSelectedIndex(((DataPad) dataPadStack.getItem()).getActiveSelectedQuest(dataPadStack));
-			questInfoGroup.setScroll(dataPadStack.getTagCompound().getShort("QuestInfoScroll"));
+			questInfoGroup.setScroll(dataPadStack.getTag().getShort("QuestInfoScroll"));
 			loadSelectedQuestInfo();
 		}
 	}
 
 	public void onGuiClose() {
-		if (dataPadStack.hasTagCompound()) {
-			dataPadStack.getTagCompound().setShort("QuestInfoScroll", (short) questInfoGroup.getScroll());
+		if (dataPadStack.hasTag()) {
+			dataPadStack.getTag().putShort("QuestInfoScroll", (short) questInfoGroup.getScroll());
 		}
-		MatterOverdrive.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
+		MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
 	}
 
 	@Override
 	public void handleElementButtonClick(MOElementBase element, String elementName, int mouseButton) {
 		super.handleElementButtonClick(element, elementName, mouseButton);
 		if (elementName.equalsIgnoreCase("complete_quest")) {
-			MatterOverdrive.NETWORK.sendToServer(new PacketQuestActions(PacketQuestActions.QUEST_ACTION_COMPLETE,
-					quests.getSelectedIndex(), Minecraft.getMinecraft().player));
+			MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketQuestActions(PacketQuestActions.QUEST_ACTION_COMPLETE,
+					quests.getSelectedIndex(), Minecraft.getInstance().player));
 		} else if (elementName.equalsIgnoreCase("abandon_quest")) {
-			MatterOverdrive.NETWORK.sendToServer(new PacketQuestActions(PacketQuestActions.QUEST_ACTION_ABONDON,
-					quests.getSelectedIndex(), Minecraft.getMinecraft().player));
+			MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketQuestActions(PacketQuestActions.QUEST_ACTION_ABONDON,
+					quests.getSelectedIndex(), Minecraft.getInstance().player));
 		}
 	}
 }

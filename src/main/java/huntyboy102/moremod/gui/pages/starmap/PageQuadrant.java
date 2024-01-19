@@ -32,7 +32,7 @@ public class PageQuadrant extends ElementBaseGroup implements IListHandler {
 		Quadrant quadrant = GalaxyClient.getInstance().getTheGalaxy().getQuadrant(starMap.getDestination());
 		if (quadrant != null) {
 			for (Star star : quadrant.getStars()) {
-				Color color = StarMapRendererStars.getStarColor(star, Minecraft.getMinecraft().player);
+				Color color = StarMapRendererStars.getStarColor(star, Minecraft.getInstance().player);
 				starList.addElement(new ElementStarEntry((GuiStarMap) gui, starList, 128 + 64, 32, star));
 
 				if (starMap.getDestination().equals(star)) {

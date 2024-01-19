@@ -15,9 +15,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.gui.element.ElementBaseGroup;
 import huntyboy102.moremod.gui.element.MOElementBase;
 import huntyboy102.moremod.gui.element.MOElementButton;
+import net.minecraft.world.InteractionHand;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Level;
 import org.w3c.dom.Document;
@@ -25,7 +27,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
 import huntyboy102.moremod.gui.MOGuiBase;
 import huntyboy102.moremod.guide.GuideElementPage;
@@ -35,11 +37,9 @@ import huntyboy102.moremod.guide.MatterOverdriveGuide;
 import huntyboy102.moremod.network.packet.server.PacketDataPadCommands;
 import huntyboy102.moremod.util.MOLog;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 public class PageGuideDescription extends ElementBaseGroup {
 	private static final String SCROLL_RIGHT_ELEMENT_NAME = "scroll_right";
@@ -54,7 +54,7 @@ public class PageGuideDescription extends ElementBaseGroup {
 	private MOElementButton bt_scroll_right;
 	private MOElementButton bt_scroll_left;
 	private ItemStack dataPadStack;
-	private EnumHand hand;
+	private InteractionHand hand;
 
 	public PageGuideDescription(MOGuiBase gui, int posX, int posY, int width, int height, String name) {
 		super(gui, posX, posY, width, height);
@@ -88,37 +88,39 @@ public class PageGuideDescription extends ElementBaseGroup {
 		elements.add(bt_scroll_right);
 		elements.add(bt_return);
 
-		loadGuideInfo(MatterOverdrive.ITEMS.dataPad.getGuideID(dataPadStack));
+		loadGuideInfo(MatterOverdriveRewriteEdition.ITEMS.dataPad.getGuideID(dataPadStack));
 	}
 
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
-		if (MatterOverdrive.ITEMS.dataPad.getGuideID(dataPadStack) >= 0) {
-			boolean lastUnicodeFlag = Minecraft.getMinecraft().fontRenderer.getUnicodeFlag();
+		if (MatterOverdriveRewriteEdition.ITEMS.dataPad.getGuideID(dataPadStack) >= 0) {
+			boolean lastUnicodeFlag = Minecraft.getInstance().font.getUnicodeFlag();
 			// set unicode for smaller text and all characters
-			Minecraft.getMinecraft().fontRenderer.setUnicodeFlag(true);
+			Minecraft.getInstance().font.setUnicodeFlag(true);
 
 			if (tabID == 0) {
 				DrawDescription(mouseX, mouseY);
 			}
 
-			Minecraft.getMinecraft().fontRenderer.setUnicodeFlag(lastUnicodeFlag);
+			Minecraft.getInstance().font.setUnicodeFlag(lastUnicodeFlag);
 		}
 
 		super.drawForeground(mouseX, mouseY);
 	}
 
 	private void DrawDescription(int mouseX, int mouseY) {
+		PoseStack poseStack = new PoseStack();
+
 		if (scroll < pages.size() && scroll >= 0) {
 			int x = posX;
 			int y = posY;
 
 			if (pages.get(scroll) != null && scroll < pages.size()) {
-				GlStateManager.pushMatrix();
-				GlStateManager.translate(x, y, 0);
+				poseStack.pushPose();
+				poseStack.translate(x, y, 0);
 				IGuideElement element = pages.get(scroll);
 				element.drawElement(sizeX, mouseX - x, mouseY - y);
-				GlStateManager.popMatrix();
+				poseStack.popPose();
 			} else {
 				drawNoInfo();
 			}
@@ -130,8 +132,8 @@ public class PageGuideDescription extends ElementBaseGroup {
 	}
 
 	private void drawNoInfo() {
-		int noInfoWidth = getFontRenderer().getStringWidth("No Info...");
-		getFontRenderer().drawString("No Info...", sizeX / 2 - noInfoWidth / 2, sizeY / 2,
+		int noInfoWidth = getFontRenderer().width("No Info...");
+		getFontRenderer().draw(new PoseStack(), "No Info...", sizeX / 2 - noInfoWidth / 2, sizeY / 2,
 				Reference.COLOR_HOLO_RED.getColor());
 	}
 
@@ -157,7 +159,7 @@ public class PageGuideDescription extends ElementBaseGroup {
 			undo();
 		}
 
-		scroll = MathHelper.clamp(scroll, 0, pages.size() - 1);
+		scroll = Mth.clamp(scroll, 0, pages.size() - 1);
 	}
 
 	public void OpenGuide(int id, boolean writeToHistory) {
@@ -165,14 +167,14 @@ public class PageGuideDescription extends ElementBaseGroup {
 	}
 
 	public void OpenGuide(int id, int page, boolean writeToHistory) {
-		if (MatterOverdrive.ITEMS.dataPad.getGuideID(dataPadStack) != id) {
+		if (MatterOverdriveRewriteEdition.ITEMS.dataPad.getGuideID(dataPadStack) != id) {
 			if (writeToHistory) {
-				historyStack.push(new HistoryEntry(MatterOverdrive.ITEMS.dataPad.getGuideID(dataPadStack), scroll));
+				historyStack.push(new HistoryEntry(MatterOverdriveRewriteEdition.ITEMS.dataPad.getGuideID(dataPadStack), scroll));
 			}
 
 			loadGuideInfo(id);
-			MatterOverdrive.ITEMS.dataPad.setOpenGuide(dataPadStack, id);
-			MatterOverdrive.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
+			MatterOverdriveRewriteEdition.ITEMS.dataPad.setOpenGuide(dataPadStack, id);
+			MatterOverdriveRewriteEdition.NETWORK.sendToServer(new PacketDataPadCommands(hand, dataPadStack));
 			scroll = page;
 			tabID = 0;
 		}
@@ -217,7 +219,7 @@ public class PageGuideDescription extends ElementBaseGroup {
 				}
 			} else {
 				MOLog.warn("Guide Entry file for %s missing at: %s", entry.getDisplayName(),
-						entry.getDescriptionPath(Minecraft.getMinecraft().gameSettings.language));
+						entry.getDescriptionPath(Minecraft.getInstance().options.languageCode));
 			}
 		}
 	}
@@ -226,8 +228,8 @@ public class PageGuideDescription extends ElementBaseGroup {
 		if (element.hasAttribute("stylesheet")) {
 			try {
 				Map<String, String> styleMap = new HashMap<>();
-				InputStream stylesheetStream = Minecraft.getMinecraft().getResourceManager()
-						.getResource(new ResourceLocation(element.getAttribute("stylesheet"))).getInputStream();
+				InputStream stylesheetStream = Minecraft.getInstance().getResourceManager()
+						.getResource(new ResourceLocation(element.getAttribute("stylesheet"))).get().open();
 				String rawStyle = IOUtils.toString(stylesheetStream, "UTF-8");
 				rawStyle = rawStyle.replaceAll("\\r|\\n|\\s+", "");
 				rawStyle = rawStyle.replaceAll("(?s)/\\*.*?\\*/", ""); // remove comments
@@ -244,7 +246,7 @@ public class PageGuideDescription extends ElementBaseGroup {
 		return null;
 	}
 
-	public void setDataPadStack(EnumHand hand, ItemStack stack) {
+	public void setDataPadStack(InteractionHand hand, ItemStack stack) {
 		dataPadStack = stack;
 		this.hand = hand;
 	}
