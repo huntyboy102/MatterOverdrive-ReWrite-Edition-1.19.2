@@ -1,31 +1,32 @@
 
 package huntyboy102.moremod.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.entity.monster.EntityMeleeRougeAndroidMob;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.gui.element.android_station.ElementBioStat;
 import huntyboy102.moremod.gui.element.android_station.ElementDoubleHelix;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
-import matteroverdrive.api.android.BionicStatGuiInfo;
+import huntyboy102.moremod.api.android.BionicStatGuiInfo;
 import huntyboy102.moremod.api.android.IBioticStat;
 import huntyboy102.moremod.container.ContainerAndroidStation;
 import huntyboy102.moremod.container.slot.MOSlot;
 import huntyboy102.moremod.data.inventory.BionicSlot;
-import matteroverdrive.gui.element.*;
+import huntyboy102.moremod.gui.element.*;
 import huntyboy102.moremod.handler.ConfigurationHandler;
 import huntyboy102.moremod.proxy.ClientProxy;
 import huntyboy102.moremod.tile.TileEntityAndroidStation;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.core.Direction;
+import net.minecraft.ChatFormatting;
 
 public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 	private static int scrollX;
@@ -36,7 +37,7 @@ public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 	private ElementGroup2DScroll abilitiesGroup;
 	private ElementDoubleHelix doubleHelix;
 
-	public GuiAndroidStation(InventoryPlayer inventoryPlayer, TileEntityAndroidStation machine) {
+	public GuiAndroidStation(Inventory inventoryPlayer, TileEntityAndroidStation machine) {
 		super(new ContainerAndroidStation(inventoryPlayer, machine), machine, 364, 280);
 		texW = 255;
 		texH = 237;
@@ -82,22 +83,22 @@ public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 		 * addStat(androidPlayer,OverdriveBioticStats.flotation,0,5,null);
 		 * 
 		 * addStat(androidPlayer,OverdriveBioticStats.speed,6,3,null);
-		 * addStat(androidPlayer,OverdriveBioticStats.highJump,6,1,EnumFacing.DOWN,true)
-		 * ; addStat(androidPlayer,OverdriveBioticStats.equalizer,6,0,EnumFacing.DOWN);
+		 * addStat(androidPlayer,OverdriveBioticStats.highJump,6,1,Direction.DOWN,true)
+		 * ; addStat(androidPlayer,OverdriveBioticStats.equalizer,6,0,Direction.DOWN);
 		 * addStat(androidPlayer, OverdriveBioticStats.nanobots, 3, 3, null);
-		 * addStat(androidPlayer,OverdriveBioticStats.nanoArmor,3,5,EnumFacing.UP,true);
-		 * addStat(androidPlayer,OverdriveBioticStats.shield,3,6,EnumFacing.UP);
-		 * addStat(androidPlayer,OverdriveBioticStats.cloak,3,7,EnumFacing.UP);
-		 * addStat(androidPlayer,OverdriveBioticStats.attack,3,1,EnumFacing.DOWN,true);
-		 * addStat(androidPlayer,OverdriveBioticStats.flashCooling,3,0,EnumFacing.DOWN);
-		 * addStat(androidPlayer,OverdriveBioticStats.shockwave,3,-1,EnumFacing.DOWN);
+		 * addStat(androidPlayer,OverdriveBioticStats.nanoArmor,3,5,Direction.UP,true);
+		 * addStat(androidPlayer,OverdriveBioticStats.shield,3,6,Direction.UP);
+		 * addStat(androidPlayer,OverdriveBioticStats.cloak,3,7,Direction.UP);
+		 * addStat(androidPlayer,OverdriveBioticStats.attack,3,1,Direction.DOWN,true);
+		 * addStat(androidPlayer,OverdriveBioticStats.flashCooling,3,0,Direction.DOWN);
+		 * addStat(androidPlayer,OverdriveBioticStats.shockwave,3,-1,Direction.DOWN);
 		 * 
 		 * addStat(androidPlayer,OverdriveBioticStats.minimap,7,5,null);
 		 */
 
 		// addStats(AndroidPlayer.get(Minecraft.getMinecraft().player));
 
-		for (IBioticStat stat : MatterOverdrive.STAT_REGISTRY.getStats()) {
+		for (IBioticStat stat : MatterOverdriveRewriteEdition.STAT_REGISTRY.getStats()) {
 			int unlockedLevel = androidPlayer.getUnlockedLevel(stat);
 			BionicStatGuiInfo guiInfo = stat.getGuiInfo(androidPlayer, unlockedLevel);
 			if (guiInfo != null) {
@@ -109,14 +110,14 @@ public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 			}
 		}
 
-		mob = new EntityMeleeRougeAndroidMob(Minecraft.getMinecraft().world);
-		mob.getEntityData().setBoolean("Hologram", true);
+		mob = new EntityMeleeRougeAndroidMob(Minecraft.getInstance().level);
+		mob.getEntityData().putBoolean("Hologram", true);
 
 		hudConfigs = new MOElementButtonScaled(this, this, 48, 64, "hud_configs", 128, 24);
 		hudConfigs.setText("HUD Options");
 	}
 
-	public void addStat(AndroidPlayer androidPlayer, IBioticStat stat, int x, int y, EnumFacing direction,
+	public void addStat(AndroidPlayer androidPlayer, IBioticStat stat, int x, int y, Direction direction,
 			boolean strong) {
 		ElementBioStat elemStat = new ElementBioStat(this, 0, 0, stat, androidPlayer.getUnlockedLevel(stat),
 				androidPlayer);
@@ -126,7 +127,7 @@ public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 		// stats.add(elemStat);
 	}
 
-	public void addStat(AndroidPlayer androidPlayer, IBioticStat stat, int x, int y, EnumFacing direction) {
+	public void addStat(AndroidPlayer androidPlayer, IBioticStat stat, int x, int y, Direction direction) {
 		addStat(androidPlayer, stat, x, y, direction, false);
 	}
 
@@ -153,28 +154,30 @@ public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+        PoseStack poseStack = new PoseStack();
+
 		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 
 		scrollX = abilitiesGroup.getScrollX();
 		scrollY = abilitiesGroup.getScrollY();
 
 		if (pages.get(0).isVisible()) {
-			GlStateManager.pushMatrix();
-			GlStateManager.translate(0, 0, 300);
+            poseStack.pushPose();
+            poseStack.translate(0, 0, 300);
 			drawEntityOnScreen(280, ySize - 25, 50, -this.mouseX + 280, -this.mouseY + ySize - 100, mc.player);
-			GlStateManager.popMatrix();
+            poseStack.popPose();
 
-			String info = Minecraft.getMinecraft().player.experienceLevel + " XP";
-			GlStateManager.disableLighting();
+			String info = Minecraft.getInstance().player.experienceLevel + " XP";
+			RenderSystem.disableLighting();
 			int width = fontRenderer.getStringWidth(info);
-			fontRenderer.drawString(TextFormatting.GREEN + info, 280 - width / 2, ySize - 20, 0xFFFFFF);
+			fontRenderer.drawString(ChatFormatting.GREEN + info, 280 - width / 2, ySize - 20, 0xFFFFFF);
 		}
 	}
 
 	public void handleElementButtonClick(MOElementBase element, String elementName, int mouseButton) {
 		super.handleElementButtonClick(element, elementName, mouseButton);
 		if (element.equals(hudConfigs)) {
-			Minecraft.getMinecraft().displayGuiScreen(new GuiConfig(this, ConfigurationHandler.CATEGORY_ANDROID_HUD));
+			Minecraft.getInstance().screen(new GuiConfig(this, ConfigurationHandler.CATEGORY_ANDROID_HUD));
 		}
 	}
 
@@ -189,22 +192,24 @@ public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 	 * @param mouseY
 	 * @param ent
 	 */
-	private void drawEntityOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, EntityLivingBase ent) {
-		GlStateManager.enableDepth();
-		GlStateManager.depthMask(true);
-		GlStateManager.enableColorMaterial();
-		GlStateManager.pushMatrix();
-		GlStateManager.translate((float) posX, (float) posY, 1f);
-		GlStateManager.scale((float) (-scale), (float) scale, (float) scale);
-		GlStateManager.rotate(180.0F, 180.0F, 0.0F, 1.0F);
+	private void drawEntityOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, LivingEntity ent) {
+        PoseStack poseStack = new PoseStack();
+
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(true);
+        RenderSystem.enableColorLogicOp();
+        poseStack.pushPose();
+        poseStack.translate((float) posX, (float) posY, 1f);
+        poseStack.scale((float) (-scale), (float) scale, (float) scale);
+        poseStack.rotate(180.0F, 180.0F, 0.0F, 1.0F);
 		float f = ent.renderYawOffset;
 		float f1 = ent.rotationYaw;
 		float f2 = ent.rotationPitch;
 		float f3 = ent.prevRotationYawHead;
 		float f4 = ent.rotationYawHead;
-		GlStateManager.rotate(ent.world.getWorldTime(), 0.0F, 1.0F, 0.0F);
+		poseStack.rotate(ent.world.getWorldTime(), 0.0F, 1.0F, 0.0F);
 		RenderHelper.enableStandardItemLighting();
-		GlStateManager.rotate(-135.0F, 0.0F, 1.0F, 0.0F);
+		poseStack.rotate(-135.0F, 0.0F, 1.0F, 0.0F);
 		// GlStateManager.rotate(-((float)Math.atan((double)(mouseY / 40.0F))) * 20.0F,
 		// 1.0F, 0.0F, 0.0F);
 		ent.renderYawOffset = 0;
@@ -212,8 +217,8 @@ public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 		ent.rotationPitch = -((float) Math.atan((double) (mouseY / 40.0F))) * 20.0F;
 		ent.rotationYawHead = ent.rotationYaw;
 		ent.prevRotationYawHead = ent.rotationYaw;
-		GlStateManager.translate(0.0F, 0.0F, 0.0F);
-		RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
+		poseStack.translate(0.0F, 0.0F, 0.0F);
+		RenderManager rendermanager = Minecraft.getInstance().getRenderManager();
 		rendermanager.setPlayerViewY(180.0F);
 		rendermanager.setRenderShadow(false);
 		rendermanager.renderEntity(ent, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, false);
@@ -223,11 +228,11 @@ public class GuiAndroidStation extends MOGuiMachine<TileEntityAndroidStation> {
 		ent.rotationPitch = f2;
 		ent.prevRotationYawHead = f3;
 		ent.rotationYawHead = f4;
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 		RenderHelper.disableStandardItemLighting();
 		GlStateManager.disableRescaleNormal();
-		GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-		GlStateManager.disableTexture2D();
-		GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+		RenderSystem.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+		RenderSystem.disableTexture();
+		RenderSystem.setActiveTexture(OpenGlHelper.defaultTexUnit);
 	}
 }

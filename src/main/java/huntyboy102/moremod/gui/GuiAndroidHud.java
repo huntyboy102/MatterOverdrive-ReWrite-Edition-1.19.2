@@ -1,19 +1,25 @@
 
 package huntyboy102.moremod.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.math.Vector3f;
 import huntyboy102.moremod.entity.android_player.AndroidPlayer;
 import huntyboy102.moremod.entity.player.MOPlayerCapabilityProvider;
 import huntyboy102.moremod.gui.config.EnumConfigProperty;
-import matteroverdrive.MatterOverdrive;
+import huntyboy102.moremod.MatterOverdriveRewriteEdition;
 import huntyboy102.moremod.Reference;
-import matteroverdrive.animation.AnimationSegmentText;
-import matteroverdrive.animation.AnimationTextTyping;
+import huntyboy102.moremod.animation.AnimationSegmentText;
+import huntyboy102.moremod.animation.AnimationTextTyping;
 import huntyboy102.moremod.api.android.IBioticStat;
 import huntyboy102.moremod.api.weapon.IWeapon;
 import huntyboy102.moremod.client.data.Color;
 import huntyboy102.moremod.client.render.HoloIcon;
 import huntyboy102.moremod.client.render.RenderMatterScannerInfoHandler;
-import matteroverdrive.gui.android.*;
+import huntyboy102.moremod.gui.android.*;
 import huntyboy102.moremod.handler.ConfigurationHandler;
 import huntyboy102.moremod.init.OverdriveBioticStats;
 import huntyboy102.moremod.proxy.ClientProxy;
@@ -23,20 +29,16 @@ import huntyboy102.moremod.util.RenderUtils;
 import huntyboy102.moremod.util.math.MOMathHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.shader.ShaderGroup;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.ShaderGroup;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -46,7 +48,7 @@ import java.util.Random;
 
 import static org.lwjgl.opengl.GL11.*;
 
-@SideOnly(Side.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 	public static final ResourceLocation glitch_tex = new ResourceLocation(Reference.PATH_GUI + "glitch.png");
 	public static final ResourceLocation spinner_tex = new ResourceLocation(Reference.PATH_ELEMENTS + "spinner.png");
@@ -120,7 +122,7 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 
 		AndroidPlayer android = MOPlayerCapabilityProvider.GetAndroidCapability(mc.player);
 
-		if ((mc.currentScreen instanceof GuiDialog || mc.currentScreen instanceof GuiStarMap)
+		if ((mc.screen instanceof GuiDialog || mc.screen instanceof GuiStarMap)
 				&& !event.getType().equals(RenderGameOverlayEvent.ElementType.ALL) && event.isCancelable()) {
 			event.setCanceled(true);
 			return;
@@ -145,27 +147,27 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 			}
 		}
 
-		if ((android.isAndroid() || (!mc.player.getHeldItem(EnumHand.MAIN_HAND).isEmpty()
-				&& mc.player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IWeapon)) && event.isCancelable()
+		if ((android.isAndroid() || (!mc.player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()
+				&& mc.player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof IWeapon)) && event.isCancelable()
 				&& event.getType() == RenderGameOverlayEvent.ElementType.CROSSHAIRS) {
 			event.setCanceled(true);
 
 			if ((!showRadial)) {
-				if (mc.player.getHeldItem(EnumHand.MAIN_HAND) != null) {
-					if (mc.player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IWeapon
-							&& ((IWeapon) mc.player.getHeldItem(EnumHand.MAIN_HAND).getItem()).isWeaponZoomed(mc.player,
-									mc.player.getHeldItem(EnumHand.MAIN_HAND))) {
+				if (mc.player.getItemInHand(InteractionHand.MAIN_HAND) != null) {
+					if (mc.player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof IWeapon
+							&& ((IWeapon) mc.player.getItemInHand(InteractionHand.MAIN_HAND).getItem()).isWeaponZoomed(mc.player,
+									mc.player.getItemInHand(InteractionHand.MAIN_HAND))) {
 					} else {
 						renderCrosshair(event);
 					}
 				}
 			}
 
-			mc.getTextureManager().bindTexture(Gui.ICONS);
+			mc.getTextureManager().bindForSetup(Gui.GUI_ICONS_LOCATION);
 		} else if (event.getType() == RenderGameOverlayEvent.ElementType.HOTBAR) {
-			GlStateManager.clear(GL_DEPTH_BUFFER_BIT);
-			GlStateManager.enableDepth();
-			GlStateManager.enableBlend();
+			RenderSystem.clear(GL_DEPTH_BUFFER_BIT, true);
+			RenderSystem.enableDepthTest();
+			RenderSystem.enableBlend();
 			renderHud(event);
 
 			if (android.isAndroid()) {
@@ -185,60 +187,64 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 	}
 
 	public void renderCrosshair(RenderGameOverlayEvent event) {
-		GlStateManager.pushMatrix();
+		PoseStack poseStack = new PoseStack();
+
+		poseStack.pushPose();
 		float scale = 6 + ClientProxy.instance().getClientWeaponHandler()
-				.getEquippedWeaponAccuracyPercent(Minecraft.getMinecraft().player) * 256;
-		GlStateManager.enableBlend();
-		GlStateManager.tryBlendFuncSeparate(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0);
-		GlStateManager.enableAlpha();
+				.getEquippedWeaponAccuracyPercent(Minecraft.getInstance().player) * 256;
+		RenderSystem.enableBlend();
+		RenderSystem.blendFuncSeparate(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0);
 		// RenderUtils.applyColorWithMultipy(Reference.COLOR_HOLO,0.5f);
-		GlStateManager.color(1, 1, 1);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 		crosshairIcon = ClientProxy.holoIcons.getIcon("crosshair");
-		GlStateManager.translate(event.getResolution().getScaledWidth() / 2,
+		poseStack.translate(event.getResolution().getScaledWidth() / 2,
 				event.getResolution().getScaledHeight() / 2, 0);
 		ClientProxy.holoIcons.bindSheet();
 		// Right
-		GlStateManager.rotate(90, 0, 0, 1);
+		poseStack.mulPose(Vector3f.ZP.rotation(90));
 		ClientProxy.holoIcons.renderIcon(crosshairIcon, -1, -scale);
 		// Bottom
-		GlStateManager.rotate(90, 0, 0, 1);
+		poseStack.mulPose(Vector3f.ZP.rotation(90));
 		ClientProxy.holoIcons.renderIcon(crosshairIcon, -2, -scale);
 		// Left
-		GlStateManager.rotate(90, 0, 0, 1);
+		poseStack.mulPose(Vector3f.ZP.rotation(90));
 		ClientProxy.holoIcons.renderIcon(crosshairIcon, -1.8, -scale + 1);
 		// Top
-		GlStateManager.rotate(90, 0, 0, 1);
+		poseStack.mulPose(Vector3f.ZP.rotation(90));
 		ClientProxy.holoIcons.renderIcon(crosshairIcon, -1, -scale + 1);
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 	}
 
 	public void renderRadialMenu(RenderGameOverlayEvent event) {
+		PoseStack poseStack = new PoseStack();
+
 		if (this.mc.player.isSpectator()) {
 			return;
 		}
 
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(event.getResolution().getScaledWidth() / 2,
+		poseStack.pushPose();
+		poseStack.translate(event.getResolution().getScaledWidth() / 2,
 				event.getResolution().getScaledHeight() / 2, 0);
 		double scale = MOMathHelper.easeIn(GuiAndroidHud.radialAnimationTime, 0, 1, 1);
-		GlStateManager.scale(scale, scale, scale);
+		poseStack.scale(scale, scale, scale);
 		ClientProxy.holoIcons.bindSheet();
-		AndroidPlayer androidPlayer = MOPlayerCapabilityProvider.GetAndroidCapability(Minecraft.getMinecraft().player);
+		AndroidPlayer androidPlayer = MOPlayerCapabilityProvider.GetAndroidCapability(Minecraft.getInstance().player);
 
 		stats.clear();
-		for (IBioticStat stat : MatterOverdrive.STAT_REGISTRY.getStats()) {
+		for (IBioticStat stat : MatterOverdriveRewriteEdition.STAT_REGISTRY.getStats()) {
 			if (stat.showOnWheel(androidPlayer, androidPlayer.getUnlockedLevel(stat))
 					&& androidPlayer.isUnlocked(stat, 0)) {
 				stats.add(stat);
 			}
 		}
-		GlStateManager.pushMatrix();
-		GlStateManager.color(1, 1, 1, 1);
+
+		poseStack.pushPose();
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 		// GlStateManager.blendFunc(GL_ONE, GL_ONE);
-		GlStateManager.rotate((float) radialAngle, 0, 0, -1);
+		poseStack.mulPose(Vector3f.ZN.rotation((float) radialAngle));
 		RenderUtils.applyColorWithAlpha(baseGuiColor, 1f);
 		ClientProxy.holoIcons.renderIcon("up_arrow_large", -9, -50);
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 
 		int i = 0;
 		for (IBioticStat stat : stats) {
@@ -251,51 +257,49 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 			radiusMin = radius - 16;
 			radiusMax = radius + 16;
 
-			GlStateManager.disableTexture2D();
-			GlStateManager.disableAlpha();
-			GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			RenderSystem.disableTexture();
+			RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			if (stat.equals(androidPlayer.getActiveStat())) {
 				radiusMax = radius + 20;
 				radiusMin = radius - 16;
-				GlStateManager.color(0, 0, 0, 0.6f);
+				RenderSystem.setShaderColor(0, 0, 0, 0.6f);
 			} else {
-				GlStateManager.color(0, 0, 0, 0.4f);
+				RenderSystem.setShaderColor(0, 0, 0, 0.4f);
 			}
-			BufferBuilder wr = Tessellator.getInstance().getBuffer();
-			wr.begin(7, DefaultVertexFormats.POSITION);
+			BufferBuilder wr = Tesselator.getInstance().getBuilder();
+			wr.begin(7, DefaultVertexFormat.POSITION);
 			for (int c = 0; c < 32; c++) {
 				angleAb = ((angleSeg) / 32d);
 				angleCircle = c * angleAb + angle - angleSeg / 2;
-				wr.pos(Math.sin(angleCircle) * radiusMax, Math.cos(angleCircle) * radiusMax, -1).endVertex();
-				wr.pos(Math.sin(angleCircle + angleAb) * radiusMax, Math.cos(angleCircle + angleAb) * radiusMax, -1)
+				wr.vertex(Math.sin(angleCircle) * radiusMax, Math.cos(angleCircle) * radiusMax, -1).endVertex();
+				wr.vertex(Math.sin(angleCircle + angleAb) * radiusMax, Math.cos(angleCircle + angleAb) * radiusMax, -1)
 						.endVertex();
-				wr.pos(Math.sin(angleCircle + angleAb) * radiusMin, Math.cos(angleCircle + angleAb) * radiusMin, -1)
+				wr.vertex(Math.sin(angleCircle + angleAb) * radiusMin, Math.cos(angleCircle + angleAb) * radiusMin, -1)
 						.endVertex();
-				wr.pos(Math.sin(angleCircle) * radiusMin, Math.cos(angleCircle) * radiusMin, -1).endVertex();
+				wr.vertex(Math.sin(angleCircle) * radiusMin, Math.cos(angleCircle) * radiusMin, -1).endVertex();
 			}
-			Tessellator.getInstance().draw();
+			Tesselator.getInstance().end();
 
 			radiusMax = radius - 20;
 			radiusMin = radius - 25;
-			wr.begin(7, DefaultVertexFormats.POSITION);
-			GlStateManager.color(0, 0, 0, 0.2f);
+			wr.begin(7, DefaultVertexFormat.POSITION);
+			RenderSystem.setShaderColor(0, 0, 0, 0.2f);
 			for (int c = 0; c < 32; c++) {
 				angleAb = ((Math.PI * 2) / 32d);
 				angleCircle = c * angleAb;
-				wr.pos(Math.sin(angleCircle) * radiusMax, Math.cos(angleCircle) * radiusMax, -1).endVertex();
-				wr.pos(Math.sin(angleCircle + angleAb) * radiusMax, Math.cos(angleCircle + angleAb) * radiusMax, -1)
+				wr.vertex(Math.sin(angleCircle) * radiusMax, Math.cos(angleCircle) * radiusMax, -1).endVertex();
+				wr.vertex(Math.sin(angleCircle + angleAb) * radiusMax, Math.cos(angleCircle + angleAb) * radiusMax, -1)
 						.endVertex();
-				wr.pos(Math.sin(angleCircle + angleAb) * radiusMin, Math.cos(angleCircle + angleAb) * radiusMin, -1)
+				wr.vertex(Math.sin(angleCircle + angleAb) * radiusMin, Math.cos(angleCircle + angleAb) * radiusMin, -1)
 						.endVertex();
-				wr.pos(Math.sin(angleCircle) * radiusMin, Math.cos(angleCircle) * radiusMin, -1).endVertex();
+				wr.vertex(Math.sin(angleCircle) * radiusMin, Math.cos(angleCircle) * radiusMin, -1).endVertex();
 			}
-			Tessellator.getInstance().draw();
-			GlStateManager.enableTexture2D();
+			Tesselator.getInstance().end();
+			RenderSystem.enableTexture();
 
-			// GlStateManager.blendFunc(GL_ONE, GL_ONE);
-			GlStateManager.enableAlpha();
-			GlStateManager.enableDepth();
+			// RenderSystem.blendFunc(GL_ONE, GL_ONE);
+			RenderSystem.enableDepthTest();
 
 			ClientProxy.holoIcons.bindSheet();
 			if (androidPlayer.getActiveStat() != null) {
@@ -305,9 +309,9 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 					y = Math.cos(angle) * radius;
 					ClientProxy.holoIcons.renderIcon(stat.getIcon(0), -12 + x, -12 + y);
 					String statName = stat.getDisplayName(androidPlayer, androidPlayer.getUnlockedLevel(stat));
-					int statNameWidth = Minecraft.getMinecraft().fontRenderer.getStringWidth(statName);
-					GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					Minecraft.getMinecraft().fontRenderer.drawString(statName, -statNameWidth / 2, -5,
+					int statNameWidth = Minecraft.getInstance().font.width(statName);
+					RenderSystem.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					Minecraft.getInstance().font.drawString(statName, -statNameWidth / 2, -5,
 							Reference.COLOR_HOLO.getColor());
 				} else {
 					x = Math.sin(angle) * radius;
@@ -319,12 +323,12 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 
 			i++;
 		}
-		GlStateManager.enableDepth();
-		GlStateManager.enableAlpha();
-		GlStateManager.popMatrix();
+		RenderSystem.enableDepthTest();
+		poseStack.popPose();
 	}
 
 	public void renderHud(RenderGameOverlayEvent event) {
+		PoseStack poseStack = new PoseStack();
 		if (this.mc.player.isSpectator()) {
 			return;
 		}
@@ -335,41 +339,41 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 
 			if (android.isAndroid()) {
 
-				GlStateManager.pushMatrix();
+				poseStack.pushPose();
 
 				if (OverdriveBioticStats.cloak.isActive(android, 0)) {
-					GlStateManager.enableBlend();
-					GlStateManager.blendFunc(GL_DST_COLOR, GL_ZERO);
+					RenderSystem.enableBlend();
+					RenderSystem.blendFunc(GL_DST_COLOR, GL_ZERO);
 					mc.renderEngine.bindTexture(cloak_overlay);
 					RenderUtils.drawPlane(0, 0, -100, event.getResolution().getScaledWidth_double(),
 							event.getResolution().getScaledHeight_double());
 				}
 
-				if (hudMovement && !this.mc.player.isPlayerSleeping()) {
+				if (hudMovement && !this.mc.player.isSleeping()) {
 					hudRotationYawSmooth = mc.player.prevRenderArmYaw
 							+ (mc.player.renderArmYaw - mc.player.prevRenderArmYaw) * event.getPartialTicks();
 					hudRotationPitchSmooth = mc.player.prevRenderArmPitch
 							+ (mc.player.renderArmPitch - mc.player.prevRenderArmPitch) * event.getPartialTicks();
-					GlStateManager.translate((hudRotationYawSmooth - mc.player.rotationYaw) * 0.2f,
+					poseStack.translate((hudRotationYawSmooth - mc.player.rotationYaw) * 0.2f,
 							(hudRotationPitchSmooth - mc.player.rotationPitch) * 0.2f, 0);
 				}
 
 				for (IAndroidHudElement element : hudElements) {
 					if (element.isVisible(android)) {
-						GlStateManager.pushMatrix();
+						poseStack.pushPose();
 						int elementWidth = (int) (element.getWidth(event.getResolution(), android)
 								* element.getPosition().x);
-						GlStateManager.translate(
+						poseStack.translate(
 								element.getPosition().x * event.getResolution().getScaledWidth_double() - elementWidth,
 								element.getPosition().y * event.getResolution().getScaledHeight_double()
 										- element.getHeight(event.getResolution(), android) * element.getPosition().y,
 								0);
 						element.drawElement(android, event.getResolution(), event.getPartialTicks());
-						GlStateManager.popMatrix();
+						poseStack.popPose();
 					}
 				}
-				GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-				GlStateManager.popMatrix();
+				RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+				poseStack.popPose();
 
 				renderHurt(android, event);
 			} else {
@@ -381,6 +385,7 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 	}
 
 	private void renderTransformAnimation(AndroidPlayer player, RenderGameOverlayEvent event) {
+		PoseStack poseStack = new PoseStack();
 		int centerX = event.getResolution().getScaledWidth() / 2;
 		int centerY = event.getResolution().getScaledHeight() / 2 - 30;
 		int maxTime = AndroidPlayer.TRANSFORM_TIME;
@@ -392,18 +397,18 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 		}
 
 		String info = textTyping.getString();
-		int width = mc.fontRenderer.getStringWidth(info);
-		mc.fontRenderer.drawString(info, centerX - width / 2, centerY - 28, Reference.COLOR_HOLO.getColor());
+		int width = mc.font.width(info);
+		mc.font.drawString(info, centerX - width / 2, centerY - 28, Reference.COLOR_HOLO.getColor());
 
 		mc.renderEngine.bindTexture(spinner_tex);
-		GlStateManager.pushMatrix();
-		GlStateManager.translate(centerX, centerY, 0);
-		GlStateManager.rotate(mc.world.getWorldTime() * 10, 0, 0, -1);
-		GlStateManager.translate(-16, -16, 0);
+		poseStack.pushPose();
+		poseStack.translate(centerX, centerY, 0);
+		poseStack.mulPose(Vector3f.ZN.rotation(mc.level.getDayTime() * 10));
+		poseStack.translate(-16, -16, 0);
 		drawModalRectWithCustomSizedTexture(0, 0, 0, 0, 32, 32, 32, 32);
-		GlStateManager.popMatrix();
+		poseStack.popPose();
 
-		mc.fontRenderer.drawString(Math.round(textTyping.getPercent() * 100) + "%", centerX - 6, centerY - 3,
+		mc.font.drawString(Math.round(textTyping.getPercent() * 100) + "%", centerX - 6, centerY - 3,
 				Reference.COLOR_HOLO.getColor());
 	}
 
@@ -414,10 +419,10 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 	}
 
 	public void renderGlitch(AndroidPlayer player, RenderGameOverlayEvent event) {
-		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(GL_ONE, GL_ONE);
-		GlStateManager.disableDepth();
-		GlStateManager.color(1, 1, 1);
+		RenderSystem.enableBlend();
+		RenderSystem.blendFunc(GL_ONE, GL_ONE);
+		RenderSystem.disableDepthTest();
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 		mc.renderEngine.bindTexture(glitch_tex);
 		RenderUtils.drawPlaneWithUV(0, 0, -100, event.getResolution().getScaledWidth(),
 				event.getResolution().getScaledHeight(), random.nextGaussian(), random.nextGaussian(), 1, 1);

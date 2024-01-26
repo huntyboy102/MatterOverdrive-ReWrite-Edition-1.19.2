@@ -9,12 +9,12 @@ import huntyboy102.moremod.container.ContainerAndroidSpawner;
 import huntyboy102.moremod.container.slot.MOSlot;
 import huntyboy102.moremod.tile.TileEntityAndroidSpawner;
 import huntyboy102.moremod.util.MOStringHelper;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.world.entity.player.Inventory;
 
 public class GuiAndroidSpawner extends MOGuiMachine<TileEntityAndroidSpawner> {
 	private MOElementButtonScaled deleteAllBt;
 
-	public GuiAndroidSpawner(InventoryPlayer inventoryPlayer, TileEntityAndroidSpawner machine) {
+	public GuiAndroidSpawner(Inventory inventoryPlayer, TileEntityAndroidSpawner machine) {
 		super(new ContainerAndroidSpawner(inventoryPlayer, machine), machine);
 		deleteAllBt = new MOElementButtonScaled(this, this, 64, 32 + 28, "delete_all", 60, 20);
 		deleteAllBt.setText("KIll All");
@@ -51,7 +51,7 @@ public class GuiAndroidSpawner extends MOGuiMachine<TileEntityAndroidSpawner> {
 					Reference.COLOR_HOLO.getColor());
 			int spawnDelay = machine.getSpawnDelay();
 			if (spawnDelay > 0) {
-				int spawnTime = spawnDelay - (int) (machine.getWorld().getTotalWorldTime() % spawnDelay);
+				int spawnTime = spawnDelay - (int) (machine.getLevel().getGameTime() % spawnDelay);
 				getFontRenderer().drawString(
 						String.format("Time to next spawn: %s", MOStringHelper.formatRemainingTime(spawnTime / 20f)),
 						54, 68 + 16, Reference.COLOR_HOLO.getColor());
