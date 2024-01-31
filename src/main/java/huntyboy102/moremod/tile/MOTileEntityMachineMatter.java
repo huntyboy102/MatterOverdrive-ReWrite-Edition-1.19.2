@@ -15,7 +15,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnergy {
 	protected MachineMatterStorage<MOTileEntityMachineMatter> matterStorage;
@@ -94,7 +96,7 @@ public abstract class MOTileEntityMachineMatter extends MOTileEntityMachineEnerg
 	@Nonnull
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
+	public @NotNull <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
 		if (capability == MatterOverdriveCapabilities.MATTER_HANDLER
 				|| capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
 			return (T) matterStorage;

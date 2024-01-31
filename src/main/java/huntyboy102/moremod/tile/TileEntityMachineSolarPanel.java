@@ -12,7 +12,9 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.LightLayer;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 	public static final int CHARGE_AMOUNT = 8;
@@ -159,7 +161,7 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 	@Nonnull
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
+	public @NotNull <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
 		if (capability == CapabilityEnergy.ENERGY) {
 			return (T) energyStorage;
 		}

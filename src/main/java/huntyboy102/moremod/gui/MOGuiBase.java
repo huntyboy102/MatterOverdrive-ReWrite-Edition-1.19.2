@@ -10,10 +10,10 @@ import huntyboy102.moremod.container.IButtonHandler;
 import huntyboy102.moremod.container.MOBaseContainer;
 import huntyboy102.moremod.container.slot.SlotPlayerInventory;
 import huntyboy102.moremod.data.ScaleTexture;
-import matteroverdrive.gui.element.*;
+import huntyboy102.moremod.gui.element.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -21,8 +21,8 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import org.lwjgl.input.Mouse;
@@ -178,7 +178,7 @@ public abstract class MOGuiBase extends GuiContainer
 		this.tooltip.clear();
 	}
 
-	protected void drawTooltipHoveringText(List<String> list, int x, int y, FontRenderer font) {
+	protected void drawTooltipHoveringText(List<String> list, int x, int y, Font font) {
 
 		if (list == null || list.isEmpty()) {
 			return;
@@ -575,7 +575,7 @@ public abstract class MOGuiBase extends GuiContainer
 		// this.fontRenderer = ClientProxy.moFontRender;
 	}
 
-	public FontRenderer getFontRenderer() {
+	public Font getFont() {
 		return this.fontRenderer;
 	}
 

@@ -37,9 +37,9 @@ public class MOGuiMachine<T extends MOTileEntityMachine> extends MOGuiBase {
 	}
 
 	public void registerPages(MOBaseContainer container, T machine) {
-		ElementBaseGroup homePage = new ElementBaseGroup(this, 0, 0, xSize, ySize);
+		ElementBaseGroup homePage = new ElementBaseGroup(this, 0, 0, texW, texH);
 		homePage.setName("Home");
-		AutoConfigPage configPage = new AutoConfigPage(this, 48, 32, xSize - 76, ySize);
+		AutoConfigPage configPage = new AutoConfigPage(this, 48, 32, texW - 76, texH);
 		configPage.setName("Configurations");
 
 		AddPage(homePage, ClientProxy.holoIcons.getIcon("page_icon_home"),
@@ -55,7 +55,7 @@ public class MOGuiMachine<T extends MOTileEntityMachine> extends MOGuiBase {
 			}
 		}
 		if (hasUpgrades) {
-			PageUpgrades upgradesPage = new PageUpgrades(this, 0, 0, xSize, ySize, container);
+			PageUpgrades upgradesPage = new PageUpgrades(this, 0, 0, texW, texH, container);
 			upgradesPage.setName("Upgrades");
 			AddPage(upgradesPage, ClientProxy.holoIcons.getIcon("page_icon_upgrades"),
 					MOStringHelper.translateToLocal("gui.tooltip.page.upgrades"));
@@ -96,7 +96,7 @@ public class MOGuiMachine<T extends MOTileEntityMachine> extends MOGuiBase {
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		if (name != null && !name.isEmpty()) {
 			String n = MOStringHelper.translateToLocal("gui." + name + ".name");
-			fontRenderer.drawString(n, 11 + xSize / 2 - (fontRenderer.getStringWidth(n) / 2), 7,
+			font.drawString(n, 11 + texW / 2 - (font.getStringWidth(n) / 2), 7,
 					Reference.COLOR_MATTER.getColor());
 		}
 

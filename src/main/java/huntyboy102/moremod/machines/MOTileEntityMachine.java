@@ -23,11 +23,12 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.joml.Vector3i;
 import org.joml.Vector4f;
 
 import huntyboy102.moremod.MatterOverdriveRewriteEdition;
@@ -814,7 +815,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 
 	@Nullable
 	@Override
-	public <T> T getCapability(Capability<T> capability, @Nullable Direction facing) {
+	public @NotNull <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
 		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 			if (facing == null)
 				return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventoryHandler);

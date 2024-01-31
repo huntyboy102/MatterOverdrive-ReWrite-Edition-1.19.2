@@ -20,7 +20,7 @@ public abstract class MOGuiNetworkMachine<T extends MOTileEntityMachine & IMatte
 
 	public void registerPages(MOBaseContainer container, T machine) {
 		super.registerPages(container, machine);
-		MatterNetworkConfigPage configPage = new MatterNetworkConfigPage(this, 48, 32, xSize - 76, ySize);
+		MatterNetworkConfigPage configPage = new MatterNetworkConfigPage(this, 48, 32, texW - 76, texH);
 		configPage.setName("Configurations");
 
 		pages.set(1, configPage);

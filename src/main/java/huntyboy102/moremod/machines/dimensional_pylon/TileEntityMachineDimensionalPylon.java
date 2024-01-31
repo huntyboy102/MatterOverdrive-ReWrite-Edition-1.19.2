@@ -39,11 +39,13 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.internal.FMLNetworkHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -506,7 +508,7 @@ public class TileEntityMachineDimensionalPylon extends MOTileEntityMachineMatter
 	@Nonnull
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
+	public @NotNull <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
 		if ((facing == null || facing == Direction.DOWN) && (capability == MatterOverdriveCapabilities.MATTER_HANDLER
 				|| capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)) {
 			return (T) matterStorage;
